@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.druvu</groupId>
+	<artifactId>jconsole-booster</artifactId>
+	<version>1.0.0-SNAPSHOT</version>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<java.version>17</java.version>
+
+		<launcher.name>JConsoleApp</launcher.name>
+	</properties>
+
+	<dependencies>
+
+
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.18.24</version>
+			<scope>provided</scope>
+		</dependency>
+
+
+		<dependency>
+			<groupId>org.glassfish.main.external</groupId>
+			<artifactId>jmxremote_optional-repackaged</artifactId>
+			<version>5.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<version>7.6.1</version>
+			<scope>test</scope>
+		</dependency>
+
+
+	</dependencies>
+
+	<build>
+		<plugins>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.10.0</version>
+				<configuration>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+					<encoding>UTF-8</encoding>
+					<debug>true</debug>
+					<showDeprecation>true</showDeprecation>
+					<showWarnings>true</showWarnings>
+					<optimize>true</optimize>
+					<fork>true</fork>
+					<compilerArgs>
+						<arg>--add-exports</arg>
+						<arg>java.base/sun.net.util=druvu.jconsole</arg>
+						<arg>--add-exports</arg>
+						<arg>jdk.jconsole/sun.tools.jconsole=druvu.jconsole</arg>
+						<arg>--add-exports</arg>
+						<arg>java.rmi/sun.rmi.server=druvu.jconsole</arg>
+						<arg>--add-exports</arg>
+						<arg>java.rmi/sun.rmi.transport=druvu.jconsole</arg>
+						<arg>--add-exports</arg>
+						<arg>jdk.internal.jvmstat/sun.jvmstat.monitor=druvu.jconsole</arg>
+						<arg>--add-exports</arg>
+						<arg>jdk.management.agent/jdk.internal.agent=druvu.jconsole</arg>
+						<arg>--add-exports</arg>
+						<arg>jdk.jconsole/tools.jconsole.inspector=druvu.jconsole</arg>
+
+					</compilerArgs>
+					<annotationProcessorPaths>
+						<path>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+							<version>1.18.24</version>
+						</path>
+					</annotationProcessorPaths>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>3.1.0</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<phase>verify</phase>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.2.0</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<version>3.0.0</version>
+				<executions>
+					<execution>
+						<id>enforce-versions</id>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<banDuplicatePomDependencyVersions/>
+								<banTransitiveDependencies>
+									<excludes>
+										<exclude>*:*:*:*:test:*</exclude>
+										<exclude>org.openjfx:*:*:*:*:*</exclude>
+									</excludes>
+								</banTransitiveDependencies>
+								<reactorModuleConvergence/>
+								<dependencyConvergence/>
+								<reactorModuleConvergence/>
+								<requireJavaVersion>
+									<version>${java.version}</version>
+								</requireJavaVersion>
+							</rules>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+		</plugins>
+	</build>
+
+
+</project>

@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="JConsole" type="Application" factoryName="Application" nameIsGenerated="true">
+    <option name="MAIN_CLASS_NAME" value="com.druvu.jconsole.JConsole" />
+    <module name="jconsole-booster" />
+    <option name="VM_PARAMETERS" value="--add-exports=jdk.internal.jvmstat/sun.jvmstat.monitor=druvu.jconsole --add-exports=jdk.management.agent/jdk.internal.agent=druvu.jconsole -Dswing.defaultlaf=javax.swing.plaf.nimbus.NimbusLookAndFeel" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

@@ -198,7 +198,7 @@ public class MBeansTab extends Tab implements
         // set up the split pane with the MBean tree and MBean sheet panels
         setLayout(new BorderLayout());
         JSplitPane mainSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        mainSplit.setDividerLocation(160);
+        mainSplit.setDividerLocation(400);
         mainSplit.setBorder(BorderFactory.createEmptyBorder());
 
         // set up the MBean tree panel (left pane)

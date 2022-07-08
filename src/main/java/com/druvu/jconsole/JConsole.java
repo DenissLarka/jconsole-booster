@@ -846,8 +846,8 @@ public class JConsole extends JFrame
 						new Rectangle(scrInsets.left, scrInsets.top,
 								scrSize.width - scrInsets.left - scrInsets.right,
 								scrSize.height - scrInsets.top - scrInsets.bottom);
-				int w = Math.min(900, scrBounds.width);
-				int h = Math.min(750, scrBounds.height);
+				int w = scrBounds.width;
+				int h = scrBounds.height;
 				jConsole.setBounds(scrBounds.x + (scrBounds.width - w) / 2,
 						scrBounds.y + (scrBounds.height - h) / 2,
 						w, h);

@@ -218,6 +218,7 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
         Tab tab = instantiate(tabInfo);
         if (tab != null) {
             addTab(tabInfo.name, tab);
+            setSelectedComponent(tab);
         } else {
             tabInfo.tabVisible = false;
         }

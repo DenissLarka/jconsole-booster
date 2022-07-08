@@ -43,8 +43,6 @@ import com.sun.tools.jconsole.JConsolePlugin;
  */
 module druvu.jconsole {
 
-    exports com.druvu.jconsole.inspector;
-
     requires java.management.rmi;
     requires java.rmi;
     requires jdk.attach;
@@ -55,6 +53,7 @@ module druvu.jconsole {
     requires transitive java.desktop;
     requires transitive java.management;
     requires jdk.jconsole;
+    requires org.beryx.awt.color;
 
     uses JConsolePlugin;
 }

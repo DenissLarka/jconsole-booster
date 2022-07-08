@@ -19,12 +19,10 @@
 
 
 		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<version>1.18.24</version>
-			<scope>provided</scope>
+			<groupId>org.beryx</groupId>
+			<artifactId>awt-color-factory</artifactId>
+			<version>1.0.2</version>
 		</dependency>
-
 
 		<dependency>
 			<groupId>org.glassfish.main.external</groupId>
@@ -39,6 +37,13 @@
 			<scope>test</scope>
 		</dependency>
 
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.18.24</version>
+			<scope>provided</scope>
+		</dependency>
+
 
 	</dependencies>
 
@@ -48,7 +53,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.10.0</version>
+				<version>3.10.1</version>
 				<configuration>
 					<source>${java.version}</source>
 					<target>${java.version}</target>
@@ -138,6 +143,30 @@
 									<version>${java.version}</version>
 								</requireJavaVersion>
 							</rules>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>3.0.0</version>
+				<!-- I.E mvn exec:exec@start -Dsq.env.type=dev -->
+				<!-- for interactive console use generated sh to start the db -->
+				<executions>
+					<execution>
+						<id>start</id>
+						<goals>
+							<goal>java</goal>
+						</goals>
+
+						<configuration>
+							<mainClass>com.druvu.jconsole.extra.JConsoleEx</mainClass>
+							<arguments>
+								<argument>--add-exports</argument>
+								<argument>jdk.jconsole/sun.tools.jconsole=druvu.jconsole</argument>
+							</arguments>
 						</configuration>
 					</execution>
 				</executions>

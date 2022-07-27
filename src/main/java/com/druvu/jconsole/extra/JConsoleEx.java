@@ -33,7 +33,9 @@ public class JConsoleEx {
 				}
 				if (args[i].indexOf(':') != -1) {
 					newArgs.add(possiblyAdaptUrl(args[i]));
+					continue;
 				}
+				newArgs.add(args[i]);
 			}
 		}
 		JConsole.main(newArgs.toArray(new String[0]));

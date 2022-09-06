@@ -43,7 +43,7 @@ import com.sun.tools.jconsole.JConsolePlugin;
  */
 module druvu.jconsole {
 
-    exports com.druvu.jconsole.inspector;
+    exports com.druvu.jconsole;
 
     requires java.management.rmi;
     requires java.rmi;

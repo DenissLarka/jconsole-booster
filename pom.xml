@@ -19,12 +19,10 @@
 
 
 		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<version>1.18.24</version>
-			<scope>provided</scope>
+			<groupId>org.beryx</groupId>
+			<artifactId>awt-color-factory</artifactId>
+			<version>1.0.2</version>
 		</dependency>
-
 
 		<dependency>
 			<groupId>org.glassfish.main.external</groupId>
@@ -39,6 +37,13 @@
 			<scope>test</scope>
 		</dependency>
 
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.18.24</version>
+			<scope>provided</scope>
+		</dependency>
+
 
 	</dependencies>
 
@@ -48,7 +53,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.10.0</version>
+				<version>3.10.1</version>
 				<configuration>
 					<source>${java.version}</source>
 					<target>${java.version}</target>
@@ -73,7 +78,6 @@
 						<arg>jdk.management.agent/jdk.internal.agent=druvu.jconsole</arg>
 						<arg>--add-exports</arg>
 						<arg>jdk.jconsole/tools.jconsole.inspector=druvu.jconsole</arg>
-
 					</compilerArgs>
 					<annotationProcessorPaths>
 						<path>
@@ -143,6 +147,44 @@
 				</executions>
 			</plugin>
 
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>3.0.0</version>
+
+				<executions>
+					<execution>
+						<id>start</id>
+						<goals>
+							<goal>java</goal>
+						</goals>
+
+						<configuration>
+							<includeProjectDependencies>true</includeProjectDependencies>
+							<mainClass>druvu.jconsole/com.druvu.jconsole.extra.JConsoleEx</mainClass>
+							<arguments>
+								<argument>--add-exports</argument>
+								<argument>jdk.jconsole/sun.tools.jconsole=druvu.jconsole</argument>
+								<argument>--add-exports</argument>
+								<argument>jdk.internal.jvmstat/sun.jvmstat.monitor=druvu.jconsole</argument>
+								<argument>--add-exports</argument>
+								<argument>jdk.management.agent/jdk.internal.agent=druvu.jconsole</argument>
+								<argument>--add-opens</argument>
+								<argument>jdk.internal.jvmstat/sun.jvmstat.monitor=ALL-UNNAMED</argument>
+								<argument>-c=#8BC6E1FF</argument>
+								<argument>-debug</argument>
+								<argument>localhost:5703</argument>
+							</arguments>
+							<systemProperties>
+								<systemProperty>
+									<key>swing.defaultlaf</key>
+									<value>javax.swing.plaf.nimbus.NimbusLookAndFeel</value>
+								</systemProperty>
+							</systemProperties>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 

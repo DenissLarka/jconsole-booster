@@ -74,7 +74,7 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
     private static ArrayList<TabInfo> tabInfos = new ArrayList<TabInfo>();
     private boolean wasConnected = false;
     private boolean userDisconnected = false;
-    private boolean shouldUseSSL = true;
+    private boolean shouldUseSSL = false;
 
     // The everConnected flag keeps track of whether the window can be
     // closed if the user clicks Cancel after a failed connection attempt.
@@ -218,6 +218,7 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
         Tab tab = instantiate(tabInfo);
         if (tab != null) {
             addTab(tabInfo.name, tab);
+            setSelectedComponent(tab);
         } else {
             tabInfo.tabVisible = false;
         }

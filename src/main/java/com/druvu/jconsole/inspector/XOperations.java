@@ -28,11 +28,14 @@ package com.druvu.jconsole.inspector;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Hashtable;
 
 import javax.management.MBeanInfo;
@@ -82,6 +85,14 @@ public abstract class XOperations extends JPanel implements ActionListener {
         this.mbeanInfo = mbeanInfo;
         // add operations information
         MBeanOperationInfo operations[] = mbeanInfo.getOperations();
+	    Arrays.sort(operations, new Comparator<MBeanOperationInfo>() {
+			@Override
+			public int compare(MBeanOperationInfo o1, MBeanOperationInfo o2) {
+				final String name1 = o1.getName();
+				final String name2 = o2.getName();
+				return name1.compareTo(name2);
+			}
+	    });
         invalidate();
 
         // remove listeners, if any
@@ -103,8 +114,11 @@ public abstract class XOperations extends JPanel implements ActionListener {
         outerPanelRight = new JPanel(new GridLayout(operations.length, 1));
 
         for (int i = 0; i < operations.length; i++) {
-            innerPanelLeft = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-            innerPanelRight = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            final FlowLayout layout1 = new FlowLayout(FlowLayout.RIGHT);
+            layout1.setVgap(12);
+            innerPanelLeft = new JPanel(layout1);
+            final FlowLayout layout2 = new FlowLayout(FlowLayout.LEFT);
+            innerPanelRight = new JPanel(layout2);
             String returnType = operations[i].getReturnType();
             if (returnType == null) {
                 methodLabel = new JLabel("null", JLabel.RIGHT);
@@ -117,8 +131,8 @@ public abstract class XOperations extends JPanel implements ActionListener {
                             "been defined in the MBean's implementation code.");
                 }
             } else {
-                methodLabel = new JLabel(
-                        Utils.getReadableClassName(returnType), JLabel.RIGHT);
+				methodLabel = new JLabel(Utils.getReadableClassName(returnType), JLabel.RIGHT);
+				methodLabel.setFont(new Font(Font.DIALOG, Font.PLAIN, 11));
             }
             innerPanelLeft.add(methodLabel);
             if (methodLabel.getText().length() > 20) {

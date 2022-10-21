@@ -17,7 +17,6 @@
 
 	<dependencies>
 
-
 		<dependency>
 			<groupId>org.beryx</groupId>
 			<artifactId>awt-color-factory</artifactId>
@@ -25,9 +24,9 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.glassfish.main.external</groupId>
-			<artifactId>jmxremote_optional-repackaged</artifactId>
-			<version>5.0</version>
+			<groupId>com.druvu</groupId>
+			<artifactId>jmx-optional</artifactId>
+			<version>1.5.0-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>

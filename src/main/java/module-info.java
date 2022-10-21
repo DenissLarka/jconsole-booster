@@ -23,6 +23,9 @@
  * questions.
  */
 
+import javax.management.remote.JMXConnectorProvider;
+import javax.management.remote.JMXConnectorServerProvider;
+
 import com.sun.tools.jconsole.JConsolePlugin;
 
 /**
@@ -55,5 +58,8 @@ module druvu.jconsole {
     requires jdk.jconsole;
     requires org.beryx.awt.color;
 
+
     uses JConsolePlugin;
+    uses JMXConnectorServerProvider;
+    uses JMXConnectorProvider;
 }

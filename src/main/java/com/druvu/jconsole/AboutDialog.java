@@ -43,6 +43,7 @@ import java.awt.event.KeyEvent;
 import java.awt.geom.Rectangle2D;
 import java.beans.PropertyVetoException;
 import java.net.URI;
+
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -70,231 +71,236 @@ import static java.awt.BorderLayout.SOUTH;
 @SuppressWarnings("serial")
 public class AboutDialog extends InternalDialog {
 
-    private static final Color textColor     = new Color(87,   88,  89);
-    private static final Color bgColor       = new Color(232, 237, 241);
-    private static final Color borderColor   = Color.black;
+	private static final Color textColor = new Color(87, 88, 89);
+	private static final Color bgColor = new Color(232, 237, 241);
+	private static final Color borderColor = Color.black;
 
-    private Icon mastheadIcon =
-        new MastheadIcon(Messages.HELP_ABOUT_DIALOG_MASTHEAD_TITLE);
+	private Icon mastheadIcon =
+			new MastheadIcon(Messages.HELP_ABOUT_DIALOG_MASTHEAD_TITLE);
 
-    private static AboutDialog aboutDialog;
+	private static AboutDialog aboutDialog;
 
-    private JLabel statusBar;
-    private Action closeAction;
-    private JEditorPane helpLink;
-    private final String urlStr = getOnlineDocUrl();
+	private JLabel statusBar;
+	private Action closeAction;
+	private JEditorPane helpLink;
+	private final String urlStr = getOnlineDocUrl();
 
-    public AboutDialog(JConsole jConsole) {
-        super(jConsole, Messages.HELP_ABOUT_DIALOG_TITLE, false);
+	public AboutDialog(JConsole jConsole) {
+		super(jConsole, Messages.HELP_ABOUT_DIALOG_TITLE, false);
 
-        Utilities.setAccessibleDescription(this, Messages.HELP_ABOUT_DIALOG_ACCESSIBLE_DESCRIPTION);
-        setDefaultCloseOperation(HIDE_ON_CLOSE);
-        setResizable(false);
-        JComponent cp = (JComponent)getContentPane();
+		Utilities.setAccessibleDescription(this, Messages.HELP_ABOUT_DIALOG_ACCESSIBLE_DESCRIPTION);
+		setDefaultCloseOperation(HIDE_ON_CLOSE);
+		setResizable(false);
+		JComponent cp = (JComponent) getContentPane();
 
-        createActions();
+		createActions();
 
-        JLabel mastheadLabel = new JLabel(mastheadIcon);
-        Utilities.setAccessibleName(mastheadLabel,
-                Messages.HELP_ABOUT_DIALOG_MASTHEAD_ACCESSIBLE_NAME);
+		JLabel mastheadLabel = new JLabel(mastheadIcon);
+		Utilities.setAccessibleName(mastheadLabel,
+				Messages.HELP_ABOUT_DIALOG_MASTHEAD_ACCESSIBLE_NAME);
 
-        JPanel mainPanel = new TPanel(0, 0);
-        mainPanel.add(mastheadLabel, NORTH);
+		JPanel mainPanel = new TPanel(0, 0);
+		mainPanel.add(mastheadLabel, NORTH);
 
-        String jConsoleVersion = Version.getVersion();
-        String vmName = System.getProperty("java.vm.name");
-        String vmVersion = System.getProperty("java.vm.version");
-        String locUrlStr = urlStr;
-        if (isBrowseSupported()) {
-            locUrlStr = "<a style='color:#35556b' href=\"" + locUrlStr + "\">" + locUrlStr + "</a>";
-        }
+		String jConsoleVersion = Version.getVersion();
+		String vmName = System.getProperty("java.vm.name");
+		String vmVersion = System.getProperty("java.vm.version");
+		String locUrlStr = urlStr;
+		if (isBrowseSupported()) {
+			locUrlStr = "<a style='color:#35556b' href=\"" + locUrlStr + "\">" + locUrlStr + "</a>";
+		}
 
-        JPanel infoAndLogoPanel = new JPanel(new BorderLayout(10, 10));
-        infoAndLogoPanel.setBackground(bgColor);
+		JPanel infoAndLogoPanel = new JPanel(new BorderLayout(10, 10));
+		infoAndLogoPanel.setBackground(bgColor);
 
-        String colorStr = String.format("%06x", textColor.getRGB() & 0xFFFFFF);
-        helpLink = new JEditorPane("text/html",
-                                "<html><font color=#"+ colorStr + ">" +
-                        Resources.format(Messages.HELP_ABOUT_DIALOG_JCONSOLE_VERSION, jConsoleVersion) +
-                "<p>" + Resources.format(Messages.HELP_ABOUT_DIALOG_JAVA_VERSION, (vmName +", "+ vmVersion)) +
-                "<p>" + locUrlStr + "</html>");
+		String colorStr = String.format("%06x", textColor.getRGB() & 0xFFFFFF);
+		helpLink = new JEditorPane("text/html",
+				"<html><font color=#" + colorStr + ">" +
+						Resources.format(Messages.HELP_ABOUT_DIALOG_JCONSOLE_VERSION, jConsoleVersion) +
+						"<p>" + Resources.format(Messages.HELP_ABOUT_DIALOG_JAVA_VERSION, (vmName + ", " + vmVersion)) +
+						"<p>" + locUrlStr + "</html>");
 
-        helpLink.setOpaque(false);
-        helpLink.setEditable(false);
-        helpLink.setForeground(textColor);
+		helpLink.setOpaque(false);
+		helpLink.setEditable(false);
+		helpLink.setForeground(textColor);
 
-        mainPanel.setBorder(BorderFactory.createLineBorder(borderColor));
-        infoAndLogoPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		mainPanel.setBorder(BorderFactory.createLineBorder(borderColor));
+		infoAndLogoPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        helpLink.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if ((e.getKeyCode() == KeyEvent.VK_ENTER) || (e.getKeyCode() == KeyEvent.VK_SPACE)) {
-                    browse(urlStr);
-                    e.consume();
-                }
-            }
-        });
+		helpLink.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if ((e.getKeyCode() == KeyEvent.VK_ENTER) || (e.getKeyCode() == KeyEvent.VK_SPACE)) {
+					browse(urlStr);
+					e.consume();
+				}
+			}
+		});
 
-        helpLink.addFocusListener(new FocusListener() {
-            @Override
-            public void focusGained(FocusEvent e) {
-                highlight();
-            }
-            @Override
-            public void focusLost(FocusEvent e) {
-                removeHighlights();
-            }
-        });
+		helpLink.addFocusListener(new FocusListener() {
+			@Override
+			public void focusGained(FocusEvent e) {
+				highlight();
+			}
 
-        helpLink.addHyperlinkListener(new HyperlinkListener() {
-            public void hyperlinkUpdate(HyperlinkEvent e) {
-                if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-                    browse(e.getDescription());
-                }
-            }
-        });
-        infoAndLogoPanel.add(helpLink, NORTH);
+			@Override
+			public void focusLost(FocusEvent e) {
+				removeHighlights();
+			}
+		});
 
-        ImageIcon brandLogoIcon = new ImageIcon(getClass().getResource("resources/brandlogo.png"));
-        JLabel brandLogo = new JLabel(brandLogoIcon, JLabel.LEADING);
+		helpLink.addHyperlinkListener(new HyperlinkListener() {
+			public void hyperlinkUpdate(HyperlinkEvent e) {
+				if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+					browse(e.getDescription());
+				}
+			}
+		});
+		infoAndLogoPanel.add(helpLink, NORTH);
 
-        JButton closeButton = new JButton(closeAction);
+		ImageIcon brandLogoIcon = new ImageIcon(getClass().getResource("resources/brandlogo.png"));
+		JLabel brandLogo = new JLabel(brandLogoIcon, JLabel.LEADING);
 
-        JPanel bottomPanel = new TPanel(0, 0);
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.TRAILING));
-        buttonPanel.setOpaque(false);
+		JButton closeButton = new JButton(closeAction);
 
-        mainPanel.add(infoAndLogoPanel, CENTER);
-        cp.add(bottomPanel, SOUTH);
+		JPanel bottomPanel = new TPanel(0, 0);
+		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.TRAILING));
+		buttonPanel.setOpaque(false);
 
-        infoAndLogoPanel.add(brandLogo, SOUTH);
+		mainPanel.add(infoAndLogoPanel, CENTER);
+		cp.add(bottomPanel, SOUTH);
 
-        buttonPanel.setBorder(new EmptyBorder(2, 12, 2, 12));
-        buttonPanel.add(closeButton);
-        bottomPanel.add(buttonPanel, NORTH);
+		infoAndLogoPanel.add(brandLogo, SOUTH);
 
-        statusBar = new JLabel(" ");
-        bottomPanel.add(statusBar, SOUTH);
+		buttonPanel.setBorder(new EmptyBorder(2, 12, 2, 12));
+		buttonPanel.add(closeButton);
+		bottomPanel.add(buttonPanel, NORTH);
 
-        cp.add(mainPanel, NORTH);
+		statusBar = new JLabel(" ");
+		bottomPanel.add(statusBar, SOUTH);
 
-        pack();
-        setLocationRelativeTo(jConsole);
-        Utilities.updateTransparency(this);
-    }
+		cp.add(mainPanel, NORTH);
 
-    public void highlight() {
-        try {
-            removeHighlights();
+		pack();
+		setLocationRelativeTo(jConsole);
+		Utilities.updateTransparency(this);
+	}
 
-            Highlighter hilite = helpLink.getHighlighter();
-            Document doc = helpLink.getDocument();
-            String text = doc.getText(0, doc.getLength());
-            int pos = text.indexOf(urlStr, 0);
-            hilite.addHighlight(pos, pos + urlStr.length(), new HighlightPainter());
-        } catch (BadLocationException e) {
-            // ignore
-        }
-    }
+	public void highlight() {
+		try {
+			removeHighlights();
 
-    public void removeHighlights() {
-        Highlighter hilite = helpLink.getHighlighter();
-        hilite.removeAllHighlights();
-    }
+			Highlighter hilite = helpLink.getHighlighter();
+			Document doc = helpLink.getDocument();
+			String text = doc.getText(0, doc.getLength());
+			int pos = text.indexOf(urlStr, 0);
+			hilite.addHighlight(pos, pos + urlStr.length(), new HighlightPainter());
+		}
+		catch (BadLocationException e) {
+			// ignore
+		}
+	}
 
-    public void showDialog() {
-        statusBar.setText(" ");
-        setVisible(true);
-        try {
-            // Bring to front of other dialogs
-            setSelected(true);
-        } catch (PropertyVetoException e) {
-            // ignore
-        }
-    }
+	public void removeHighlights() {
+		Highlighter hilite = helpLink.getHighlighter();
+		hilite.removeAllHighlights();
+	}
 
-    private static AboutDialog getAboutDialog(JConsole jConsole) {
-        if (aboutDialog == null) {
-            aboutDialog = new AboutDialog(jConsole);
-        }
-        return aboutDialog;
-    }
+	public void showDialog() {
+		statusBar.setText(" ");
+		setVisible(true);
+		try {
+			// Bring to front of other dialogs
+			setSelected(true);
+		}
+		catch (PropertyVetoException e) {
+			// ignore
+		}
+	}
 
-    static void showAboutDialog(JConsole jConsole) {
-        getAboutDialog(jConsole).showDialog();
-    }
+	private static AboutDialog getAboutDialog(JConsole jConsole) {
+		if (aboutDialog == null) {
+			aboutDialog = new AboutDialog(jConsole);
+		}
+		return aboutDialog;
+	}
 
-    static void browseUserGuide(JConsole jConsole) {
-        getAboutDialog(jConsole).browse(getOnlineDocUrl());
-    }
+	static void showAboutDialog(JConsole jConsole) {
+		getAboutDialog(jConsole).showDialog();
+	}
 
-    static boolean isBrowseSupported() {
-        return (Desktop.isDesktopSupported() &&
-                Desktop.getDesktop().isSupported(Desktop.Action.BROWSE));
-    }
+	static void browseUserGuide(JConsole jConsole) {
+		getAboutDialog(jConsole).browse(getOnlineDocUrl());
+	}
 
-    void browse(String urlStr) {
-        try {
-            Desktop.getDesktop().browse(new URI(urlStr));
-        } catch (Exception ex) {
-            showDialog();
-            statusBar.setText(ex.getLocalizedMessage());
-            if (JConsole.isDebug()) {
-                ex.printStackTrace();
-            }
-        }
-    }
+	static boolean isBrowseSupported() {
+		return (Desktop.isDesktopSupported() &&
+				Desktop.getDesktop().isSupported(Desktop.Action.BROWSE));
+	}
 
-    private void createActions() {
-        closeAction = new AbstractAction(Messages.CLOSE) {
-            public void actionPerformed(ActionEvent ev) {
-                setVisible(false);
-                statusBar.setText("");
-            }
-        };
-    }
+	void browse(String urlStr) {
+		try {
+			Desktop.getDesktop().browse(new URI(urlStr));
+		}
+		catch (Exception ex) {
+			showDialog();
+			statusBar.setText(ex.getLocalizedMessage());
+			if (JConsole.isDebug()) {
+				ex.printStackTrace();
+			}
+		}
+	}
 
-    private static String getOnlineDocUrl() {
-        String version = Integer.toString(Runtime.version().feature());
-        return Resources.format(Messages.HELP_ABOUT_DIALOG_USER_GUIDE_LINK_URL,
-                                version);
-    }
+	private void createActions() {
+		closeAction = new AbstractAction(Messages.CLOSE) {
+			public void actionPerformed(ActionEvent ev) {
+				setVisible(false);
+				statusBar.setText("");
+			}
+		};
+	}
 
-    private static class TPanel extends JPanel {
-        TPanel(int hgap, int vgap) {
-            super(new BorderLayout(hgap, vgap));
-            setOpaque(false);
-        }
-    }
+	private static String getOnlineDocUrl() {
+		String version = Integer.toString(Runtime.version().feature());
+		return Resources.format(Messages.HELP_ABOUT_DIALOG_USER_GUIDE_LINK_URL,
+				version);
+	}
 
-    private static class HighlightPainter
-            extends DefaultHighlighter.DefaultHighlightPainter {
+	private static class TPanel extends JPanel {
+		TPanel(int hgap, int vgap) {
+			super(new BorderLayout(hgap, vgap));
+			setOpaque(false);
+		}
+	}
 
-        public HighlightPainter() {
-            super(null);
-        }
-        @Override
-        public Shape paintLayer(Graphics g, int offs0, int offs1, Shape bounds,
-                                JTextComponent c, View view) {
-            g.setColor(c.getSelectionColor());
-            Rectangle alloc;
+	private static class HighlightPainter
+			extends DefaultHighlighter.DefaultHighlightPainter {
 
-            if (bounds instanceof Rectangle) {
-                alloc = (Rectangle)bounds;
-            } else {
-                alloc = bounds.getBounds();
-            }
+		public HighlightPainter() {
+			super(null);
+		}
 
-            Graphics2D g2d = (Graphics2D)g;
+		@Override
+		public Shape paintLayer(Graphics g, int offs0, int offs1, Shape bounds,
+				JTextComponent c, View view) {
+			g.setColor(c.getSelectionColor());
+			Rectangle alloc;
 
-            float[] dash = { 2F, 2F };
-            Stroke dashedStroke = new BasicStroke(1F, BasicStroke.CAP_SQUARE,
-            BasicStroke.JOIN_MITER, 3F, dash, 0F);
-            g2d.fill(dashedStroke.createStrokedShape(
-                     new Rectangle2D.Float(alloc.x, alloc.y,
-                                           alloc.width - 1, alloc.height - 1)));
-            return alloc;
-        }
-    }
+			if (bounds instanceof Rectangle) {
+				alloc = (Rectangle) bounds;
+			} else {
+				alloc = bounds.getBounds();
+			}
+
+			Graphics2D g2d = (Graphics2D) g;
+
+			float[] dash = {2F, 2F};
+			Stroke dashedStroke = new BasicStroke(1F, BasicStroke.CAP_SQUARE,
+					BasicStroke.JOIN_MITER, 3F, dash, 0F);
+			g2d.fill(dashedStroke.createStrokedShape(
+					new Rectangle2D.Float(alloc.x, alloc.y,
+							alloc.width - 1, alloc.height - 1)));
+			return alloc;
+		}
+	}
 }

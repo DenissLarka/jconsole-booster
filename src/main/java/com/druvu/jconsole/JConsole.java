@@ -75,8 +75,7 @@ import com.sun.tools.jconsole.JConsolePlugin;
 import sun.net.util.IPAddressUtil;
 
 @SuppressWarnings("serial")
-public class JConsole extends JFrame
-		implements ActionListener, InternalFrameListener {
+public class JConsole extends JFrame implements ActionListener, InternalFrameListener {
 
 	static /*final*/ boolean IS_GTK;
 	static /*final*/ boolean IS_WIN;
@@ -109,10 +108,8 @@ public class JConsole extends JFrame
 		//BorderedComponent.updateLafValues();
 	}
 
-	private static final String title =
-			Messages.JAVA_MONITORING___MANAGEMENT_CONSOLE;
-	public static final String ROOT_URL =
-			"service:jmx:";
+	private static final String title = Messages.JAVA_MONITORING___MANAGEMENT_CONSOLE;
+	public static final String ROOT_URL = "service:jmx:";
 
 	private static int updateInterval = 4000;
 	private static String pluginPath = "";
@@ -128,8 +125,7 @@ public class JConsole extends JFrame
 	private ConnectDialog connectDialog;
 	private CreateMBeanDialog createDialog;
 
-	private ArrayList<VMInternalFrame> windows =
-			new ArrayList<VMInternalFrame>();
+	private ArrayList<VMInternalFrame> windows = new ArrayList<VMInternalFrame>();
 
 	private int frameLoc = 5;
 	static boolean debug;
@@ -138,8 +134,7 @@ public class JConsole extends JFrame
 		super(title);
 
 		setRootPane(new FixedJRootPane());
-		Utilities.setAccessibleDescription(this,
-				Messages.JCONSOLE_ACCESSIBLE_DESCRIPTION);
+		Utilities.setAccessibleDescription(this, Messages.JCONSOLE_ACCESSIBLE_DESCRIPTION);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		menuBar = new JMenuBar();
@@ -153,12 +148,9 @@ public class JConsole extends JFrame
 		if (hotspot) {
 			hotspotMI = new JMenuItem(Messages.HOTSPOT_MBEANS_ELLIPSIS);
 			hotspotMI.setMnemonic(Resources.getMnemonicInt(Messages.HOTSPOT_MBEANS_ELLIPSIS));
-			hotspotMI.setAccelerator(KeyStroke.
-					getKeyStroke(KeyEvent.VK_H,
-							InputEvent.CTRL_DOWN_MASK));
+			hotspotMI.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_H, InputEvent.CTRL_DOWN_MASK));
 			hotspotMI.addActionListener(this);
 			connectionMenu.add(hotspotMI);
-
 			connectionMenu.addSeparator();
 		}
 
@@ -173,8 +165,7 @@ public class JConsole extends JFrame
 
 		exitMI = new JMenuItem(Messages.EXIT);
 		exitMI.setMnemonic(Resources.getMnemonicInt(Messages.EXIT));
-		exitMI.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4,
-				InputEvent.ALT_DOWN_MASK));
+		exitMI.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, InputEvent.ALT_DOWN_MASK));
 		exitMI.addActionListener(this);
 		connectionMenu.add(exitMI);
 
@@ -209,9 +200,7 @@ public class JConsole extends JFrame
 		setTitle(title);
 
 		Container cp = getContentPane();
-		Component oldCenter =
-				((BorderLayout) cp.getLayout()).
-						getLayoutComponent(BorderLayout.CENTER);
+		Component oldCenter = ((BorderLayout) cp.getLayout()).getLayoutComponent(BorderLayout.CENTER);
 
 		windowMenu = new WindowMenu(Messages.WINDOW);
 		windowMenu.setMnemonic(Resources.getMnemonicInt(Messages.WINDOW));
@@ -248,8 +237,7 @@ public class JConsole extends JFrame
 
 			tileMI = new JMenuItem(Messages.TILE);
 			tileMI.setMnemonic(Resources.getMnemonicInt(Messages.TILE));
-			tileMI.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T,
-					InputEvent.CTRL_DOWN_MASK));
+			tileMI.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, InputEvent.CTRL_DOWN_MASK));
 			tileMI.addActionListener(JConsole.this);
 			add(tileMI);
 

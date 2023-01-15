@@ -31,35 +31,33 @@ import com.sun.tools.jconsole.JConsolePlugin;
 /**
  * Defines the JMX graphical tool, <em>{@index jconsole jconsole}</em>,
  * for monitoring and managing a running application.
- *
  * <dl class="notes">
  * <dt>See Also:
  * <dd>{@extLink using_jconsole Using JConsole}
  * </dl>
  *
  * @toolGuide jconsole
- *
  * @uses com.sun.tools.jconsole.JConsolePlugin
- *
  * @moduleGraph
  * @since 9
  */
-module druvu.jconsole {
+module com.druvu.jconsole {
 
-    requires java.management.rmi;
-    requires java.rmi;
-    requires jdk.attach;
-    requires jdk.internal.jvmstat;
-    requires jdk.management;
-    requires jdk.management.agent;
+	requires java.management.rmi;
+	requires java.rmi;
+	requires jdk.attach;
+	requires jdk.internal.jvmstat;
+	requires jdk.management;
+	requires jdk.management.agent;
 
-    requires transitive java.desktop;
-    requires transitive java.management;
-    requires jdk.jconsole;
-    requires org.beryx.awt.color;
+	requires transitive java.desktop;
+	requires transitive java.management;
+	requires jdk.jconsole;
+	requires org.beryx.awt.color;
 
+	exports com.druvu.jconsole.extra;
 
-    uses JConsolePlugin;
-    uses JMXConnectorServerProvider;
-    uses JMXConnectorProvider;
+	uses JConsolePlugin;
+	uses JMXConnectorServerProvider;
+	uses JMXConnectorProvider;
 }

@@ -1,1 +1,1 @@
-mvn exec:java -X -Dexec.mainClass="druvu.jconsole/com.druvu.jconsole.extra.JConsoleEx"
+mvn exec:java -X -Dexec.mainClass="com.druvu.jconsole/com.druvu.jconsole.extra.JConsoleEx"

@@ -72,7 +72,6 @@ import javax.swing.plaf.BorderUIResource;
 
 import com.sun.tools.jconsole.JConsolePlugin;
 
-import sun.net.util.IPAddressUtil;
 
 @SuppressWarnings("serial")
 public class JConsole extends JFrame implements ActionListener, InternalFrameListener {
@@ -714,7 +713,6 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 						// Extract literal IPv6 address
 						//
 						String address = txt.substring(1, index);
-						if (IPAddressUtil.isIPv6LiteralAddress(address)) {
 							// Extract port
 							//
 							try {
@@ -727,7 +725,6 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 							catch (NumberFormatException ex) {
 								valid = false;
 							}
-						}
 					}
 				} else {
 					String[] s = txt.split(":");

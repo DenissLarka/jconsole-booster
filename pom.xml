@@ -64,19 +64,19 @@
 					<fork>true</fork>
 					<compilerArgs>
 						<arg>--add-exports</arg>
-						<arg>java.base/sun.net.util=druvu.jconsole</arg>
+						<arg>java.base/sun.net.util=com.druvu.jconsole</arg>
 						<arg>--add-exports</arg>
-						<arg>jdk.jconsole/sun.tools.jconsole=druvu.jconsole</arg>
+						<arg>jdk.jconsole/sun.tools.jconsole=com.druvu.jconsole</arg>
 						<arg>--add-exports</arg>
-						<arg>java.rmi/sun.rmi.server=druvu.jconsole</arg>
+						<arg>java.rmi/sun.rmi.server=com.druvu.jconsole</arg>
 						<arg>--add-exports</arg>
-						<arg>java.rmi/sun.rmi.transport=druvu.jconsole</arg>
+						<arg>java.rmi/sun.rmi.transport=com.druvu.jconsole</arg>
 						<arg>--add-exports</arg>
-						<arg>jdk.internal.jvmstat/sun.jvmstat.monitor=druvu.jconsole</arg>
+						<arg>jdk.internal.jvmstat/sun.jvmstat.monitor=com.druvu.jconsole</arg>
 						<arg>--add-exports</arg>
-						<arg>jdk.management.agent/jdk.internal.agent=druvu.jconsole</arg>
+						<arg>jdk.management.agent/jdk.internal.agent=com.druvu.jconsole</arg>
 						<arg>--add-exports</arg>
-						<arg>jdk.jconsole/tools.jconsole.inspector=druvu.jconsole</arg>
+						<arg>jdk.jconsole/tools.jconsole.inspector=com.druvu.jconsole</arg>
 					</compilerArgs>
 					<annotationProcessorPaths>
 						<path>
@@ -160,14 +160,14 @@
 
 						<configuration>
 							<includeProjectDependencies>true</includeProjectDependencies>
-							<mainClass>druvu.jconsole/com.druvu.jconsole.extra.JConsoleEx</mainClass>
+							<mainClass>com.druvu.jconsole/com.druvu.jconsole.extra.JConsoleEx</mainClass>
 							<arguments>
 								<argument>--add-exports</argument>
-								<argument>jdk.jconsole/sun.tools.jconsole=druvu.jconsole</argument>
+								<argument>jdk.jconsole/sun.tools.jconsole=com.druvu.jconsole</argument>
 								<argument>--add-exports</argument>
-								<argument>jdk.internal.jvmstat/sun.jvmstat.monitor=druvu.jconsole</argument>
+								<argument>jdk.internal.jvmstat/sun.jvmstat.monitor=com.druvu.jconsole</argument>
 								<argument>--add-exports</argument>
-								<argument>jdk.management.agent/jdk.internal.agent=druvu.jconsole</argument>
+								<argument>jdk.management.agent/jdk.internal.agent=com.druvu.jconsole</argument>
 								<argument>--add-opens</argument>
 								<argument>jdk.internal.jvmstat/sun.jvmstat.monitor=ALL-UNNAMED</argument>
 								<argument>-c=#8BC6E1FF</argument>

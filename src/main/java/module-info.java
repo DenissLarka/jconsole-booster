@@ -54,8 +54,9 @@ module com.druvu.jconsole {
 	requires transitive java.management;
 	requires jdk.jconsole;
 	requires org.beryx.awt.color;
+    requires org.slf4j;
 
-	exports com.druvu.jconsole.extra;
+    exports com.druvu.jconsole.extra;
 
 	uses JConsolePlugin;
 	uses JMXConnectorServerProvider;

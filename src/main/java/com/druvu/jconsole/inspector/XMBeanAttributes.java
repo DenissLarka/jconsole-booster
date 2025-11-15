@@ -40,8 +40,6 @@ import java.util.HashMap;
 import java.util.WeakHashMap;
 
 import java.util.concurrent.ExecutionException;
-import java.lang.System.Logger;
-import java.lang.System.Logger.Level;
 import javax.management.JMException;
 import javax.management.MBeanInfo;
 import javax.management.MBeanAttributeInfo;
@@ -83,9 +81,6 @@ import org.slf4j.LoggerFactory;
 public class XMBeanAttributes extends XTable {
 
     private static final Logger logger = LoggerFactory.getLogger(XMBeanAttributes.class);
-
-    final Logger LOGGER =
-            System.getLogger(XMBeanAttributes.class.getPackage().getName());
 
     private static final String[] columnNames =
     {Messages.NAME,
@@ -194,8 +189,8 @@ public class XMBeanAttributes extends XTable {
     }
 
     public void cancelCellEditing() {
-        if (LOGGER.isLoggable(Level.TRACE)) {
-            LOGGER.log(Level.TRACE, "Cancel Editing Row: "+getEditingRow());
+        if (logger.isTraceEnabled()) {
+            logger.trace("Cancel Editing Row: {}", getEditingRow());
         }
         final TableCellEditor tableCellEditor = getCellEditor();
         if (tableCellEditor != null) {
@@ -204,8 +199,8 @@ public class XMBeanAttributes extends XTable {
     }
 
     public void stopCellEditing() {
-        if (LOGGER.isLoggable(Level.TRACE)) {
-            LOGGER.log(Level.TRACE, "Stop Editing Row: "+getEditingRow());
+        if (logger.isTraceEnabled()) {
+            logger.trace("Stop Editing Row: {}", getEditingRow());
         }
         final TableCellEditor tableCellEditor = getCellEditor();
         if (tableCellEditor != null) {
@@ -215,9 +210,8 @@ public class XMBeanAttributes extends XTable {
 
     @Override
     public final boolean editCellAt(final int row, final int column, EventObject e) {
-        if (LOGGER.isLoggable(Level.TRACE)) {
-            LOGGER.log(Level.TRACE, "editCellAt(row="+row+", col="+column+
-                    ", e="+e+")");
+        if (logger.isTraceEnabled()) {
+            logger.trace("editCellAt(row={}, col={}, e={})", row, column, e);
         }
         if (JConsole.isDebug()) {
             logger.debug("edit: "+getValueName(row)+"="+getValue(row));
@@ -1000,11 +994,9 @@ public class XMBeanAttributes extends XTable {
                 Object tableValue = model.getValueAt(e.getFirstRow(),
                                                  e.getColumn());
 
-                if (LOGGER.isLoggable(Level.TRACE)) {
-                    LOGGER.log(Level.TRACE,
-                        "tableChanged: firstRow="+e.getFirstRow()+
-                        ", lastRow="+e.getLastRow()+", column="+e.getColumn()+
-                        ", value="+tableValue);
+                if (logger.isTraceEnabled()) {
+                    logger.trace("tableChanged: firstRow={}, lastRow={}, column={}, value={}",
+                        e.getFirstRow(), e.getLastRow(), e.getColumn(), tableValue);
                 }
                 // if it's a String, try construct new value
                 // using the defined type.

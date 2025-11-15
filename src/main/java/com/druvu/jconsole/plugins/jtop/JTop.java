@@ -81,6 +81,9 @@ import java.net.MalformedURLException;
 
 import static java.lang.management.ManagementFactory.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.awt.*;
 
 import javax.swing.*;
@@ -92,6 +95,8 @@ import javax.swing.table.*;
  * in a table.
  */
 public class JTop extends JPanel {
+
+	private static final Logger logger = LoggerFactory.getLogger(JTop.class);
 
 	private static class StatusBar extends JPanel {
 		private static final long serialVersionUID = -6483392381797633018L;
@@ -402,13 +407,14 @@ public class JTop extends JPanel {
 			// should not reach here
 		}
 		catch (IOException e) {
-			System.err.println("\nCommunication error: " + e.getMessage());
+			logger.error("Communication error: {}", e.getMessage());
 			System.exit(1);
 		}
 		return server;
 	}
 
 	private static void usage() {
+		// Usage message should go to stdout
 		System.out.println("Usage: java JTop <hostname>:<port>");
 		System.exit(1);
 	}

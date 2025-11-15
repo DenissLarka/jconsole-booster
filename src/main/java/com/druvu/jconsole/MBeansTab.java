@@ -48,6 +48,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.SwingWorker;
 import javax.swing.event.TreeExpansionEvent;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.event.TreeWillExpandListener;
@@ -68,6 +71,7 @@ public class MBeansTab extends Tab implements
         NotificationListener, PropertyChangeListener,
         TreeSelectionListener, TreeWillExpandListener {
 
+    private static final Logger logger = LoggerFactory.getLogger(MBeansTab.class);
     private XTree tree;
     private XSheet sheet;
     private XDataViewer viewer;
@@ -164,8 +168,7 @@ public class MBeansTab extends Tab implements
                 } catch (Exception e) {
                     Throwable t = Utils.getActualException(e);
                     if (JConsole.isDebug()) {
-                        System.err.println("Problem at MBean tree construction");
-                        t.printStackTrace();
+                        logger.error("Problem at MBean tree construction", t);
                     }
                 }
             }

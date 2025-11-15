@@ -48,6 +48,9 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.swing.JProgressBar;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
@@ -62,6 +65,7 @@ import com.sun.tools.jconsole.JConsolePlugin;
 @SuppressWarnings("serial")
 public class VMPanel extends JTabbedPane implements PropertyChangeListener {
 
+    private static final Logger logger = LoggerFactory.getLogger(VMPanel.class);
     private ProxyClient proxyClient;
     private Timer timer;
     private int updateInterval;
@@ -242,7 +246,7 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
             Constructor<?> con = tabInfo.tabClass.getConstructor(VMPanel.class);
             return (Tab) con.newInstance(this);
         } catch (Exception ex) {
-            System.err.println(ex);
+            logger.error("Error instantiating tab: {}", tabInfo.tabClass.getName(), ex);
             return null;
         }
     }

@@ -59,10 +59,14 @@ import com.druvu.jconsole.MBeansTab;
 import com.druvu.jconsole.Messages;
 import com.druvu.jconsole.inspector.XNodeInfo.Type;
 import com.druvu.jconsole.Resources;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("serial")
 public class XSheet extends JPanel
         implements ActionListener, NotificationListener {
+
+    private static final Logger logger = LoggerFactory.getLogger(XSheet.class);
 
     private JPanel mainPanel;
     private JPanel southPanel;
@@ -230,9 +234,8 @@ public class XSheet extends JPanel
                 } catch (Exception e) {
                     Throwable t = Utils.getActualException(e);
                     if (JConsole.isDebug()) {
-                        System.err.println("Couldn't get MBeanInfo for MBean [" +
-                                mbean.getObjectName() + "]");
-                        t.printStackTrace();
+                        logger.error("Couldn't get MBeanInfo for MBean [" +
+                                mbean.getObjectName() + "]", t);
                     }
                     showErrorDialog(t.toString(),
                             Messages.PROBLEM_DISPLAYING_MBEAN);
@@ -305,10 +308,9 @@ public class XSheet extends JPanel
                                 } catch (Exception e) {
                                     Throwable t = Utils.getActualException(e);
                                     if (JConsole.isDebug()) {
-                                        System.err.println("Problem displaying MBean " +
+                                        logger.error("Problem displaying MBean " +
                                                 "attribute for MBean [" +
-                                                mbean.getObjectName() + "]");
-                                        t.printStackTrace();
+                                                mbean.getObjectName() + "]", t);
                                     }
                                     showErrorDialog(t.toString(),
                                             Messages.PROBLEM_DISPLAYING_MBEAN);
@@ -400,10 +402,9 @@ public class XSheet extends JPanel
                 } catch (Exception e) {
                     Throwable t = Utils.getActualException(e);
                     if (JConsole.isDebug()) {
-                        System.err.println("Problem displaying MBean " +
+                        logger.error("Problem displaying MBean " +
                                 "attributes for MBean [" +
-                                mbean.getObjectName() + "]");
-                        t.printStackTrace();
+                                mbean.getObjectName() + "]", t);
                     }
                     showErrorDialog(t.toString(),
                             Messages.PROBLEM_DISPLAYING_MBEAN);
@@ -450,10 +451,9 @@ public class XSheet extends JPanel
                 } catch (Exception e) {
                     Throwable t = Utils.getActualException(e);
                     if (JConsole.isDebug()) {
-                        System.err.println("Problem displaying MBean " +
+                        logger.error("Problem displaying MBean " +
                                 "operations for MBean [" +
-                                mbean.getObjectName() + "]");
-                        t.printStackTrace();
+                                mbean.getObjectName() + "]", t);
                     }
                     showErrorDialog(t.toString(),
                             Messages.PROBLEM_DISPLAYING_MBEAN);
@@ -521,8 +521,7 @@ public class XSheet extends JPanel
                 } catch (Exception e) {
                     Throwable t = Utils.getActualException(e);
                     if (JConsole.isDebug()) {
-                        System.err.println("Problem adding listener");
-                        t.printStackTrace();
+                        logger.error("Problem adding listener", t);
                     }
                     showErrorDialog(t.getMessage(),
                             Messages.PROBLEM_ADDING_LISTENER);
@@ -550,8 +549,7 @@ public class XSheet extends JPanel
                 } catch (Exception e) {
                     Throwable t = Utils.getActualException(e);
                     if (JConsole.isDebug()) {
-                        System.err.println("Problem removing listener");
-                        t.printStackTrace();
+                        logger.error("Problem removing listener", t);
                     }
                     showErrorDialog(t.getMessage(),
                             Messages.PROBLEM_REMOVING_LISTENER);

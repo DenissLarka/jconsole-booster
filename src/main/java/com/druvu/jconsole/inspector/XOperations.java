@@ -52,9 +52,13 @@ import javax.swing.SwingWorker;
 import com.druvu.jconsole.Messages;
 import com.druvu.jconsole.JConsole;
 import com.druvu.jconsole.MBeansTab;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("serial") // JDK implementation class
 public abstract class XOperations extends JPanel implements ActionListener {
+
+    private static final Logger logger = LoggerFactory.getLogger(XOperations.class);
 
     public static final String OPERATION_INVOCATION_EVENT =
             "jam.xoperations.invoke.result";
@@ -123,8 +127,7 @@ public abstract class XOperations extends JPanel implements ActionListener {
             if (returnType == null) {
                 methodLabel = new JLabel("null", JLabel.RIGHT);
                 if (JConsole.isDebug()) {
-                    System.err.println(
-                            "WARNING: The operation's return type " +
+                    logger.error("WARNING: The operation's return type " +
                             "shouldn't be \"null\". Check how the " +
                             "MBeanOperationInfo for the \"" +
                             operations[i].getName() + "\" operation has " +

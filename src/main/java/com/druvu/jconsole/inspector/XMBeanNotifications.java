@@ -46,9 +46,13 @@ import javax.management.openmbean.TabularData;
 
 import com.druvu.jconsole.Messages;
 import com.druvu.jconsole.JConsole;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("serial")
 public class XMBeanNotifications extends JTable implements NotificationListener {
+
+    private static final Logger logger = LoggerFactory.getLogger(XMBeanNotifications.class);
 
     private static final String[] columnNames = {
         Messages.TIME_STAMP,
@@ -245,8 +249,7 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
                 subscribed = true;
             } catch (Exception e) {
                 if (JConsole.isDebug()) {
-                    System.err.println("Error adding listener for delegate:");
-                    e.printStackTrace();
+                    logger.error("Error adding listener for delegate", e);
                 }
             }
         }
@@ -278,8 +281,7 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
             }
         } catch (Exception e) {
             if (JConsole.isDebug()) {
-                System.err.println("Error unregistering notification:");
-                e.printStackTrace();
+                logger.error("Error unregistering notification", e);
             }
         }
     }
@@ -635,8 +637,7 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
                         xmbean.getObjectName(), this, null, null);
             } catch (Exception e) {
                 if (JConsole.isDebug()) {
-                    System.err.println("Error removing listener:");
-                    e.printStackTrace();
+                    logger.error("Error removing listener", e);
                 }
             }
             unregistered = true;
@@ -655,8 +656,7 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
                 unregistered = false;
             } catch (Exception e) {
                 if (JConsole.isDebug()) {
-                    System.err.println("Error adding listener:");
-                    e.printStackTrace();
+                    logger.error("Error adding listener", e);
                 }
             }
         }
@@ -699,8 +699,7 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
                                     xmbean, node, rowData, received);
                         } catch (Exception e) {
                             if (JConsole.isDebug()) {
-                                System.err.println("Error handling notification:");
-                                e.printStackTrace();
+                                logger.error("Error handling notification", e);
                             }
                         }
                     }

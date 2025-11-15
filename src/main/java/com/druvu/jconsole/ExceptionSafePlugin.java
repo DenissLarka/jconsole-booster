@@ -31,6 +31,9 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingWorker;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.sun.tools.jconsole.JConsolePlugin;
 
 
@@ -40,6 +43,7 @@ import com.sun.tools.jconsole.JConsolePlugin;
  */
 final class ExceptionSafePlugin extends JConsolePlugin {
 
+    private static final Logger logger = LoggerFactory.getLogger(ExceptionSafePlugin.class);
     private static boolean ignoreExceptions;
     private final JConsolePlugin plugin;
 
@@ -86,8 +90,7 @@ final class ExceptionSafePlugin extends JConsolePlugin {
 
     private void handleException(Exception e) {
         if (JConsole.isDebug()) {
-            System.err.println("Plug-in exception:");
-            e.printStackTrace();
+            logger.error("Plug-in exception:", e);
         } else {
             if (!ignoreExceptions) {
                 showExceptionDialog(e);

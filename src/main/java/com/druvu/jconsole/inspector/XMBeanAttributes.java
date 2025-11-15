@@ -70,6 +70,8 @@ import com.druvu.jconsole.MBeansTab;
 import com.druvu.jconsole.JConsole;
 import com.druvu.jconsole.Messages;
 import com.druvu.jconsole.ProxyClient.SnapshotMBeanServerConnection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /*IMPORTANT :
   There is a deadlock issue there if we don't synchronize well loadAttributes,
@@ -79,6 +81,8 @@ import com.druvu.jconsole.ProxyClient.SnapshotMBeanServerConnection;
   COMPULSORY to not call the JMX world in synchronized blocks */
 @SuppressWarnings("serial")
 public class XMBeanAttributes extends XTable {
+
+    private static final Logger logger = LoggerFactory.getLogger(XMBeanAttributes.class);
 
     final Logger LOGGER =
             System.getLogger(XMBeanAttributes.class.getPackage().getName());
@@ -216,7 +220,7 @@ public class XMBeanAttributes extends XTable {
                     ", e="+e+")");
         }
         if (JConsole.isDebug()) {
-            System.err.println("edit: "+getValueName(row)+"="+getValue(row));
+            logger.debug("edit: "+getValueName(row)+"="+getValue(row));
         }
         boolean retVal = super.editCellAt(row, column, e);
         if (retVal) {
@@ -249,7 +253,7 @@ public class XMBeanAttributes extends XTable {
         if (!isCellError(row, column) && isColumnEditable(column) &&
             isWritable(row) && Utils.isEditableType(getClassName(row))) {
             if (JConsole.isDebug()) {
-                System.err.println("validating [row="+row+", column="+column+
+                logger.debug("validating [row="+row+", column="+column+
                         "]: "+getValueName(row)+"="+value);
             }
             super.setValueAt(value, row, column);
@@ -393,16 +397,11 @@ public class XMBeanAttributes extends XTable {
                     throw x;
                 } catch (ExecutionException x) {
                     if(JConsole.isDebug()) {
-                       System.err.println(
-                               "Exception raised while loading attributes: "
-                               +x.getCause());
-                       x.printStackTrace();
+                       logger.error("Exception raised while loading attributes", x.getCause());
                     }
                 } catch (InterruptedException x) {
                     if(JConsole.isDebug()) {
-                       System.err.println(
-                            "Interrupted while loading attributes: "+x);
-                       x.printStackTrace();
+                       logger.error("Interrupted while loading attributes", x);
                     }
                 }
             }
@@ -436,11 +435,10 @@ public class XMBeanAttributes extends XTable {
             list = mbean.getAttributes(attrsInfo);
         }catch(Exception e) {
             if (JConsole.isDebug()) {
-                System.err.println("Error calling getAttributes() on MBean \"" +
+                logger.error("Error calling getAttributes() on MBean \"" +
                                    mbean.getObjectName() + "\". JConsole will " +
                                    "try to get them individually calling " +
-                                   "getAttribute() instead. Exception:");
-                e.printStackTrace(System.err);
+                                   "getAttribute() instead.", e);
             }
             list = new AttributeList();
             //Can't load all attributes, do it one after each other.
@@ -1035,7 +1033,7 @@ public class XMBeanAttributes extends XTable {
                 protected Void doInBackground() throws Exception {
                     try {
                         if (JConsole.isDebug()) {
-                            System.err.println("setAttribute("+
+                            logger.debug("setAttribute("+
                                     attribute.getName()+
                                 "="+attribute.getValue()+")");
                         }

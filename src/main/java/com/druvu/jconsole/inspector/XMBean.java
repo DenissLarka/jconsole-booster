@@ -32,8 +32,12 @@ import javax.swing.Icon;
 import com.druvu.jconsole.JConsole;
 import com.druvu.jconsole.MBeansTab;
 import com.druvu.jconsole.ProxyClient.SnapshotMBeanServerConnection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class XMBean {
+
+    private static final Logger logger = LoggerFactory.getLogger(XMBean.class);
 
     private final MBeansTab mbeansTab;
     private final ObjectName objectName;
@@ -75,9 +79,8 @@ public class XMBean {
                             "javax.management.NotificationBroadcaster");
                 } catch (Exception e) {
                     if (JConsole.isDebug()) {
-                        System.err.println("Couldn't check if MBean [" +
-                                objectName + "] is a notification broadcaster");
-                        e.printStackTrace();
+                        logger.error("Couldn't check if MBean [" +
+                                objectName + "] is a notification broadcaster", e);
                     }
                     return false;
                 }

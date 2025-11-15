@@ -43,9 +43,14 @@ import javax.management.openmbean.*;
 import com.druvu.jconsole.JConsole;
 import com.druvu.jconsole.Messages;
 import com.druvu.jconsole.Resources;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("serial")
 public class XOpenTypeViewer extends JPanel implements ActionListener {
+
+    private static final Logger logger = LoggerFactory.getLogger(XOpenTypeViewer.class);
+
     JButton prev, incr, decr, tabularPrev, tabularNext;
     JLabel compositeLabel, tabularLabel;
     JScrollPane container;
@@ -643,8 +648,7 @@ public class XOpenTypeViewer extends JPanel implements ActionListener {
         } catch (Exception e) {
             // Nothing to change, the element can't be displayed
             if (JConsole.isDebug()) {
-                System.out.println("Exception viewing openType : " + e);
-                e.printStackTrace();
+                logger.error("Exception viewing openType", e);
             }
         }
     }

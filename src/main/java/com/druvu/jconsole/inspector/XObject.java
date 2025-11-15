@@ -28,6 +28,8 @@ package com.druvu.jconsole.inspector;
 // java import
 
 import java.util.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.Icon;
 import javax.swing.JButton;
@@ -40,6 +42,9 @@ import javax.swing.SwingConstants;
 */
 @SuppressWarnings("serial")
 public class XObject extends JLabel {
+
+    private static final Logger logger = LoggerFactory.getLogger(XObject.class);
+
     private Object object;
     private static boolean useHashCodeRepresentation = true;
     public static final XObject NULL_OBJECT = new XObject("null");
@@ -111,8 +116,7 @@ public class XObject extends JLabel {
             }
         }
         catch (Exception e) {
-             System.out.println("Error setting XObject object :"+
-                                e.getMessage());
+             logger.error("Error setting XObject object", e);
         }
     }
 }

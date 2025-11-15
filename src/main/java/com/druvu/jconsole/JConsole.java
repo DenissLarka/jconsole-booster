@@ -70,12 +70,16 @@ import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
 import javax.swing.plaf.BorderUIResource;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.sun.tools.jconsole.JConsolePlugin;
 
 
 @SuppressWarnings("serial")
 public class JConsole extends JFrame implements ActionListener, InternalFrameListener {
 
+	private static final Logger logger = LoggerFactory.getLogger(JConsole.class);
 	static /*final*/ boolean IS_GTK;
 	static /*final*/ boolean IS_WIN;
 
@@ -91,7 +95,7 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 					UIManager.setLookAndFeel(systemLaF);
 				}
 				catch (Exception e) {
-					System.err.println(Resources.format(Messages.JCONSOLE_COLON_, e.getMessage()));
+					logger.error(Resources.format(Messages.JCONSOLE_COLON_, e.getMessage()));
 				}
 			}
 		}
@@ -805,7 +809,8 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 	}
 
 	private static void usage() {
-		System.err.println(Resources.format(Messages.ZZ_USAGE_TEXT, "jconsole"));
+		// Usage text should go to stdout, not stderr
+		System.out.println(Resources.format(Messages.ZZ_USAGE_TEXT, "jconsole"));
 	}
 
 	private static void mainInit(final List<String> urls,
@@ -957,7 +962,7 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 				}
 			} else {
 				if (!isLocalAttachAvailable()) {
-					System.err.println("Local process monitoring is not supported");
+					logger.error("Local process monitoring is not supported");
 					return;
 				}
 				try {
@@ -965,7 +970,7 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 					LocalVirtualMachine lvm =
 							LocalVirtualMachine.getLocalVirtualMachine(vmid);
 					if (lvm == null) {
-						System.err.println("Invalid process id:" + vmid);
+						logger.error("Invalid process id: {}", vmid);
 						return;
 					}
 					vms.add(lvm);
@@ -1026,22 +1031,23 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 				// validate all plugins
 				for (JConsolePlugin p : plugins) {
 					if (isDebug()) {
-						System.out.println("Plugin " + p.getClass() + " loaded.");
+						logger.info("Plugin {} loaded.", p.getClass());
 					}
 				}
 				pluginService = plugins;
 			}
 			catch (ServiceConfigurationError e) {
 				// Error occurs during initialization of plugin
-				System.out.println(Resources.format(Messages.FAIL_TO_LOAD_PLUGIN,
+				logger.error(Resources.format(Messages.FAIL_TO_LOAD_PLUGIN,
 						e.getMessage()));
 			}
 			catch (MalformedURLException e) {
 				if (JConsole.isDebug()) {
-					e.printStackTrace();
+					logger.error("Invalid plugin path", e);
+				} else {
+					logger.error(Resources.format(Messages.INVALID_PLUGIN_PATH,
+							e.getMessage()));
 				}
-				System.out.println(Resources.format(Messages.INVALID_PLUGIN_PATH,
-						e.getMessage()));
 			}
 		}
 

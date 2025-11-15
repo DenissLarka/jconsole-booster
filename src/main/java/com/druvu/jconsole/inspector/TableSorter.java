@@ -39,9 +39,14 @@ import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
 
 import com.druvu.jconsole.JConsole;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("serial")
 public class TableSorter extends DefaultTableModel implements MouseListener {
+
+    private static final Logger logger = LoggerFactory.getLogger(TableSorter.class);
+
     private boolean ascending = true;
     private TableColumnModel columnModel;
     private JTable tableView;
@@ -137,7 +142,7 @@ public class TableSorter extends DefaultTableModel implements MouseListener {
         // do the sort
 
         if (JConsole.isDebug()) {
-            System.err.println("sorting table against column="+column
+            logger.debug("sorting table against column="+column
                     +" ascending="+isAscending);
         }
         quickSort(0,getRowCount()-1,column,isAscending);

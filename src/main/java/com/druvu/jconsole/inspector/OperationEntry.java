@@ -27,6 +27,8 @@ package com.druvu.jconsole.inspector;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.management.MBeanOperationInfo;
 import javax.management.MBeanParameterInfo;
@@ -37,6 +39,9 @@ import javax.swing.SwingConstants;
 
 @SuppressWarnings("serial")
 public class OperationEntry extends JPanel {
+
+    private static final Logger logger = LoggerFactory.getLogger(OperationEntry.class);
+
     private MBeanOperationInfo operation;
     private XTextField inputs[];
 
@@ -89,8 +94,7 @@ public class OperationEntry extends JPanel {
             doLayout();
         }
         catch (Exception e) {
-            System.out.println("Error setting Operation panel :"+
-                               e.getMessage());
+            logger.error("Error setting Operation panel", e);
         }
     }
 

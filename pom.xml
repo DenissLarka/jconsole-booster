@@ -179,15 +179,21 @@
 						<configuration>
 							<includeProjectDependencies>true</includeProjectDependencies>
 							<mainClass>com.druvu.jconsole/com.druvu.jconsole.extra.JConsoleEx</mainClass>
+							<additionalOptions>
+								<additionalOption>--add-exports</additionalOption>
+								<additionalOption>java.base/sun.net.util=com.druvu.jconsole</additionalOption>
+								<additionalOption>--add-exports</additionalOption>
+								<additionalOption>jdk.jconsole/sun.tools.jconsole=com.druvu.jconsole</additionalOption>
+								<additionalOption>--add-exports</additionalOption>
+								<additionalOption>java.rmi/sun.rmi.server=com.druvu.jconsole</additionalOption>
+								<additionalOption>--add-exports</additionalOption>
+								<additionalOption>java.rmi/sun.rmi.transport=com.druvu.jconsole</additionalOption>
+								<additionalOption>--add-exports</additionalOption>
+								<additionalOption>jdk.internal.jvmstat/sun.jvmstat.monitor=com.druvu.jconsole</additionalOption>
+								<additionalOption>--add-exports</additionalOption>
+								<additionalOption>jdk.management.agent/jdk.internal.agent=com.druvu.jconsole</additionalOption>
+							</additionalOptions>
 							<arguments>
-								<argument>--add-exports</argument>
-								<argument>jdk.jconsole/sun.tools.jconsole=com.druvu.jconsole</argument>
-								<argument>--add-exports</argument>
-								<argument>jdk.internal.jvmstat/sun.jvmstat.monitor=com.druvu.jconsole</argument>
-								<argument>--add-exports</argument>
-								<argument>jdk.management.agent/jdk.internal.agent=com.druvu.jconsole</argument>
-								<argument>--add-opens</argument>
-								<argument>jdk.internal.jvmstat/sun.jvmstat.monitor=ALL-UNNAMED</argument>
 								<argument>-c=#8BC6E1FF</argument>
 								<argument>-debug</argument>
 								<argument>localhost:5703</argument>

@@ -1,2 +1,0 @@
-mvn exec:java -X -Dexec.mainClass="com.druvu.jconsole/com.druvu.jconsole.extra.JConsoleEx" \
-  -Dexec.args="--add-exports jdk.jconsole/sun.tools.jconsole=com.druvu.jconsole --add-exports jdk.internal.jvmstat/sun.jvmstat.monitor=com.druvu.jconsole --add-exports jdk.management.agent/jdk.internal.agent=com.druvu.jconsole --add-exports java.base/sun.net.util=com.druvu.jconsole --add-exports java.rmi/sun.rmi.server=com.druvu.jconsole --add-exports java.rmi/sun.rmi.transport=com.druvu.jconsole"

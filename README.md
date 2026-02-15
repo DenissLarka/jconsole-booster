@@ -1,2 +1,3 @@
 # jconsole-booster
-OpenJDK 17 JConsole fork with some perks
+
+OpenJDK 25 JConsole fork with some perks

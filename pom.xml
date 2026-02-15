@@ -11,7 +11,6 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>25</java.version>
-
 		<launcher.name>JConsoleApp</launcher.name>
 	</properties>
 
@@ -34,13 +33,13 @@
 			<artifactId>testng</artifactId>
 			<version>7.11.0</version>
 			<scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <artifactId>slf4j-api</artifactId>
-                    <groupId>org.slf4j</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+			<exclusions>
+				<exclusion>
+					<artifactId>slf4j-api</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 
 		<dependency>
 			<groupId>org.projectlombok</groupId>
@@ -60,13 +59,13 @@
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
 			<version>1.5.23</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>slf4j-api</artifactId>
-                    <groupId>org.slf4j</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+			<exclusions>
+				<exclusion>
+					<artifactId>slf4j-api</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 
 	</dependencies>
 
@@ -164,7 +163,7 @@
 				</executions>
 			</plugin>
 
- 		<plugin>
+			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
 				<version>3.6.3</version>
@@ -191,7 +190,7 @@
 								<argument>jdk.internal.jvmstat/sun.jvmstat.monitor=com.druvu.jconsole</argument>
 								<argument>--add-exports</argument>
 								<argument>jdk.management.agent/jdk.internal.agent=com.druvu.jconsole</argument>
- 							<argument>-Dswing.defaultlaf=javax.swing.plaf.nimbus.NimbusLookAndFeel</argument>
+								<argument>-Dswing.defaultlaf=javax.swing.plaf.nimbus.NimbusLookAndFeel</argument>
 								<argument>--module-path</argument>
 								<modulepath/>
 								<argument>-m</argument>

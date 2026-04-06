@@ -63,14 +63,9 @@ public class InternalDialog extends JInternalFrame {
     }
 
     protected class MastheadIcon implements Icon {
-        // Important: Assume image background is white!
-        private ImageIcon leftIcon =
-                new ImageIcon(InternalDialog.class.getResource("/com/druvu/jconsole/resources/masthead-left.png"));
-        private ImageIcon rightIcon =
-                new ImageIcon(InternalDialog.class.getResource("/com/druvu/jconsole/resources/masthead-right.png"));
-
+        private static final int HEIGHT = 60;
+        private static final int GAP = 16;
         private Font font = Font.decode(Messages.MASTHEAD_FONT);
-        private int gap = 10;
         private String title;
 
         public MastheadIcon(String title) {
@@ -78,28 +73,19 @@ public class InternalDialog extends JInternalFrame {
         }
 
         public synchronized void paintIcon(Component c, Graphics g, int x, int y) {
-            // Clone the Graphics object
             g = g.create();
-
-            // Ignore x to make sure we fill entire component width
-            x = 0;
             int width = c.getWidth();
-            int lWidth = leftIcon.getIconWidth();
-            int rWidth = rightIcon.getIconWidth();
             int height = getIconHeight();
-            int textHeight = g.getFontMetrics(font).getAscent();
 
-            g.setColor(Color.white);
-            g.fillRect(x, y, width, height);
-
-            leftIcon.paintIcon(c, g, x, y);
-            rightIcon.paintIcon(c, g, width - rWidth, y);
+            g.setColor(new Color(0x35556b));
+            g.fillRect(0, y, width, height);
 
             g.setFont(font);
             ((Graphics2D) g)
                     .setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-            g.setColor(new Color(0x35556b));
-            g.drawString(title, lWidth + gap, height / 2 + textHeight / 2);
+            int textHeight = g.getFontMetrics(font).getAscent();
+            g.setColor(Color.white);
+            g.drawString(title, GAP, y + height / 2 + textHeight / 2);
         }
 
         public int getIconWidth() {
@@ -111,11 +97,11 @@ public class InternalDialog extends JInternalFrame {
                     textWidth = fm.stringWidth(title);
                 }
             }
-            return (leftIcon.getIconWidth() + gap + textWidth + gap + rightIcon.getIconWidth());
+            return GAP + textWidth + GAP;
         }
 
         public int getIconHeight() {
-            return leftIcon.getIconHeight();
+            return HEIGHT;
         }
     }
 }

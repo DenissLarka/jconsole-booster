@@ -25,7 +25,7 @@
 
 package com.druvu.jconsole.ui.tabs;
 
-import com.druvu.jconsole.jmx.ProxyClient;
+import com.druvu.jconsole.jmx.api.JmxDataAccess;
 import com.druvu.jconsole.launcher.JConsole;
 import com.druvu.jconsole.ui.components.LabeledComponent;
 import com.druvu.jconsole.ui.components.TimeComboBox;
@@ -91,8 +91,8 @@ public class ThreadTab extends Tab implements ActionListener, DocumentListener, 
         return Messages.THREADS;
     }
 
-    public ThreadTab(VMPanel vmPanel) {
-        super(vmPanel, getTabName());
+    public ThreadTab(VMPanel vmPanel, JmxDataAccess dataAccess) {
+        super(vmPanel, dataAccess, getTabName());
 
         setLayout(new BorderLayout(0, 0));
         setBorder(new EmptyBorder(4, 4, 3, 4));
@@ -175,10 +175,8 @@ public class ThreadTab extends Tab implements ActionListener, DocumentListener, 
     private long oldThreads[] = new long[0];
 
     public SwingWorker<?, ?> newSwingWorker() {
-        final ProxyClient proxyClient = vmPanel.getProxyClient();
-
         if (!plotterListening) {
-            proxyClient.addWeakPropertyChangeListener(threadMeter.plotter);
+            dataAccess.addWeakPropertyChangeListener(threadMeter.plotter);
             plotterListening = true;
         }
 
@@ -191,7 +189,7 @@ public class ThreadTab extends Tab implements ActionListener, DocumentListener, 
 
             public Boolean doInBackground() {
                 try {
-                    ThreadMXBean threadMBean = proxyClient.getThreadMXBean();
+                    ThreadMXBean threadMBean = dataAccess.getThreadMXBean();
 
                     tlCount = threadMBean.getThreadCount();
                     tpCount = threadMBean.getPeakThreadCount();
@@ -323,13 +321,12 @@ public class ThreadTab extends Tab implements ActionListener, DocumentListener, 
             final long threadID = selected;
             workerAdd(new Runnable() {
                 public void run() {
-                    ProxyClient proxyClient = vmPanel.getProxyClient();
                     StringBuilder sb = new StringBuilder();
                     try {
-                        ThreadMXBean threadMBean = proxyClient.getThreadMXBean();
+                        ThreadMXBean threadMBean = dataAccess.getThreadMXBean();
                         ThreadInfo ti = null;
                         MonitorInfo[] monitors = null;
-                        if (proxyClient.isLockUsageSupported() && threadMBean.isObjectMonitorUsageSupported()) {
+                        if (dataAccess.isLockUsageSupported() && threadMBean.isObjectMonitorUsageSupported()) {
                             // VMs that support the monitor usage monitoring
                             ThreadInfo[] infos = threadMBean.dumpAllThreads(true, false);
                             for (ThreadInfo info : infos) {
@@ -382,7 +379,7 @@ public class ThreadTab extends Tab implements ActionListener, DocumentListener, 
                     } catch (IOException ex) {
                         // Ignore
                     } catch (UndeclaredThrowableException e) {
-                        proxyClient.markAsDead();
+                        dataAccess.markAsDead();
                     }
                     final String text = sb.toString();
                     SwingUtilities.invokeLater(new Runnable() {
@@ -484,7 +481,7 @@ public class ThreadTab extends Tab implements ActionListener, DocumentListener, 
                 } catch (IOException e) {
                     // Ignore
                 } catch (UndeclaredThrowableException e) {
-                    vmPanel.getProxyClient().markAsDead();
+                    dataAccess.markAsDead();
                 }
             }
         });
@@ -492,10 +489,9 @@ public class ThreadTab extends Tab implements ActionListener, DocumentListener, 
 
     // Return deadlocked threads or null
     public Long[][] getDeadlockedThreadIds() throws IOException {
-        ProxyClient proxyClient = vmPanel.getProxyClient();
-        ThreadMXBean threadMBean = proxyClient.getThreadMXBean();
+        ThreadMXBean threadMBean = dataAccess.getThreadMXBean();
 
-        long[] ids = proxyClient.findDeadlockedThreads();
+        long[] ids = dataAccess.findDeadlockedThreads();
         if (ids == null) {
             return null;
         }

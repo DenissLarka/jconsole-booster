@@ -25,7 +25,7 @@
 
 package com.druvu.jconsole.ui.tabs;
 
-import com.druvu.jconsole.jmx.ProxyClient;
+import com.druvu.jconsole.jmx.api.JmxDataAccess;
 import com.druvu.jconsole.launcher.JConsole;
 import com.druvu.jconsole.ui.components.HTMLPane;
 import com.druvu.jconsole.ui.components.LabeledComponent;
@@ -86,8 +86,8 @@ public class ClassTab extends Tab implements ActionListener {
         return Messages.CLASSES;
     }
 
-    public ClassTab(VMPanel vmPanel) {
-        super(vmPanel, getTabName());
+    public ClassTab(VMPanel vmPanel, JmxDataAccess dataAccess) {
+        super(vmPanel, dataAccess, getTabName());
 
         setLayout(new BorderLayout(0, 0));
         setBorder(new EmptyBorder(4, 4, 3, 4));
@@ -138,11 +138,10 @@ public class ClassTab extends Tab implements ActionListener {
         final boolean b = verboseCheckBox.isSelected();
         workerAdd(new Runnable() {
             public void run() {
-                ProxyClient proxyClient = vmPanel.getProxyClient();
                 try {
-                    proxyClient.getClassLoadingMXBean().setVerbose(b);
+                    dataAccess.getClassLoadingMXBean().setVerbose(b);
                 } catch (UndeclaredThrowableException e) {
-                    proxyClient.markAsDead();
+                    dataAccess.markAsDead();
                 } catch (IOException ex) {
                     // Ignore
                 }
@@ -151,10 +150,8 @@ public class ClassTab extends Tab implements ActionListener {
     }
 
     public SwingWorker<?, ?> newSwingWorker() {
-        final ProxyClient proxyClient = vmPanel.getProxyClient();
-
         if (!plotterListening) {
-            proxyClient.addWeakPropertyChangeListener(loadedClassesMeter.plotter);
+            dataAccess.addWeakPropertyChangeListener(loadedClassesMeter.plotter);
             plotterListening = true;
         }
 
@@ -166,7 +163,7 @@ public class ClassTab extends Tab implements ActionListener {
 
             public Boolean doInBackground() {
                 try {
-                    ClassLoadingMXBean classLoadingMBean = proxyClient.getClassLoadingMXBean();
+                    ClassLoadingMXBean classLoadingMBean = dataAccess.getClassLoadingMXBean();
 
                     clCount = classLoadingMBean.getLoadedClassCount();
                     cuCount = classLoadingMBean.getUnloadedClassCount();
@@ -177,7 +174,7 @@ public class ClassTab extends Tab implements ActionListener {
 
                     return true;
                 } catch (UndeclaredThrowableException e) {
-                    proxyClient.markAsDead();
+                    dataAccess.markAsDead();
                     return false;
                 } catch (IOException e) {
                     return false;

@@ -35,7 +35,7 @@ import javax.swing.plaf.basic.*;
 
 /**
  * This class is a temporary workaround for bug 4834918: Win L&F: JInternalFrame should merge with JMenuBar when
- * maximized. It is not a general solution, but intended for use within the limited scope of JConsole when running with
+ * maximised. It is not a general solution but intended for use within the limited scope of JConsole when running with
  * XP/Vista styles.
  */
 @SuppressWarnings("serial")
@@ -49,8 +49,8 @@ public class MaximizableInternalFrame extends JInternalFrame {
     private PropertyChangeListener pcl;
 
     public MaximizableInternalFrame(
-            String title, boolean resizable, boolean closable, boolean maximizable, boolean iconifiable) {
-        super(title, resizable, closable, maximizable, iconifiable);
+            String title, boolean resizable, boolean closable, boolean maximizable, boolean allowIconify) {
+        super(title, resizable, closable, maximizable, allowIconify);
         init();
     }
 
@@ -62,14 +62,12 @@ public class MaximizableInternalFrame extends JInternalFrame {
             titlePane = ((BasicInternalFrameUI) getUI()).getNorthPane();
 
             if (pcl == null) {
-                pcl = new PropertyChangeListener() {
-                    public void propertyChange(PropertyChangeEvent ev) {
-                        String prop = ev.getPropertyName();
-                        if (prop.equals("icon") || prop.equals("maximum") || prop.equals("closed")) {
-                            updateFrame();
-                        }
-                    }
-                };
+                pcl = ev -> {
+					String prop = ev.getPropertyName();
+					if (prop.equals("icon") || prop.equals("maximum") || prop.equals("closed")) {
+						updateFrame();
+					}
+				};
                 addPropertyChangeListener(pcl);
             }
         } else if (pcl != null) {
@@ -164,7 +162,6 @@ public class MaximizableInternalFrame extends JInternalFrame {
             if (mainFrame != null) {
                 mainMenuBar = mainFrame.getJMenuBar();
                 if (mainMenuBar != null && !(mainMenuBar.getLayout() instanceof FixedMenuBarLayout)) {
-
                     mainMenuBar.setLayout(new FixedMenuBarLayout(mainMenuBar, BoxLayout.X_AXIS));
                 }
             }
@@ -188,7 +185,6 @@ public class MaximizableInternalFrame extends JInternalFrame {
 
         public void layoutContainer(Container target) {
             super.layoutContainer(target);
-
             for (Component c : target.getComponents()) {
                 if (c instanceof JButton) {
                     int y = (target.getHeight() - c.getHeight()) / 2;

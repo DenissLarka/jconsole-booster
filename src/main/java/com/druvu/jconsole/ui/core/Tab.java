@@ -25,7 +25,7 @@
 
 package com.druvu.jconsole.ui.core;
 
-import com.druvu.jconsole.jmx.ProxyClient;
+import com.druvu.jconsole.jmx.api.JmxDataAccess;
 import com.druvu.jconsole.ui.graphics.OverviewPanel;
 import com.druvu.jconsole.util.Worker;
 import java.awt.*;
@@ -37,11 +37,13 @@ public abstract class Tab extends JPanel {
     private Worker worker;
 
     protected VMPanel vmPanel;
+    protected final JmxDataAccess dataAccess;
 
     private SwingWorker<?, ?> prevSW;
 
-    public Tab(VMPanel vmPanel, String name) {
+    public Tab(VMPanel vmPanel, JmxDataAccess dataAccess, String name) {
         this.vmPanel = vmPanel;
+        this.dataAccess = dataAccess;
         this.name = name;
     }
 
@@ -50,8 +52,7 @@ public abstract class Tab extends JPanel {
     }
 
     public void update() {
-        final ProxyClient proxyClient = vmPanel.getProxyClient();
-        if (!proxyClient.hasPlatformMXBeans()) {
+        if (!dataAccess.hasPlatformMXBeans()) {
             throw new UnsupportedOperationException("Platform MXBeans not registered in MBeanServer");
         }
 

@@ -250,11 +250,11 @@ public class BorderedComponent extends JPanel implements ActionListener {
 
     /**
      * A subclass of <code>TitledBorder</code> which implements an arbitrary border with the addition of a JComponent
-     * (JLabel, JPanel, etc) in the default position.
+     * (JLabel, JPanel, etc.) in the default position.
      *
      * <p>If the border property value is not specified in the constructor or by invoking the appropriate set method,
      * the property value will be defined by the current look and feel, using the following property name in the
-     * Defaults Table:
+     * Default Table:
      *
      * <ul>
      *   <li>&quot;TitledBorder.border&quot;
@@ -291,11 +291,8 @@ public class BorderedComponent extends JPanel implements ActionListener {
          */
         public LabeledBorder(Border border, JComponent label) {
             super(border);
-
             this.label = label;
-
             if (label instanceof JLabel && label.getForeground() instanceof ColorUIResource) {
-
                 label.setForeground(getTitleColor());
             }
         }
@@ -311,9 +308,7 @@ public class BorderedComponent extends JPanel implements ActionListener {
          * @param height the height of the painted border
          */
         public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
-
             Border border = getBorder();
-
             if (label == null) {
                 if (border != null) {
                     border.paintBorder(c, g, x, y, width, height);
@@ -414,10 +409,10 @@ public class BorderedComponent extends JPanel implements ActionListener {
         }
 
         /**
-         * Reinitialize the insets parameter with this Border's current Insets.
+         * Reinitialise the inset parameter with this Border's current Insets.
          *
          * @param c the component for which this border insets value applies
-         * @param insets the object to be reinitialized
+         * @param insets the object to be reinitialised
          */
         public Insets getBorderInsets(Component c, Insets insets) {
             Border border = getBorder();
@@ -498,10 +493,8 @@ public class BorderedComponent extends JPanel implements ActionListener {
 
         public FocusBorder(Component comp) {
             this.comp = comp;
-
             comp.addFocusListener(this);
-
-            // This is the best guess for a L&F specific color
+            // This is the best guess for a L&F specific colour
             focusColor = UIManager.getColor("TabbedPane.focus");
         }
 

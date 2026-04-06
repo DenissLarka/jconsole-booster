@@ -27,6 +27,7 @@ package com.druvu.jconsole.ui.core;
 
 import com.druvu.jconsole.ExceptionSafePlugin;
 import com.druvu.jconsole.jmx.ProxyClient;
+import com.druvu.jconsole.jmx.api.JmxDataAccess;
 import com.druvu.jconsole.launcher.JConsole;
 import com.druvu.jconsole.ui.dialogs.SheetDialog;
 import com.druvu.jconsole.ui.tabs.ClassTab;
@@ -253,8 +254,8 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
 
     private Tab instantiate(TabInfo tabInfo) {
         try {
-            Constructor<?> con = tabInfo.tabClass.getConstructor(VMPanel.class);
-            return (Tab) con.newInstance(this);
+            Constructor<?> con = tabInfo.tabClass.getConstructor(VMPanel.class, JmxDataAccess.class);
+            return (Tab) con.newInstance(this, proxyClient);
         } catch (Exception ex) {
             logger.error("Error instantiating tab: {}", tabInfo.tabClass.getName(), ex);
             return null;

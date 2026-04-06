@@ -25,7 +25,7 @@
 
 package com.druvu.jconsole.ui.tabs;
 
-import com.druvu.jconsole.jmx.ProxyClient;
+import com.druvu.jconsole.jmx.api.JmxDataAccess;
 import com.druvu.jconsole.ui.components.LabeledComponent;
 import com.druvu.jconsole.ui.components.TimeComboBox;
 import com.druvu.jconsole.ui.core.Tab;
@@ -49,8 +49,8 @@ public class OverviewTab extends Tab {
         return Messages.OVERVIEW;
     }
 
-    public OverviewTab(VMPanel vmPanel) {
-        super(vmPanel, getTabName());
+    public OverviewTab(VMPanel vmPanel, JmxDataAccess dataAccess) {
+        super(vmPanel, dataAccess, getTabName());
 
         setBorder(new EmptyBorder(4, 4, 3, 4));
         setLayout(new BorderLayout());
@@ -101,9 +101,8 @@ public class OverviewTab extends Tab {
                     if (plotters.size() > 0) {
                         workerAdd(new Runnable() {
                             public void run() {
-                                ProxyClient proxyClient = vmPanel.getProxyClient();
                                 for (Plotter plotter : plotters) {
-                                    proxyClient.addWeakPropertyChangeListener(plotter);
+                                    dataAccess.addWeakPropertyChangeListener(plotter);
                                 }
                             }
                         });

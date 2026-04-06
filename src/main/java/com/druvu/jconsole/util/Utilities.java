@@ -68,8 +68,8 @@ public class Utilities {
     }
 
     /**
-     * A slightly modified border for JScrollPane to be used with a JTable inside a JTabbedPane. It has only top part
-     * and the rest is clipped to make the overall border less thick. The top border helps differentiating the
+     * A slightly modified border for JScrollPane to be used with a JTable inside a JTabbedPane. It has only the top part,
+     * and the rest is clipped to make the overall border less thick. The top border helps differentiate the
      * containing table from its container.
      */
     public static JScrollPane newTableScrollPane(JComponent comp) {
@@ -105,7 +105,7 @@ public class Utilities {
     }
 
     /**
-     * Modifies color c1 to ensure it has acceptable contrast relative to color c2.
+     * Modifies color c1 to ensure it has an acceptable contrast relative to colour c2.
      *
      * <p>http://www.w3.org/TR/AERT#color-contrast
      * http://www.cs.rit.edu/~ncs/color/t_convert.html#RGB%20to%20YIQ%20&%20YIQ%20to%20RGB

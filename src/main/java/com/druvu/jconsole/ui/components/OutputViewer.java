@@ -34,7 +34,7 @@ import javax.swing.*;
 /**
  * A simple console window to display messages sent to System.out and System.err.
  *
- * <p>A stop-gap solution until an error dialog is implemented.
+ * <p>A stop-gap solution until an error dialogue is implemented.
  */
 public class OutputViewer {
     private static JFrame frame;
@@ -108,7 +108,7 @@ public class OutputViewer {
                     appendln(str);
 
                     // Hack: Turn off thread check in PipedInputStream.
-                    // Any thread should be allowed to write except this one
+                    // Any thread should be allowed to write except this one,
                     // but we just use this one to keep the pipe alive.
                     try {
                         java.lang.reflect.Field f = PipedInputStream.class.getDeclaredField("writeSide");

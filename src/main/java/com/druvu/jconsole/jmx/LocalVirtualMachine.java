@@ -25,13 +25,19 @@
 
 package com.druvu.jconsole.jmx;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+
 import com.druvu.jconsole.launcher.JConsole;
 import com.sun.tools.attach.AttachNotSupportedException;
 import com.sun.tools.attach.VirtualMachine;
 import com.sun.tools.attach.VirtualMachineDescriptor;
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
+
 import jdk.internal.agent.ConnectorAddressLink;
 import sun.jvmstat.monitor.HostIdentifier;
 import sun.jvmstat.monitor.MonitorException;
@@ -115,7 +121,7 @@ public class LocalVirtualMachine {
     // This method returns the list of all virtual machines currently
     // running on the machine
     public static Map<Integer, LocalVirtualMachine> getAllVirtualMachines() {
-        Map<Integer, LocalVirtualMachine> map = new HashMap<Integer, LocalVirtualMachine>();
+        Map<Integer, LocalVirtualMachine> map = new HashMap<>();
         getMonitoredVMs(map);
         getAttachableVMs(map);
         return map;
@@ -175,7 +181,7 @@ public class LocalVirtualMachine {
                     map.put(vmid, new LocalVirtualMachine(vmid.intValue(), vmd.displayName(), attachable, address));
                 }
             } catch (NumberFormatException e) {
-                // do not support vmid different than pid
+                // do not support vmid different from pid
             }
         }
     }
@@ -187,7 +193,7 @@ public class LocalVirtualMachine {
             // Check if the VM is attachable but not included in the list
             // if it's running with a different security context.
             // For example, Windows services running
-            // local SYSTEM account are attachable if you have Adminstrator
+            // a local SYSTEM account are attachable if you have Administrator
             // privileges.
             boolean attachable = false;
             String address = null;

@@ -37,6 +37,7 @@ import static java.lang.management.ManagementFactory.newPlatformMXBeanProxy;
 
 import com.druvu.jconsole.jmx.JMXConnectionManager.ConnectionResult;
 import com.druvu.jconsole.jmx.JMXConnectionManager.SslInfo;
+import com.druvu.jconsole.jmx.api.JmxDataAccess;
 import com.druvu.jconsole.launcher.JConsole;
 import com.druvu.jconsole.util.Messages;
 import com.druvu.jconsole.util.Resources;
@@ -84,7 +85,7 @@ import javax.management.remote.JMXServiceURL;
 import javax.management.remote.rmi.RMIServer;
 import javax.swing.event.SwingPropertyChangeSupport;
 
-public class ProxyClient implements JConsoleContext {
+public class ProxyClient implements JConsoleContext, JmxDataAccess {
 
     private ConnectionState connectionState = ConnectionState.DISCONNECTED;
 
@@ -257,14 +258,14 @@ public class ProxyClient implements JConsoleContext {
             result = JMXConnectionManager.connectSelf();
             this.jmxc = null;
         } else if (lvm != null) {
-            // Local VM attach path — jmxUrl may be null on first connect
+            // Local VM attach path — jmxUrl may be null on first connection
             if (this.jmxUrl == null) {
                 result = JMXConnectionManager.connect(lvm);
-                // Record the URL that the LVM agent is now listening on so that
+                // Record the URL that the LVM agent is now listening to so that
                 // reconnections can go through the URL branch.
                 this.jmxUrl = new JMXServiceURL(lvm.connectorAddress());
             } else {
-                // Reconnect via the URL that was established on first connect
+                // Reconnect via the URL that was established on first connection
                 result = JMXConnectionManager.connect(
                         jmxUrl, userName, password, false, null, registryHostName, registryPort, requireRemoteSSL);
             }
@@ -285,7 +286,7 @@ public class ProxyClient implements JConsoleContext {
             this.jmxc = result.connector();
 
             // If this is a vm-connector and the stub was null (first connect or
-            // after disconnect), capture the SSL info for the reconnect path.
+            // after disconnect), capture the SSL info for the reconnection path.
             if (isVmConnector() && stub == null) {
                 SslInfo sslInfo = JMXConnectionManager.checkSslConfig(registryHostName, registryPort);
                 this.stub = sslInfo.stub();
@@ -460,7 +461,7 @@ public class ProxyClient implements JConsoleContext {
 
     /**
      * Returns a map of MBeans with ObjectName as the key and MBeanInfo value of a given domain. If domain is
-     * {@code null}, all MBeans are returned. If no MBean found, an empty map is returned.
+     * {@code null}, all MBeans are returned. If no MBean is found, an empty map is returned.
      */
     public Map<ObjectName, MBeanInfo> getMBeans(String domain) throws IOException {
 
@@ -474,7 +475,7 @@ public class ProxyClient implements JConsoleContext {
             }
         }
         Set<ObjectName> mbeans = server.queryNames(name, null);
-        Map<ObjectName, MBeanInfo> result = new HashMap<ObjectName, MBeanInfo>(mbeans.size());
+        Map<ObjectName, MBeanInfo> result = HashMap.newHashMap(mbeans.size());
         Iterator<ObjectName> iterator = mbeans.iterator();
         while (iterator.hasNext()) {
             Object object = iterator.next();
@@ -568,7 +569,7 @@ public class ProxyClient implements JConsoleContext {
             }
             Set<ObjectName> mbeans = server.queryNames(poolName, null);
             if (mbeans != null) {
-                memoryPoolProxies = new ArrayList<MemoryPoolProxy>();
+                memoryPoolProxies = new ArrayList<>();
                 Iterator<ObjectName> iterator = mbeans.iterator();
                 while (iterator.hasNext()) {
                     ObjectName objName = iterator.next();
@@ -593,7 +594,7 @@ public class ProxyClient implements JConsoleContext {
             }
             Set<ObjectName> mbeans = server.queryNames(gcName, null);
             if (mbeans != null) {
-                garbageCollectorMBeans = new ArrayList<GarbageCollectorMXBean>();
+                garbageCollectorMBeans = new ArrayList<>();
                 Iterator<ObjectName> iterator = mbeans.iterator();
                 while (iterator.hasNext()) {
                     ObjectName on = iterator.next();
@@ -699,6 +700,10 @@ public class ProxyClient implements JConsoleContext {
         return this.hasHotSpotDiagnosticMXBean;
     }
 
+    public boolean hasCompilationMXBean() {
+        return this.hasCompilationMXBean;
+    }
+
     public boolean isLockUsageSupported() {
         return supportsLockUsage;
     }
@@ -761,16 +766,16 @@ public class ProxyClient implements JConsoleContext {
     // caching to it, as follows:
     //
     // - The first time an attribute is called in a given MBean, the result is
-    // cached. Every subsequent time getAttribute is called for that attribute
+    // cached. Every subsequent time getAttribute is called for that attribute,
     // the cached result is returned.
     //
     // - Before every call to VMPanel.update() or when the Refresh button in the
-    // Attributes table is pressed down the attributes cache is flushed. Then
+    // Attributes table is pressed down, the attribute cache is flushed. Then
     // any subsequent call to getAttribute will retrieve all the values for
     // the attributes that are known to the cache.
     //
-    // - The attributes cache uses a learning approach and only the attributes
-    // that are in the cache will be retrieved between two subsequent updates.
+    // - The attribute cache uses a learning approach, and only the attributes
+    // that are in the cache will be retrieved between two updates in a row.
     //
 
     public interface SnapshotMBeanServerConnection extends MBeanServerConnection {
@@ -791,8 +796,8 @@ public class ProxyClient implements JConsoleContext {
     static class SnapshotInvocationHandler implements InvocationHandler {
 
         private final MBeanServerConnection conn;
-        private Map<ObjectName, NameValueMap> cachedValues = newMap();
-        private Map<ObjectName, Set<String>> cachedNames = newMap();
+        private Map<ObjectName, NameValueMap> cachedValues = new HashMap<>();
+        private Map<ObjectName, Set<String>> cachedNames = new HashMap<>();
 
         @SuppressWarnings("serial")
         private static final class NameValueMap extends HashMap<String, Object> {}
@@ -802,7 +807,7 @@ public class ProxyClient implements JConsoleContext {
         }
 
         synchronized void flush() {
-            cachedValues = newMap();
+            cachedValues = new HashMap<>();
         }
 
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -832,14 +837,14 @@ public class ProxyClient implements JConsoleContext {
                 return value;
             }
             // Not in cache, presumably because it was omitted from the
-            // getAttributes result because of an exception. Following
+            // getAttributes result because of an exception. The following
             // call will probably provoke the same exception.
             return conn.getAttribute(objName, attrName);
         }
 
         private AttributeList getAttributes(ObjectName objName, String[] attrNames)
                 throws InstanceNotFoundException, ReflectionException, IOException {
-            final NameValueMap values = getCachedAttributes(objName, new TreeSet<String>(Arrays.asList(attrNames)));
+            final NameValueMap values = getCachedAttributes(objName, new TreeSet<>(Arrays.asList(attrNames)));
             final AttributeList list = new AttributeList();
             for (String attrName : attrNames) {
                 final Object value = values.get(attrName);
@@ -856,7 +861,7 @@ public class ProxyClient implements JConsoleContext {
             if (values != null && values.keySet().containsAll(attrNames)) {
                 return values;
             }
-            attrNames = new TreeSet<String>(attrNames);
+            attrNames = new TreeSet<>(attrNames);
             Set<String> oldNames = cachedNames.get(objName);
             if (oldNames != null) {
                 attrNames.addAll(oldNames);
@@ -869,11 +874,6 @@ public class ProxyClient implements JConsoleContext {
             cachedValues.put(objName, values);
             cachedNames.put(objName, attrNames);
             return values;
-        }
-
-        // See http://www.artima.com/weblogs/viewpost.jsp?thread=79394
-        private static <K, V> Map<K, V> newMap() {
-            return new HashMap<K, V>();
         }
     }
 }

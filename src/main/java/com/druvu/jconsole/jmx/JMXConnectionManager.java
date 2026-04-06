@@ -254,12 +254,11 @@ public final class JMXConnectionManager {
      * Establishes a connection for the URL / credential / VM-connector path.
      *
      * @param jmxUrl the JMX service URL to connect to
-     * @param userName optional user name (may be {@code null})
-     * @param password optional password (may be {@code null})
+     * @param userName optional user name (maybe {@code null})
+     * @param password optional password (maybe {@code null})
      * @param isVmConnector {@code true} if this is a VM connector (RMI registry path)
      * @param existingStub pre-fetched {@link RMIServer} stub, or {@code null} to fetch via SSL-config detection
-     * @param registryHostName hostname of the RMI registry (used only when {@code isVmConnector && existingStub ==
-     *     null})
+     * @param registryHostName hostname of the RMI registry (used only when {@code isVmConnector && existingStub == * null})
      * @param registryPort port of the RMI registry (same condition)
      * @param requireSSL if {@code true}, passes {@code jmx.remote.x.check.stub=true}
      * @return a {@link ConnectionResult}

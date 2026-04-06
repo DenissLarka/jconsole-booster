@@ -103,7 +103,7 @@ public final class ExceptionSafePlugin extends JConsolePlugin {
         String message = String.format(
                 Messages.PLUGIN_EXCEPTION_DIALOG_MESSAGE,
                 plugin.getClass().getSimpleName(),
-                String.valueOf(e.getMessage()));
+				e.getMessage());
 
         int buttonIndex = JOptionPane.showOptionDialog(
                 null,

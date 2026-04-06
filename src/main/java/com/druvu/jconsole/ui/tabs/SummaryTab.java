@@ -25,7 +25,7 @@
 
 package com.druvu.jconsole.ui.tabs;
 
-import com.druvu.jconsole.jmx.ProxyClient;
+import com.druvu.jconsole.jmx.api.JmxDataAccess;
 import com.druvu.jconsole.launcher.JConsole;
 import com.druvu.jconsole.ui.components.HTMLPane;
 import com.druvu.jconsole.ui.core.Tab;
@@ -75,8 +75,8 @@ public class SummaryTab extends Tab {
         return Messages.SUMMARY_TAB_TAB_NAME;
     }
 
-    public SummaryTab(VMPanel vmPanel) {
-        super(vmPanel, getTabName());
+    public SummaryTab(VMPanel vmPanel, JmxDataAccess dataAccess) {
+        super(vmPanel, dataAccess, getTabName());
 
         setLayout(new BorderLayout());
 
@@ -117,8 +117,7 @@ public class SummaryTab extends Tab {
 
     synchronized Result formatSummary() {
         Result result = new Result();
-        ProxyClient proxyClient = vmPanel.getProxyClient();
-        if (proxyClient.isDead()) {
+        if (dataAccess.isDead()) {
             return null;
         }
 
@@ -126,13 +125,13 @@ public class SummaryTab extends Tab {
         append("<table cellpadding=1>");
 
         try {
-            RuntimeMXBean rmBean = proxyClient.getRuntimeMXBean();
-            CompilationMXBean cmpMBean = proxyClient.getCompilationMXBean();
-            ThreadMXBean tmBean = proxyClient.getThreadMXBean();
-            MemoryMXBean memoryBean = proxyClient.getMemoryMXBean();
-            ClassLoadingMXBean clMBean = proxyClient.getClassLoadingMXBean();
-            OperatingSystemMXBean osMBean = proxyClient.getOperatingSystemMXBean();
-            com.sun.management.OperatingSystemMXBean sunOSMBean = proxyClient.getSunOperatingSystemMXBean();
+            RuntimeMXBean rmBean = dataAccess.getRuntimeMXBean();
+            CompilationMXBean cmpMBean = dataAccess.getCompilationMXBean();
+            ThreadMXBean tmBean = dataAccess.getThreadMXBean();
+            MemoryMXBean memoryBean = dataAccess.getMemoryMXBean();
+            ClassLoadingMXBean clMBean = dataAccess.getClassLoadingMXBean();
+            OperatingSystemMXBean osMBean = dataAccess.getOperatingSystemMXBean();
+            com.sun.management.OperatingSystemMXBean sunOSMBean = dataAccess.getSunOperatingSystemMXBean();
 
             append("<tr><td colspan=4>");
             append("<center><b>" + Messages.SUMMARY_TAB_TAB_NAME + "</b></center>");
@@ -221,7 +220,7 @@ public class SummaryTab extends Tab {
                 append(endTable);
 
                 append(newTable);
-                Collection<GarbageCollectorMXBean> garbageCollectors = proxyClient.getGarbageCollectorMXBeans();
+                Collection<GarbageCollectorMXBean> garbageCollectors = dataAccess.getGarbageCollectorMXBeans();
                 for (GarbageCollectorMXBean garbageCollectorMBean : garbageCollectors) {
                     String gcName = garbageCollectorMBean.getName();
                     long gcCount = garbageCollectorMBean.getCollectionCount();
@@ -305,13 +304,13 @@ public class SummaryTab extends Tab {
             if (JConsole.isDebug()) {
                 e.printStackTrace();
             }
-            proxyClient.markAsDead();
+            dataAccess.markAsDead();
             return null;
         } catch (UndeclaredThrowableException e) {
             if (JConsole.isDebug()) {
                 e.printStackTrace();
             }
-            proxyClient.markAsDead();
+            dataAccess.markAsDead();
             return null;
         }
 

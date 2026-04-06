@@ -31,6 +31,7 @@ import com.druvu.jconsole.inspector.XSheet;
 import com.druvu.jconsole.inspector.XTree;
 import com.druvu.jconsole.inspector.XTreeRenderer;
 import com.druvu.jconsole.jmx.ProxyClient;
+import com.druvu.jconsole.jmx.api.JmxDataAccess;
 import com.druvu.jconsole.launcher.JConsole;
 import com.druvu.jconsole.ui.core.Tab;
 import com.druvu.jconsole.ui.core.VMPanel;
@@ -81,8 +82,8 @@ public class MBeansTab extends Tab
         return Messages.MBEANS;
     }
 
-    public MBeansTab(final VMPanel vmPanel) {
-        super(vmPanel, getTabName());
+    public MBeansTab(VMPanel vmPanel, JmxDataAccess dataAccess) {
+        super(vmPanel, dataAccess, getTabName());
         addPropertyChangeListener(this);
         setupTab();
     }
@@ -129,7 +130,7 @@ public class MBeansTab extends Tab
                     if (JConsole.isDebug()) {
                         e.printStackTrace();
                     }
-                    vmPanel.getProxyClient().markAsDead();
+                    dataAccess.markAsDead();
                     return null;
                 }
                 // Retrieve MBeans from MBeanServer
@@ -141,7 +142,7 @@ public class MBeansTab extends Tab
                     if (JConsole.isDebug()) {
                         e.printStackTrace();
                     }
-                    vmPanel.getProxyClient().markAsDead();
+                    dataAccess.markAsDead();
                     return null;
                 }
                 return mbeans;
@@ -175,7 +176,7 @@ public class MBeansTab extends Tab
     }
 
     public MBeanServerConnection getMBeanServerConnection() {
-        return vmPanel.getProxyClient().getMBeanServerConnection();
+        return dataAccess.getMBeanServerConnection();
     }
 
     public ProxyClient.SnapshotMBeanServerConnection getSnapshotMBeanServerConnection() {
@@ -192,7 +193,7 @@ public class MBeansTab extends Tab
         try {
             getMBeanServerConnection().getDefaultDomain();
         } catch (IOException ex) {
-            vmPanel.getProxyClient().markAsDead();
+            dataAccess.markAsDead();
         }
     }
 

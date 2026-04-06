@@ -130,7 +130,7 @@ public class Plotter extends JComponent implements Accessible, ActionListener, P
     private static Stroke dashedStroke;
 
     private TimeStamps times = new TimeStamps();
-    private ArrayList<Sequence> seqs = new ArrayList<Sequence>();
+    private ArrayList<Sequence> seqs = new ArrayList<>();
     private JPopupMenu popupMenu;
     private JMenu timeRangeMenu;
     private JRadioButtonMenuItem[] menuRBs;
@@ -145,7 +145,7 @@ public class Plotter extends JComponent implements Accessible, ActionListener, P
     private Rectangle r = new Rectangle(1, 1, 1, 1);
     private Font smallFont = null;
 
-    // Initial margins, may be recalculated as needed
+    // Initial margins may be recalculated as needed
     private int topMargin = 10;
     private int bottomMargin = 45;
     private int leftMargin = 65;
@@ -164,7 +164,7 @@ public class Plotter extends JComponent implements Accessible, ActionListener, P
         this(unit, decimals, true);
     }
 
-    // Note: If decimals > 0 then values must be decimally shifted left
+    // Note: If decimals > 0, then values must be decimally shifted left
     // that many places, i.e. multiplied by Math.pow(10.0, decimals).
     public Plotter(Unit unit, int decimals, boolean displayLegend) {
         this.displayLegend = displayLegend;
@@ -218,7 +218,7 @@ public class Plotter extends JComponent implements Accessible, ActionListener, P
         }
     }
 
-    // Note: If decimals > 0 then values must be decimally shifted left
+    // Note: If decimals > 0, then values must be decimally shifted left
     // that many places, i.e. multiplied by Math.pow(10.0, decimals).
     public synchronized void addValues(long time, long... values) {
         assert (values.length == seqs.size());
@@ -243,7 +243,7 @@ public class Plotter extends JComponent implements Accessible, ActionListener, P
         return viewRange;
     }
 
-    /** @param minutes the displayed time range in minutes, or -1 to diaplay all data */
+    /** @param minutes the displayed time range in minutes, or -1 to display all data */
     public void setViewRange(int minutes) {
         if (minutes != viewRange) {
             int oldValue = viewRange;
@@ -380,7 +380,7 @@ public class Plotter extends JComponent implements Accessible, ActionListener, P
         r.height = getHeight() - topMargin - bottomMargin + 16;
 
         if (border == null) {
-            // By setting colors here, we avoid recalculating them
+            // By setting colours here, we avoid recalculating them
             // over and over.
             border = new BevelBorder(
                     BevelBorder.LOWERED,
@@ -392,7 +392,7 @@ public class Plotter extends JComponent implements Accessible, ActionListener, P
 
         border.paintBorder(this, g, r.x, r.y, r.width, r.height);
 
-        // Fill background color
+        // Fill background colour
         g.setColor(bgColor);
         g.fillRect(r.x + 2, r.y + 2, r.width - 4, r.height - 4);
         g.setColor(oldColor);
@@ -439,7 +439,7 @@ public class Plotter extends JComponent implements Accessible, ActionListener, P
             }
         }
 
-        // Normalize scale
+        // Normalise scale
         vMax = normalizeMax(vMax);
         if (vMin > 0) {
             if (vMax / vMin > 4) {
@@ -477,7 +477,7 @@ public class Plotter extends JComponent implements Accessible, ActionListener, P
         }
 
         // Ticks
-        ArrayList<Long> tickValues = new ArrayList<Long>();
+        ArrayList<Long> tickValues = new ArrayList<>();
         tickValues.add(vMin);
         for (int i = 0; i < n; i++) {
             long v = i * vMax / n;
@@ -598,7 +598,7 @@ public class Plotter extends JComponent implements Accessible, ActionListener, P
             }
         }
 
-        // Optimization: collapse plot of more than four values per pixel
+        // Optimisation: collapse plot of more than four values per pixel
         int pointsPerPixel = (nValues - start) / w;
         if (pointsPerPixel < 4) {
             pointsPerPixel = 1;
@@ -844,7 +844,7 @@ public class Plotter extends JComponent implements Accessible, ActionListener, P
         // series of times from the offsets (int). A new offset is
         // stored when the time value doesn't fit in an int
         // (approx every 24 days). An array of indices is used to
-        // define the starting point for each offset in the times
+        // define the starting point for each offset in the time
         // array.
         long[] offsets = new long[0];
         int[] indices = new int[0];
@@ -894,7 +894,7 @@ public class Plotter extends JComponent implements Accessible, ActionListener, P
         boolean isPlotted;
         Stroke transitionStroke = null;
 
-        // Values are stored in an int[] if all values will fit,
+        // Values are stored in an int[] if all values fit,
         // otherwise in a long[]. An int can represent up to 2 GB.
         // Use a random start size, so all arrays won't need to
         // be grown during the same update interval

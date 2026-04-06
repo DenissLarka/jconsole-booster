@@ -25,7 +25,7 @@
 
 package com.druvu.jconsole.ui.tabs;
 
-import com.druvu.jconsole.jmx.ProxyClient;
+import com.druvu.jconsole.jmx.api.JmxDataAccess;
 import com.druvu.jconsole.launcher.JConsole;
 import com.druvu.jconsole.ui.components.BorderedComponent;
 import com.druvu.jconsole.ui.components.HTMLPane;
@@ -102,8 +102,8 @@ public class MemoryTab extends Tab implements ActionListener, ItemListener {
         return Messages.MEMORY;
     }
 
-    public MemoryTab(VMPanel vmPanel) {
-        super(vmPanel, getTabName());
+    public MemoryTab(VMPanel vmPanel, JmxDataAccess dataAccess) {
+        super(vmPanel, dataAccess, getTabName());
 
         setLayout(new BorderLayout(0, 0));
         setBorder(new EmptyBorder(4, 4, 3, 4));
@@ -151,14 +151,12 @@ public class MemoryTab extends Tab implements ActionListener, ItemListener {
     private void createPlotters() throws IOException {
         plotterList = new ArrayList<Plotter>();
 
-        ProxyClient proxyClient = vmPanel.getProxyClient();
-
         heapPlotter = new Plotter(Plotter.Unit.BYTES) {
             public String toString() {
                 return Messages.HEAP_MEMORY_USAGE;
             }
         };
-        proxyClient.addWeakPropertyChangeListener(heapPlotter);
+        dataAccess.addWeakPropertyChangeListener(heapPlotter);
 
         nonHeapPlotter = new Plotter(Plotter.Unit.BYTES) {
             public String toString() {
@@ -169,7 +167,7 @@ public class MemoryTab extends Tab implements ActionListener, ItemListener {
         Utilities.setAccessibleName(heapPlotter, Messages.MEMORY_TAB_HEAP_PLOTTER_ACCESSIBLE_NAME);
         Utilities.setAccessibleName(nonHeapPlotter, Messages.MEMORY_TAB_NON_HEAP_PLOTTER_ACCESSIBLE_NAME);
 
-        proxyClient.addWeakPropertyChangeListener(nonHeapPlotter);
+        dataAccess.addWeakPropertyChangeListener(nonHeapPlotter);
 
         heapPlotter.createSequence(usedKey, Messages.USED, usedColor, true);
         heapPlotter.createSequence(committedKey, Messages.COMMITTED, committedColor, false);
@@ -183,7 +181,7 @@ public class MemoryTab extends Tab implements ActionListener, ItemListener {
         plotterList.add(nonHeapPlotter);
 
         // Now add memory pools
-        Map<ObjectName, MBeanInfo> mBeanMap = proxyClient.getMBeans("java.lang");
+        Map<ObjectName, MBeanInfo> mBeanMap = dataAccess.getMBeans("java.lang");
         Set<ObjectName> keys = mBeanMap.keySet();
         ObjectName[] objectNames = keys.toArray(new ObjectName[keys.size()]);
         ArrayList<PoolPlotter> nonHeapPlotters = new ArrayList<PoolPlotter>(2);
@@ -193,12 +191,12 @@ public class MemoryTab extends Tab implements ActionListener, ItemListener {
                 String name = Resources.format(Messages.MEMORY_POOL_LABEL, objectName.getKeyProperty("name"));
                 // Heap or non-heap?
                 boolean isHeap = false;
-                AttributeList al = proxyClient.getAttributes(objectName, new String[] {"Type"});
+                AttributeList al = dataAccess.getAttributes(objectName, new String[] {"Type"});
                 if (al.size() > 0) {
                     isHeap = MemoryType.HEAP.name().equals(((Attribute) al.get(0)).getValue());
                 }
                 PoolPlotter poolPlotter = new PoolPlotter(objectName, name, isHeap);
-                proxyClient.addWeakPropertyChangeListener(poolPlotter);
+                dataAccess.addWeakPropertyChangeListener(poolPlotter);
 
                 poolPlotter.createSequence(usedKey, Messages.USED, usedColor, true);
                 poolPlotter.createSequence(committedKey, Messages.COMMITTED, committedColor, false);
@@ -231,11 +229,10 @@ public class MemoryTab extends Tab implements ActionListener, ItemListener {
     public void gc() {
         new Thread("MemoryPanel.gc") {
             public void run() {
-                ProxyClient proxyClient = vmPanel.getProxyClient();
                 try {
-                    proxyClient.getMemoryMXBean().gc();
+                    dataAccess.getMemoryMXBean().gc();
                 } catch (UndeclaredThrowableException e) {
-                    proxyClient.markAsDead();
+                    dataAccess.markAsDead();
                 } catch (IOException e) {
                     // Ignore
                 }
@@ -251,13 +248,11 @@ public class MemoryTab extends Tab implements ActionListener, ItemListener {
             private boolean initialRun = false;
 
             public Boolean doInBackground() {
-                ProxyClient proxyClient = vmPanel.getProxyClient();
-
                 if (plotterList == null) {
                     try {
                         createPlotters();
                     } catch (UndeclaredThrowableException e) {
-                        proxyClient.markAsDead();
+                        dataAccess.markAsDead();
                         return false;
                     } catch (final IOException ex) {
                         return false;
@@ -283,7 +278,7 @@ public class MemoryTab extends Tab implements ActionListener, ItemListener {
                             PoolPlotter poolPlotter = (PoolPlotter) plotter;
                             ObjectName objectName = poolPlotter.objectName;
                             AttributeList al =
-                                    proxyClient.getAttributes(objectName, new String[] {"Usage", "UsageThreshold"});
+                                    dataAccess.getAttributes(objectName, new String[] {"Usage", "UsageThreshold"});
                             if (al.size() > 0) {
                                 CompositeData cd = (CompositeData) ((Attribute) al.get(0)).getValue();
                                 mu = MemoryUsage.from(cd);
@@ -293,12 +288,12 @@ public class MemoryTab extends Tab implements ActionListener, ItemListener {
                                 }
                             }
                         } else if (plotter == heapPlotter) {
-                            mu = proxyClient.getMemoryMXBean().getHeapMemoryUsage();
+                            mu = dataAccess.getMemoryMXBean().getHeapMemoryUsage();
                         } else if (plotter == nonHeapPlotter) {
-                            mu = proxyClient.getMemoryMXBean().getNonHeapMemoryUsage();
+                            mu = dataAccess.getMemoryMXBean().getNonHeapMemoryUsage();
                         }
                     } catch (UndeclaredThrowableException e) {
-                        proxyClient.markAsDead();
+                        dataAccess.markAsDead();
                         return false;
                     } catch (IOException ex) {
                         // Skip this plotter
@@ -366,8 +361,7 @@ public class MemoryTab extends Tab implements ActionListener, ItemListener {
     }
 
     private String formatDetails() {
-        ProxyClient proxyClient = vmPanel.getProxyClient();
-        if (proxyClient.isDead()) {
+        if (dataAccess.isDead()) {
             return "";
         }
 
@@ -400,7 +394,7 @@ public class MemoryTab extends Tab implements ActionListener, ItemListener {
         }
 
         try {
-            Collection<GarbageCollectorMXBean> garbageCollectors = proxyClient.getGarbageCollectorMXBeans();
+            Collection<GarbageCollectorMXBean> garbageCollectors = dataAccess.getGarbageCollectorMXBeans();
 
             boolean descPrinted = false;
             for (GarbageCollectorMXBean garbageCollectorMBean : garbageCollectors) {

@@ -47,7 +47,7 @@ public class MemoryPoolProxy {
         this.client = client;
         this.pool = client.getMXBean(poolName, MemoryPoolMXBean.class);
         this.poolName = this.pool.getName();
-        this.gcMBeans = new HashMap<ObjectName, Long>();
+        this.gcMBeans = new HashMap<>();
         this.lastGcInfo = null;
 
         String[] mgrNames = pool.getMemoryManagerNames();

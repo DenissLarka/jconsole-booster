@@ -27,7 +27,7 @@ package com.druvu.jconsole.inspector;
 
 // Imports for picking up mouse events from the JTable.
 
-import com.druvu.jconsole.JConsole;
+import com.druvu.jconsole.launcher.JConsole;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.Vector;

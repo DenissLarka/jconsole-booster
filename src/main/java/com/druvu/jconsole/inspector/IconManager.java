@@ -25,7 +25,7 @@
 
 package com.druvu.jconsole.inspector;
 
-import com.druvu.jconsole.JConsole;
+import com.druvu.jconsole.launcher.JConsole;
 import java.awt.Image;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -37,7 +37,7 @@ public class IconManager {
     public static Icon DEFAULT_XOBJECT = getSmallIcon(getImage("xobject.gif"));
 
     private static ImageIcon getImage(String img) {
-        return new ImageIcon(JConsole.class.getResource("resources/" + img));
+        return new ImageIcon(JConsole.class.getResource("/com/druvu/jconsole/resources/" + img));
     }
 
     private static ImageIcon getSmallIcon(ImageIcon icon) {

@@ -194,7 +194,7 @@
 								<argument>--module-path</argument>
 								<modulepath/>
 								<argument>-m</argument>
-								<argument>com.druvu.jconsole/com.druvu.jconsole.extra.JConsoleEx</argument>
+								<argument>com.druvu.jconsole/com.druvu.jconsole.JConsole</argument>
 								<argument>-c=#8BC6E1FF</argument>
 								<argument>-debug</argument>
 							</arguments>

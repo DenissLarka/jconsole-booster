@@ -40,32 +40,36 @@ public class Utils {
 
     private Utils() {}
 
-    private static Set<Integer> tableNavigationKeys = new HashSet<Integer>(Arrays.asList(new Integer[] {
-        KeyEvent.VK_TAB,
-        KeyEvent.VK_ENTER,
-        KeyEvent.VK_HOME,
-        KeyEvent.VK_END,
-        KeyEvent.VK_LEFT,
-        KeyEvent.VK_RIGHT,
-        KeyEvent.VK_UP,
-        KeyEvent.VK_DOWN,
-        KeyEvent.VK_PAGE_UP,
-        KeyEvent.VK_PAGE_DOWN
-    }));
-    private static final Set<Class<?>> primitiveWrappers = new HashSet<Class<?>>(Arrays.asList(new Class<?>[] {
-        Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class, Character.class, Boolean.class
-    }));
-    private static final Set<Class<?>> primitives = new HashSet<Class<?>>();
-    private static final Map<String, Class<?>> primitiveMap = new HashMap<String, Class<?>>();
-    private static final Map<String, Class<?>> primitiveToWrapper = new HashMap<String, Class<?>>();
-    private static final Set<String> editableTypes = new HashSet<String>();
-    private static final Set<Class<?>> extraEditableClasses = new HashSet<Class<?>>(Arrays.asList(
-            new Class<?>[] {BigDecimal.class, BigInteger.class, Number.class, String.class, ObjectName.class}));
-    private static final Set<String> numericalTypes = new HashSet<String>();
-    private static final Set<String> extraNumericalTypes = new HashSet<String>(Arrays.asList(
-            new String[] {BigDecimal.class.getName(), BigInteger.class.getName(), Number.class.getName()}));
-    private static final Set<String> booleanTypes =
-            new HashSet<String>(Arrays.asList(new String[] {Boolean.TYPE.getName(), Boolean.class.getName()}));
+    private static final Set<Integer> tableNavigationKeys = Set.of(
+            KeyEvent.VK_TAB,
+            KeyEvent.VK_ENTER,
+            KeyEvent.VK_HOME,
+            KeyEvent.VK_END,
+            KeyEvent.VK_LEFT,
+            KeyEvent.VK_RIGHT,
+            KeyEvent.VK_UP,
+            KeyEvent.VK_DOWN,
+            KeyEvent.VK_PAGE_UP,
+            KeyEvent.VK_PAGE_DOWN);
+    private static final Set<Class<?>> primitiveWrappers = Set.of(
+            Byte.class,
+            Short.class,
+            Integer.class,
+            Long.class,
+            Float.class,
+            Double.class,
+            Character.class,
+            Boolean.class);
+    private static final Set<Class<?>> primitives = new HashSet<>();
+    private static final Map<String, Class<?>> primitiveMap = new HashMap<>();
+    private static final Map<String, Class<?>> primitiveToWrapper = new HashMap<>();
+    private static final Set<String> editableTypes = new HashSet<>();
+    private static final Set<Class<?>> extraEditableClasses =
+            Set.of(BigDecimal.class, BigInteger.class, Number.class, String.class, ObjectName.class);
+    private static final Set<String> numericalTypes = new HashSet<>();
+    private static final Set<String> extraNumericalTypes =
+            Set.of(BigDecimal.class.getName(), BigInteger.class.getName(), Number.class.getName());
+    private static final Set<String> booleanTypes = Set.of(Boolean.TYPE.getName(), Boolean.class.getName());
 
     static {
         // compute primitives/primitiveMap/primitiveToWrapper
@@ -105,10 +109,7 @@ public class Utils {
         }
     }
 
-    /**
-     * This method returns the class matching the name className. It's used to cater
-     * for the primitive types.
-     */
+    /** This method returns the class matching the name className. It's used to cater for the primitive types. */
     public static Class<?> getClass(String className) throws ClassNotFoundException {
         Class<?> c;
         if ((c = primitiveMap.get(className)) != null) {
@@ -117,9 +118,7 @@ public class Utils {
         return Class.forName(className);
     }
 
-    /**
-     * Check if the given collection is a uniform collection of the given type.
-     */
+    /** Check if the given collection is a uniform collection of the given type. */
     public static boolean isUniformCollection(Collection<?> c, Class<?> e) {
         if (e == null) {
             throw new IllegalArgumentException("Null reference type");
@@ -139,8 +138,8 @@ public class Utils {
     }
 
     /**
-     * Check if the given element denotes a supported array-friendly data structure,
-     * i.e. a data structure jconsole can render as an array.
+     * Check if the given element denotes a supported array-friendly data structure, i.e. a data structure jconsole can
+     * render as an array.
      */
     public static boolean canBeRenderedAsArray(Object elem) {
         if (isSupportedArray(elem)) {
@@ -169,10 +168,9 @@ public class Utils {
     /**
      * Check if the given element is an array.
      *
-     * Multidimensional arrays are not supported.
+     * <p>Multidimensional arrays are not supported.
      *
-     * Non-empty 1-dimensional arrays of CompositeData and TabularData are not
-     * handled as arrays but as tabular data.
+     * <p>Non-empty 1-dimensional arrays of CompositeData and TabularData are not handled as arrays but as tabular data.
      */
     public static boolean isSupportedArray(Object elem) {
         if (elem == null || !elem.getClass().isArray()) {
@@ -190,10 +188,9 @@ public class Utils {
     }
 
     /**
-     * This method provides a readable classname if it's an array, i.e. either the
-     * classname of the component type for arrays of java reference types or the
-     * name of the primitive type for arrays of java primitive types. Otherwise, it
-     * returns null.
+     * This method provides a readable classname if it's an array, i.e. either the classname of the component type for
+     * arrays of java reference types or the name of the primitive type for arrays of java primitive types. Otherwise,
+     * it returns null.
      */
     public static String getArrayClassName(String name) {
         String className = null;
@@ -216,12 +213,10 @@ public class Utils {
     }
 
     /**
-     * This methods provides a readable classname. If the supplied name parameter
-     * denotes an array this method returns either the classname of the component
-     * type for arrays of java reference types or the name of the primitive type for
-     * arrays of java primitive types followed by n-times "[]" where 'n' denotes the
-     * arity of the array. Otherwise, if the supplied name doesn't denote an array
-     * it returns the same classname.
+     * This methods provides a readable classname. If the supplied name parameter denotes an array this method returns
+     * either the classname of the component type for arrays of java reference types or the name of the primitive type
+     * for arrays of java primitive types followed by n-times "[]" where 'n' denotes the arity of the array. Otherwise,
+     * if the supplied name doesn't denote an array it returns the same classname.
      */
     public static String getReadableClassName(String name) {
         String className = getArrayClassName(name);
@@ -236,18 +231,14 @@ public class Utils {
         return brackets.toString();
     }
 
-    /**
-     * This method tells whether the type is editable (means can be created with a
-     * String or not)
-     */
+    /** This method tells whether the type is editable (means can be created with a String or not) */
     public static boolean isEditableType(String type) {
         return editableTypes.contains(type);
     }
 
     /**
-     * This method inserts a default value for the standard java types, else it
-     * inserts the text name of the expected class type. It acts to give a clue as
-     * to the input type.
+     * This method inserts a default value for the standard java types, else it inserts the text name of the expected
+     * class type. It acts to give a clue as to the input type.
      */
     public static String getDefaultValue(String type) {
         if (numericalTypes.contains(type) || extraNumericalTypes.contains(type)) {
@@ -265,9 +256,7 @@ public class Utils {
         }
     }
 
-    /**
-     * Try to create a Java object using a one-string-param constructor.
-     */
+    /** Try to create a Java object using a one-string-param constructor. */
     public static Object newStringConstructor(String type, String param) throws Exception {
         Constructor<?> c = Utils.getClass(type).getConstructor(String.class);
         try {
@@ -282,9 +271,7 @@ public class Utils {
         }
     }
 
-    /**
-     * Try to convert a string value into a numerical value.
-     */
+    /** Try to convert a string value into a numerical value. */
     private static Number createNumberFromStringValue(String value) throws NumberFormatException {
         final String suffix = value.substring(value.length() - 1);
         if ("L".equalsIgnoreCase(suffix)) {
@@ -315,9 +302,8 @@ public class Utils {
     }
 
     /**
-     * This method attempts to create an object of the given "type" using the
-     * "value" parameter. e.g. calling createObjectFromString("java.lang.Integer",
-     * "10") will return an Integer object initialized to 10.
+     * This method attempts to create an object of the given "type" using the "value" parameter. e.g. calling
+     * createObjectFromString("java.lang.Integer", "10") will return an Integer object initialized to 10.
      */
     public static Object createObjectFromString(String type, String value) throws Exception {
         Object result;
@@ -343,8 +329,8 @@ public class Utils {
     }
 
     /**
-     * This method is responsible for converting the inputs given by the user into a
-     * useful object array for passing into a parameter array.
+     * This method is responsible for converting the inputs given by the user into a useful object array for passing
+     * into a parameter array.
      */
     public static Object[] getParameters(XTextField[] inputs, String[] params) throws Exception {
         Object result[] = new Object[inputs.length];
@@ -362,9 +348,7 @@ public class Utils {
         return result;
     }
 
-    /**
-     * If the exception is wrapped, unwrap it.
-     */
+    /** If the exception is wrapped, unwrap it. */
     public static Throwable getActualException(Throwable e) {
         if (e instanceof ExecutionException) {
             e = e.getCause();

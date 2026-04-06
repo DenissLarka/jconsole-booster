@@ -25,7 +25,7 @@
 
 package com.druvu.jconsole.inspector;
 
-import com.druvu.jconsole.MBeansTab;
+import com.druvu.jconsole.ui.tabs.MBeansTab;
 import java.util.ArrayList;
 import javax.management.*;
 

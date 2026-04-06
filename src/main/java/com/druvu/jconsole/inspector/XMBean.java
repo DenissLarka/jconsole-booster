@@ -25,9 +25,9 @@
 
 package com.druvu.jconsole.inspector;
 
-import com.druvu.jconsole.JConsole;
-import com.druvu.jconsole.MBeansTab;
-import com.druvu.jconsole.ProxyClient.SnapshotMBeanServerConnection;
+import com.druvu.jconsole.jmx.ProxyClient.SnapshotMBeanServerConnection;
+import com.druvu.jconsole.launcher.JConsole;
+import com.druvu.jconsole.ui.tabs.MBeansTab;
 import java.io.IOException;
 import javax.management.*;
 import javax.swing.Icon;

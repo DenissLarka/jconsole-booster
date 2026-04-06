@@ -30,9 +30,7 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.event.*;
 
-/**
- * This list implements the drag and drop functionality.
- */
+/** This list implements the drag and drop functionality. */
 @SuppressWarnings("serial")
 public class XTextField extends JPanel implements DocumentListener, ActionListener {
 
@@ -154,10 +152,7 @@ public class XTextField extends JPanel implements DocumentListener, ActionListen
         }
     }
 
-    /**
-     * This method returns either the user inputted String, or an XObject if one was
-     * dropped on the input field.
-     */
+    /** This method returns either the user inputted String, or an XObject if one was dropped on the input field. */
     public Object getValue() {
         if (selectedObject != null) {
             if (selectedObject == XObject.NULL_OBJECT) {

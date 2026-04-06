@@ -25,10 +25,10 @@
 
 package com.druvu.jconsole.inspector;
 
-import com.druvu.jconsole.JConsole;
-import com.druvu.jconsole.MBeansTab;
-import com.druvu.jconsole.Messages;
-import com.druvu.jconsole.ProxyClient.SnapshotMBeanServerConnection;
+import com.druvu.jconsole.jmx.ProxyClient.SnapshotMBeanServerConnection;
+import com.druvu.jconsole.launcher.JConsole;
+import com.druvu.jconsole.ui.tabs.MBeansTab;
+import com.druvu.jconsole.util.Messages;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.EventQueue;
@@ -65,12 +65,14 @@ import javax.swing.table.TableModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/*IMPORTANT :
-There is a deadlock issue there if we don't synchronize well loadAttributes,
+/*
+IMPORTANT:
+There is a deadlock issue there if we don't synchronise well loadAttributes,
 refresh attributes and empty table methods since a UI thread can call
 loadAttributes and at the same time a JMX notification can raise an
-emptyTable. Since there are synchronization in the JMX world it's
-COMPULSORY to not call the JMX world in synchronized blocks */
+emptyTable. Since there is synchronisation in the JMX world, it's
+COMPULSORY to not call the JMX world in synchronised blocks
+*/
 @SuppressWarnings("serial")
 public class XMBeanAttributes extends XTable {
 
@@ -84,8 +86,7 @@ public class XMBeanAttributes extends XTable {
     private HashMap<String, Object> attributes;
     private HashMap<String, Object> unavailableAttributes;
     private HashMap<String, Object> viewableAttributes;
-    private WeakHashMap<XMBean, HashMap<String, ZoomedCell>> viewersCache =
-            new WeakHashMap<XMBean, HashMap<String, ZoomedCell>>();
+    private WeakHashMap<XMBean, HashMap<String, ZoomedCell>> viewersCache = new WeakHashMap<>();
     private final TableModelListener attributesListener;
     private MBeansTab mbeansTab;
     private TableCellEditor valueCellEditor = new ValueCellEditor();
@@ -110,7 +111,7 @@ public class XMBeanAttributes extends XTable {
 
     @Override
     public synchronized Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
-        // In case we have a repaint thread that is in the process of
+        // In case we have a repaint thread in the process of
         // repainting an obsolete table, just ignore the call.
         // It can happen when MBean selection is switched at a very quick rate
         if (row >= getRowCount()) return null;
@@ -128,7 +129,7 @@ public class XMBeanAttributes extends XTable {
 
     @Override
     public synchronized TableCellRenderer getCellRenderer(int row, int column) {
-        // In case we have a repaint thread that is in the process of
+        // In case we have a repaint thread in the process of
         // repainting an obsolete table, just ignore the call.
         // It can happen when MBean selection is switched at a very quick rate
         if (row >= getRowCount()) {
@@ -212,7 +213,7 @@ public class XMBeanAttributes extends XTable {
         if (!isColumnEditable(col)) {
             return true;
         }
-        // Maximized zoomed cells are editable
+        // Maximised zoomed cells are editable
         Object obj = getModel().getValueAt(row, col);
         if (obj instanceof ZoomedCell) {
             ZoomedCell cell = (ZoomedCell) obj;
@@ -269,8 +270,7 @@ public class XMBeanAttributes extends XTable {
     }
 
     public Object getValue(int row) {
-        final Object val = ((DefaultTableModel) getModel()).getValueAt(row, VALUE_COLUMN);
-        return val;
+        return getModel().getValueAt(row, VALUE_COLUMN);
     }
 
     // tool tip only for editable column
@@ -287,7 +287,6 @@ public class XMBeanAttributes extends XTable {
                 if (isAttributeViewable(row, VALUE_COLUMN))
                     tip = Messages.DOUBLE_CLICK_TO_EXPAND_FORWARD_SLASH_COLLAPSE + ". " + tip;
             }
-
             return tip;
         }
 
@@ -309,10 +308,7 @@ public class XMBeanAttributes extends XTable {
         }
     }
 
-    /**
-     * Override JTable method in order to make any call to this method atomic with
-     * TableModel elements.
-     */
+    /** Override the JTable method to make any call to this method atomic with TableModel elements. */
     @Override
     public synchronized int getRowCount() {
         return super.getRowCount();
@@ -344,7 +340,7 @@ public class XMBeanAttributes extends XTable {
     // Call this in EDT
     public void loadAttributes(final XMBean mbean, final MBeanInfo mbeanInfo) {
 
-        final SwingWorker<Runnable, Void> load = new SwingWorker<Runnable, Void>() {
+        final SwingWorker<Runnable, Void> load = new SwingWorker<>() {
             @Override
             protected Runnable doInBackground() throws Exception {
                 return doLoadAttributes(mbean, mbeanInfo);
@@ -376,15 +372,15 @@ public class XMBeanAttributes extends XTable {
     // This method can return null.
     private Runnable doLoadAttributes(final XMBean mbean, MBeanInfo infoOrNull) throws JMException, IOException {
         // To avoid deadlock with events coming from the JMX side,
-        // we retrieve all JMX stuff in a non synchronized block.
+        // we retrieve all JMX stuff in a non-synchronised block.
 
         if (mbean == null) return null;
         final MBeanInfo curMBeanInfo = (infoOrNull == null) ? mbean.getMBeanInfo() : infoOrNull;
 
         final MBeanAttributeInfo[] attrsInfo = curMBeanInfo.getAttributes();
-        final HashMap<String, Object> attrs = new HashMap<String, Object>(attrsInfo.length);
-        final HashMap<String, Object> unavailableAttrs = new HashMap<String, Object>(attrsInfo.length);
-        final HashMap<String, Object> viewableAttrs = new HashMap<String, Object>(attrsInfo.length);
+        final HashMap<String, Object> attrs = HashMap.newHashMap(attrsInfo.length);
+        final HashMap<String, Object> unavailableAttrs = HashMap.newHashMap(attrsInfo.length);
+        final HashMap<String, Object> viewableAttrs = HashMap.newHashMap(attrsInfo.length);
         AttributeList list = null;
 
         try {
@@ -392,8 +388,9 @@ public class XMBeanAttributes extends XTable {
         } catch (Exception e) {
             if (JConsole.isDebug()) {
                 logger.error(
-                        "Error calling getAttributes() on MBean \"" + mbean.getObjectName() + "\". JConsole will "
-                                + "try to get them individually calling " + "getAttribute() instead.",
+                        "Error calling getAttributes() on MBean \"{}\". "
+                                + "JConsole will try to get them individually calling getAttribute() instead.",
+                        mbean.getObjectName(),
                         e);
             }
             list = new AttributeList();
@@ -428,14 +425,14 @@ public class XMBeanAttributes extends XTable {
                             && !viewableAttrs.containsKey(attributeInfo.getName())
                             && !unavailableAttrs.containsKey(attributeInfo.getName())) {
                         if (attributeInfo.isReadable()) {
-                            // getAttributes didn't help resolving the
+                            // getAttributes didn't help resolve the
                             // exception.
                             // We must call it again to understand what
                             // went wrong.
                             try {
                                 Object v = mbean.getMBeanServerConnection()
                                         .getAttribute(mbean.getObjectName(), attributeInfo.getName());
-                                // What happens if now it is ok?
+                                // What happens if now it is OK?
                                 // Be pragmatic, add it to readable...
                                 attrs.put(attributeInfo.getName(), v);
                             } catch (Exception e) {
@@ -462,33 +459,31 @@ public class XMBeanAttributes extends XTable {
         // end of retrieval
 
         // one update at a time
-        return new Runnable() {
-            public void run() {
-                synchronized (XMBeanAttributes.this) {
-                    XMBeanAttributes.this.mbean = mbean;
-                    XMBeanAttributes.this.mbeanInfo = curMBeanInfo;
-                    XMBeanAttributes.this.attributesInfo = attrsInfo;
-                    XMBeanAttributes.this.attributes = attrs;
-                    XMBeanAttributes.this.unavailableAttributes = unavailableAttrs;
-                    XMBeanAttributes.this.viewableAttributes = viewableAttrs;
+        return () -> {
+            synchronized (XMBeanAttributes.this) {
+                XMBeanAttributes.this.mbean = mbean;
+                XMBeanAttributes.this.mbeanInfo = curMBeanInfo;
+                XMBeanAttributes.this.attributesInfo = attrsInfo;
+                XMBeanAttributes.this.attributes = attrs;
+                XMBeanAttributes.this.unavailableAttributes = unavailableAttrs;
+                XMBeanAttributes.this.viewableAttributes = viewableAttrs;
 
-                    DefaultTableModel tableModel = (DefaultTableModel) getModel();
+                DefaultTableModel tableModel = (DefaultTableModel) getModel();
 
-                    // add attribute information
-                    emptyTable(tableModel);
+                // add attribute information
+                emptyTable(tableModel);
 
-                    addTableData(tableModel, mbean, attrsInfo, attrs, unavailableAttrs, viewableAttrs);
+                addTableData(tableModel, mbean, attrsInfo, attrs, unavailableAttrs, viewableAttrs);
 
-                    // update the model with the new data
-                    tableModel.newDataAvailable(new TableModelEvent(tableModel));
-                    // re-register for change events
-                    tableModel.addTableModelListener(attributesListener);
-                }
+                // update the model with the new data
+                tableModel.newDataAvailable(new TableModelEvent(tableModel));
+                // re-register for change events
+                tableModel.addTableModelListener(attributesListener);
             }
         };
     }
 
-    void collapse(String attributeName, final Component c) {
+    void collapse(final Component c) {
         final int row = getSelectedRow();
         Object obj = getModel().getValueAt(row, VALUE_COLUMN);
         if (obj instanceof ZoomedCell) {
@@ -513,9 +508,7 @@ public class XMBeanAttributes extends XTable {
                 Component comp = mbeansTab.getDataViewer().createAttributeViewer(elem, mbean, attributeName, this);
                 if (comp != null) {
                     if (rowMinHeight == -1) rowMinHeight = getRowHeight(row);
-
                     cell.init(super.getCellRenderer(row, col), comp, rowMinHeight);
-
                     XDataViewer.registerForMouseEvent(comp, mouseListener);
                 } else return cell;
             }
@@ -554,10 +547,10 @@ public class XMBeanAttributes extends XTable {
     // change
     //
     private void refreshAttributes(final boolean stopCellEditing) {
-        SwingWorker<Void, Void> sw = new SwingWorker<Void, Void>() {
+        SwingWorker<Void, Void> sw = new SwingWorker<>() {
 
             @Override
-            protected Void doInBackground() throws Exception {
+            protected Void doInBackground() {
                 SnapshotMBeanServerConnection mbsc = mbeansTab.getSnapshotMBeanServerConnection();
                 mbsc.flush();
                 return null;
@@ -601,7 +594,7 @@ public class XMBeanAttributes extends XTable {
         emptyTable((DefaultTableModel) getModel());
     }
 
-    // Call this in synchronized block.
+    // Call this in synchronised block.
     private void emptyTable(DefaultTableModel model) {
         model.removeTableModelListener(attributesListener);
         super.emptyTable();
@@ -631,14 +624,14 @@ public class XMBeanAttributes extends XTable {
             if (viewersCache.containsKey(mbean)) {
                 viewers = viewersCache.get(mbean);
             } else {
-                viewers = new HashMap<String, ZoomedCell>();
+                viewers = new HashMap<>();
             }
             ZoomedCell cell;
             if (viewers.containsKey(attribute)) {
                 cell = viewers.get(attribute);
                 cell.setValue(value);
                 if (cell.isMaximized() && cell.getType() != XDataViewer.NUMERIC) {
-                    // Plotters are the only viewers with auto update capabilities.
+                    // Plotters are the only viewers with auto-update capabilities.
                     // Other viewers need to be updated manually.
                     Component comp = mbeansTab
                             .getDataViewer()
@@ -655,7 +648,7 @@ public class XMBeanAttributes extends XTable {
         }
     }
 
-    // will be called in a synchronized block
+    // will be called in a synchronised block
     protected void addTableData(
             DefaultTableModel tableModel,
             XMBean mbean,

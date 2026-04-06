@@ -25,14 +25,16 @@
 
 package com.druvu.jconsole.inspector;
 
-import com.druvu.jconsole.JConsole;
-import com.druvu.jconsole.MBeansTab;
-import com.druvu.jconsole.Messages;
+import com.druvu.jconsole.launcher.JConsole;
+import com.druvu.jconsole.ui.tabs.MBeansTab;
+import com.druvu.jconsole.util.Messages;
+import java.awt.Color;
 import java.io.IOException;
 import java.util.*;
 import javax.management.*;
 import javax.swing.*;
 import javax.swing.tree.*;
+import javax.swing.tree.DefaultTreeCellRenderer;
 
 @SuppressWarnings("serial")
 public class XTree extends JTree {
@@ -67,18 +69,25 @@ public class XTree extends JTree {
         ToolTipManager.sharedInstance().registerComponent(this);
     }
 
-    /**
-     * This method removes the node from its parent
-     */
+    @Override
+    public void setOpaque(boolean isOpaque) {
+        super.setOpaque(isOpaque);
+        if (!isOpaque) {
+            DefaultTreeCellRenderer cr = (DefaultTreeCellRenderer) getCellRenderer();
+            cr.setBackground(null);
+            cr.setBackgroundNonSelectionColor(new Color(0, 0, 0, 1));
+            setCellRenderer(cr);
+        }
+    }
+
+    /** This method removes the node from its parent */
     // Call on EDT
     private synchronized void removeChildNode(DefaultMutableTreeNode child) {
         DefaultTreeModel model = (DefaultTreeModel) getModel();
         model.removeNodeFromParent(child);
     }
 
-    /**
-     * This method adds the child to the specified parent node at specific index.
-     */
+    /** This method adds the child to the specified parent node at specific index. */
     // Call on EDT
     private synchronized void addChildNode(DefaultMutableTreeNode parent, DefaultMutableTreeNode child, int index) {
         DefaultTreeModel model = (DefaultTreeModel) getModel();
@@ -86,9 +95,8 @@ public class XTree extends JTree {
     }
 
     /**
-     * This method adds the child to the specified parent node. The index where the
-     * child is to be added depends on the child node being Comparable or not. If
-     * the child node is not Comparable then it is added at the end, i.e. right
+     * This method adds the child to the specified parent node. The index where the child is to be added depends on the
+     * child node being Comparable or not. If the child node is not Comparable then it is added at the end, i.e. right
      * after the current parent's children.
      */
     // Call on EDT
@@ -118,10 +126,7 @@ public class XTree extends JTree {
         addChildNode(parent, child, childCount);
     }
 
-    /**
-     * This method removes all the displayed nodes from the tree, but does not
-     * affect actual MBeanServer contents.
-     */
+    /** This method removes all the displayed nodes from the tree, but does not affect actual MBeanServer contents. */
     // Call on EDT
     @Override
     public synchronized void removeAll() {
@@ -162,9 +167,7 @@ public class XTree extends JTree {
         }
     }
 
-    /**
-     * Returns true if any of the children nodes is a non MBean metadata node.
-     */
+    /** Returns true if any of the children nodes is a non MBean metadata node. */
     private boolean hasNonMetadataNodes(DefaultMutableTreeNode node) {
         for (Enumeration<?> e = node.children(); e.hasMoreElements(); ) {
             DefaultMutableTreeNode n = (DefaultMutableTreeNode) e.nextElement();
@@ -185,9 +188,7 @@ public class XTree extends JTree {
         return false;
     }
 
-    /**
-     * Returns true if any of the children nodes is an MBean metadata node.
-     */
+    /** Returns true if any of the children nodes is an MBean metadata node. */
     public boolean hasMetadataNodes(DefaultMutableTreeNode node) {
         for (Enumeration<?> e = node.children(); e.hasMoreElements(); ) {
             DefaultMutableTreeNode n = (DefaultMutableTreeNode) e.nextElement();
@@ -208,9 +209,7 @@ public class XTree extends JTree {
         return false;
     }
 
-    /**
-     * Returns true if the given node is an MBean metadata node.
-     */
+    /** Returns true if the given node is an MBean metadata node. */
     public boolean isMetadataNode(DefaultMutableTreeNode node) {
         Object uo = node.getUserObject();
         if (uo instanceof XNodeInfo) {
@@ -227,9 +226,7 @@ public class XTree extends JTree {
         }
     }
 
-    /**
-     * Remove the metadata nodes associated with a given MBean node.
-     */
+    /** Remove the metadata nodes associated with a given MBean node. */
     // Call on EDT
     private void removeMetadataNodes(DefaultMutableTreeNode node) {
         Set<DefaultMutableTreeNode> metadataNodes = new HashSet<DefaultMutableTreeNode>();
@@ -255,8 +252,8 @@ public class XTree extends JTree {
     }
 
     /**
-     * Removes only the parent nodes which are non MBean and leaf. This method
-     * assumes the child nodes have been removed before.
+     * Removes only the parent nodes which are non MBean and leaf. This method assumes the child nodes have been removed
+     * before.
      */
     // Call on EDT
     private DefaultMutableTreeNode removeParentFromView(Dn dn, int index, DefaultMutableTreeNode node) {
@@ -399,9 +396,7 @@ public class XTree extends JTree {
         }
     }
 
-    /**
-     * Creates the domain node.
-     */
+    /** Creates the domain node. */
     private DefaultMutableTreeNode createDomainNode(Dn dn, Token token) {
         DefaultMutableTreeNode node = new ComparableDefaultMutableTreeNode();
         String label = dn.getDomain();
@@ -410,9 +405,7 @@ public class XTree extends JTree {
         return node;
     }
 
-    /**
-     * Creates the node corresponding to the whole Dn, i.e. an MBean.
-     */
+    /** Creates the node corresponding to the whole Dn, i.e. an MBean. */
     private DefaultMutableTreeNode createDnNode(Dn dn, Token token, XMBean xmbean) {
         DefaultMutableTreeNode node = new ComparableDefaultMutableTreeNode();
         Object data = createNodeValue(xmbean, token);
@@ -423,10 +416,7 @@ public class XTree extends JTree {
         return node;
     }
 
-    /**
-     * Creates the node corresponding to a subDn, i.e. a non-MBean intermediate
-     * node.
-     */
+    /** Creates the node corresponding to a subDn, i.e. a non-MBean intermediate node. */
     private DefaultMutableTreeNode createSubDnNode(Dn dn, Token token) {
         DefaultMutableTreeNode node = new ComparableDefaultMutableTreeNode();
         String label = isKeyValueView() ? token.getTokenValue() : token.getValue();
@@ -442,9 +432,8 @@ public class XTree extends JTree {
     }
 
     /**
-     * Parses the MBean ObjectName comma-separated properties string and puts the
-     * individual key/value pairs into the map. Key order in the properties string
-     * is preserved by the map.
+     * Parses the MBean ObjectName comma-separated properties string and puts the individual key/value pairs into the
+     * map. Key order in the properties string is preserved by the map.
      */
     private static Map<String, String> extractKeyValuePairs(String props, ObjectName mbean) {
         Map<String, String> map = new LinkedHashMap<String, String>();
@@ -463,14 +452,11 @@ public class XTree extends JTree {
     }
 
     /**
-     * Returns the ordered key property list that will be used to build the MBean
-     * tree. If the "com.tools.jconsole.mbeans.keyPropertyList" system property is
-     * not specified, then the ordered key property list used to build the MBean
-     * tree will be the one returned by the method
-     * ObjectName.getKeyPropertyListString() with "type" as first key, and
-     * "j2eeType" as second key, if present. If any of the keys specified in the
-     * comma-separated key property list does not apply to the given MBean then it
-     * will be discarded.
+     * Returns the ordered key property list that will be used to build the MBean tree. If the
+     * "com.tools.jconsole.mbeans.keyPropertyList" system property is not specified, then the ordered key property list
+     * used to build the MBean tree will be the one returned by the method ObjectName.getKeyPropertyListString() with
+     * "type" as first key, and "j2eeType" as second key, if present. If any of the keys specified in the
+     * comma-separated key property list does not apply to the given MBean then it will be discarded.
      */
     private static String getKeyPropertyListString(ObjectName mbean) {
         String props = mbean.getKeyPropertyListString();

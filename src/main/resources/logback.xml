@@ -10,10 +10,10 @@
 
 	<!-- File appender for persistent logging -->
 	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>${user.home}/.jconsole-booster/logs/jconsole-booster.log</file>
+		<file>${user.home}/.java/jconsole-booster/logs/jconsole-booster.log</file>
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
 			<!-- Daily rollover -->
-			<fileNamePattern>${user.home}/.jconsole-booster/logs/jconsole-booster.%d{yyyy-MM-dd}.log</fileNamePattern>
+			<fileNamePattern>${user.home}/.java/jconsole-booster/logs/jconsole-booster.%d{yyyy-MM-dd}.log</fileNamePattern>
 			<!-- Keep 7 days of history -->
 			<maxHistory>7</maxHistory>
 			<totalSizeCap>100MB</totalSizeCap>

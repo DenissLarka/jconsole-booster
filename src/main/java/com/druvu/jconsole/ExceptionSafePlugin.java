@@ -24,6 +24,8 @@
  */
 package com.druvu.jconsole;
 
+import com.druvu.jconsole.launcher.JConsole;
+import com.druvu.jconsole.util.Messages;
 import com.sun.tools.jconsole.JConsolePlugin;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,11 +35,8 @@ import javax.swing.SwingWorker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Proxy that shields GUI from plug-in exceptions.
- *
- */
-final class ExceptionSafePlugin extends JConsolePlugin {
+/** Proxy that shields GUI from plug-in exceptions. */
+public final class ExceptionSafePlugin extends JConsolePlugin {
 
     private static final Logger logger = LoggerFactory.getLogger(ExceptionSafePlugin.class);
     private static boolean ignoreExceptions;

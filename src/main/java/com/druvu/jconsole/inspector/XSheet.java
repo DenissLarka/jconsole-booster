@@ -25,11 +25,11 @@
 
 package com.druvu.jconsole.inspector;
 
-import com.druvu.jconsole.JConsole;
-import com.druvu.jconsole.MBeansTab;
-import com.druvu.jconsole.Messages;
-import com.druvu.jconsole.Resources;
 import com.druvu.jconsole.inspector.XNodeInfo.Type;
+import com.druvu.jconsole.launcher.JConsole;
+import com.druvu.jconsole.ui.tabs.MBeansTab;
+import com.druvu.jconsole.util.Messages;
+import com.druvu.jconsole.util.Resources;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -475,9 +475,7 @@ public class XSheet extends JPanel implements ActionListener, NotificationListen
         repaint();
     }
 
-    /**
-     * Subscribe button action.
-     */
+    /** Subscribe button action. */
     private void registerListener() {
         new SwingWorker<Void, Void>() {
             @Override
@@ -503,9 +501,7 @@ public class XSheet extends JPanel implements ActionListener, NotificationListen
         }.execute();
     }
 
-    /**
-     * Unsubscribe button action.
-     */
+    /** Unsubscribe button action. */
     private void unregisterListener() {
         new SwingWorker<Boolean, Void>() {
             @Override
@@ -531,9 +527,7 @@ public class XSheet extends JPanel implements ActionListener, NotificationListen
         }.execute();
     }
 
-    /**
-     * Refresh button action.
-     */
+    /** Refresh button action. */
     private void refreshAttributes() {
         mbeanAttributes.refreshAttributes();
     }
@@ -548,9 +542,7 @@ public class XSheet extends JPanel implements ActionListener, NotificationListen
         }
     }
 
-    /**
-     * Update notification node label in MBean tree: "Notifications[received]".
-     */
+    /** Update notification node label in MBean tree: "Notifications[received]". */
     // Call on EDT
     private void updateReceivedNotifications(DefaultMutableTreeNode emitter, long received, boolean bold) {
         String text = Messages.NOTIFICATIONS + "[" + received + "]";
@@ -562,25 +554,19 @@ public class XSheet extends JPanel implements ActionListener, NotificationListen
         updateNotificationsNodeLabel(emitter, text);
     }
 
-    /**
-     * Update notification node label in MBean tree: "Notifications".
-     */
+    /** Update notification node label in MBean tree: "Notifications". */
     // Call on EDT
     private void clearNotifications() {
         updateNotificationsNodeLabel(currentNode, Messages.NOTIFICATIONS);
     }
 
-    /**
-     * Update notification node label in MBean tree: "Notifications[0]".
-     */
+    /** Update notification node label in MBean tree: "Notifications[0]". */
     // Call on EDT
     private void clearNotifications0() {
         updateNotificationsNodeLabel(currentNode, Messages.NOTIFICATIONS + "[0]");
     }
 
-    /**
-     * Update the label of the supplied MBean tree node.
-     */
+    /** Update the label of the supplied MBean tree node. */
     // Call on EDT
     private void updateNotificationsNodeLabel(DefaultMutableTreeNode node, String label) {
         synchronized (mbeansTab.getTree()) {
@@ -596,9 +582,7 @@ public class XSheet extends JPanel implements ActionListener, NotificationListen
         }
     }
 
-    /**
-     * Clear button action.
-     */
+    /** Clear button action. */
     // Call on EDT
     private void clearCurrentNotifications() {
         mbeanNotifications.clearCurrentNotifications();
@@ -632,10 +616,7 @@ public class XSheet extends JPanel implements ActionListener, NotificationListen
         currentNode = null;
     }
 
-    /**
-     * Notification listener: handles asynchronous reception of MBean operation
-     * results and MBean notifications.
-     */
+    /** Notification listener: handles asynchronous reception of MBean operation results and MBean notifications. */
     // Call on EDT
     public void handleNotification(Notification e, Object handback) {
         // Operation result
@@ -685,9 +666,7 @@ public class XSheet extends JPanel implements ActionListener, NotificationListen
         }
     }
 
-    /**
-     * Action listener: handles actions in panel buttons
-     */
+    /** Action listener: handles actions in panel buttons */
     // Call on EDT
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() instanceof JButton) {

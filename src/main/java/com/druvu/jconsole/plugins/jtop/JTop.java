@@ -44,13 +44,13 @@ package com.druvu.jconsole.plugins.jtop;
  * by CPU usage.
  *
  * JTop class can be run as a standalone application.
- * It first establishs a connection to a target VM specified
+ * It first establishes a connection to a target VM specified
  * by the given hostname and port number where the JMX agent
  * to be connected.  It then polls for the thread information
  * and the CPU consumption of each thread to display every 2
  * seconds.
  *
- * It is also used by JTopPlugin which is a JConsolePlugin
+ * It is also used by JTopPlugin, which is a JConsolePlugin
  * that can be used with JConsole (see README.txt). The JTop
  * GUI will be added as a JConsole tab by the JTop plugin.
  *
@@ -59,12 +59,16 @@ package com.druvu.jconsole.plugins.jtop;
  * @author Mandy Chung
  */
 
-import static java.lang.management.ManagementFactory.*;
+import static java.lang.management.ManagementFactory.THREAD_MXBEAN_NAME;
+import static java.lang.management.ManagementFactory.newPlatformMXBeanProxy;
 
-import java.awt.*;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.io.IOException;
-import java.lang.management.*;
-import java.net.MalformedURLException;
+import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -72,25 +76,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
-import javax.management.*;
-import javax.management.remote.*;
-import javax.swing.*;
-import javax.swing.border.*;
-import javax.swing.table.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javax.management.MBeanServerConnection;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.SwingWorker;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
+import lombok.extern.slf4j.Slf4j;
 
-/**
- * JTop is a JPanel to display thread's name, CPU time, and its state in a
- * table.
- */
+/** JTop is a JPanel to display a thread's name, CPU time, and its state in a table. */
+@Slf4j
 public class JTop extends JPanel {
-
-    private static final Logger logger = LoggerFactory.getLogger(JTop.class);
 
     private static class StatusBar extends JPanel {
         private static final long serialVersionUID = -6483392381797633018L;
@@ -164,7 +164,7 @@ public class JTop extends JPanel {
         try {
             this.tmbean = newPlatformMXBeanProxy(server, THREAD_MXBEAN_NAME, ThreadMXBean.class);
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Failed to create ThreadMXBean proxy", e);
         }
         if (!tmbean.isThreadCpuTimeSupported()) {
             statusBar.setMessage("Monitored VM does not support thread CPU time measurement");
@@ -180,7 +180,7 @@ public class JTop extends JPanel {
     class MyTableModel extends AbstractTableModel {
         private static final long serialVersionUID = -7877310288576779514L;
         private String[] columnNames = {"ThreadName", "CPU(sec)", "State"};
-        // List of all threads. The key of each entry is the CPU time
+        // List of all threads. The key of each entry is the CPU time,
         // and its value is the ThreadInfo object with no stack trace.
         private List<Map.Entry<Long, ThreadInfo>> threadList = Collections.emptyList();
 
@@ -231,10 +231,7 @@ public class JTop extends JPanel {
         }
     }
 
-    /**
-     * Get the thread list with CPU consumption and the ThreadInfo for each thread
-     * sorted by the CPU time.
-     */
+    /** Get the thread list with CPU consumption and the ThreadInfo for each thread sorted by the CPU time. */
     private List<Map.Entry<Long, ThreadInfo>> getThreadList() {
         // Get all threads and their ThreadInfo objects
         // with no stack trace
@@ -242,7 +239,7 @@ public class JTop extends JPanel {
         ThreadInfo[] tinfos = tmbean.getThreadInfo(tids);
 
         // build a map with key = CPU time and value = ThreadInfo
-        SortedMap<Long, ThreadInfo> map = new TreeMap<Long, ThreadInfo>();
+        SortedMap<Long, ThreadInfo> map = new TreeMap<>();
         for (int i = 0; i < tids.length; i++) {
             long cpuTime = tmbean.getThreadCpuTime(tids[i]);
             // filter out threads that have been terminated
@@ -254,14 +251,12 @@ public class JTop extends JPanel {
         // build the thread list and sort it with CPU time
         // in decreasing order
         Set<Map.Entry<Long, ThreadInfo>> set = map.entrySet();
-        List<Map.Entry<Long, ThreadInfo>> list = new ArrayList<Map.Entry<Long, ThreadInfo>>(set);
+        List<Map.Entry<Long, ThreadInfo>> list = new ArrayList<>(set);
         Collections.reverse(list);
         return list;
     }
 
-    /**
-     * Format Double with 4 fraction digits
-     */
+    /** Format Double with 4 fraction digits */
     class DoubleRenderer extends DefaultTableCellRenderer {
         private static final long serialVersionUID = 1704639497162584382L;
         NumberFormat formatter;
@@ -321,107 +316,5 @@ public class JTop extends JPanel {
     // Return a new SwingWorker for UI update
     public SwingWorker<?, ?> newSwingWorker() {
         return new Worker(tmodel);
-    }
-
-    public static void main(String[] args) throws Exception {
-        // Validate the input arguments
-        if (args.length != 1) {
-            usage();
-        }
-
-        String[] arg2 = args[0].split(":");
-        if (arg2.length != 2) {
-            usage();
-        }
-        String hostname = arg2[0];
-        int port = -1;
-        try {
-            port = Integer.parseInt(arg2[1]);
-        } catch (NumberFormatException x) {
-            usage();
-        }
-        if (port < 0) {
-            usage();
-        }
-
-        // Create the JTop Panel
-        final JTop jtop = new JTop();
-        // Set up the MBeanServerConnection to the target VM
-        MBeanServerConnection server = connect(hostname, port);
-        jtop.setMBeanServerConnection(server);
-
-        // A timer task to update GUI per each interval
-        TimerTask timerTask = new TimerTask() {
-            @Override
-            public void run() {
-                // Schedule the SwingWorker to update the GUI
-                jtop.newSwingWorker().execute();
-            }
-        };
-
-        // Create the standalone window with JTop panel
-        // by the event dispatcher thread
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                createAndShowGUI(jtop);
-            }
-        });
-
-        // refresh every 2 seconds
-        Timer timer = new Timer("JTop Sampling thread");
-        timer.schedule(timerTask, 0, 2000);
-    }
-
-    // Establish a connection with the remote application
-    //
-    // You can modify the urlPath to the address of the JMX agent
-    // of your application if it has a different URL.
-    //
-    // You can also modify the following code to take
-    // username and password for client authentication.
-    private static MBeanServerConnection connect(String hostname, int port) {
-        // Create an RMI connector client and connect it to
-        // the RMI connector server
-        String urlPath = "/jndi/rmi://" + hostname + ":" + port + "/jmxrmi";
-        MBeanServerConnection server = null;
-        try {
-            JMXServiceURL url = new JMXServiceURL("rmi", "", 0, urlPath);
-            JMXConnector jmxc = JMXConnectorFactory.connect(url);
-            server = jmxc.getMBeanServerConnection();
-        } catch (MalformedURLException e) {
-            // should not reach here
-        } catch (IOException e) {
-            logger.error("Communication error: {}", e.getMessage());
-            System.exit(1);
-        }
-        return server;
-    }
-
-    private static void usage() {
-        // Usage message should go to stdout
-        System.out.println("Usage: java JTop <hostname>:<port>");
-        System.exit(1);
-    }
-
-    /**
-     * Create the GUI and show it. For thread safety, this method should be invoked
-     * from the event-dispatching thread.
-     */
-    private static void createAndShowGUI(JPanel jtop) {
-        // Create and set up the window.
-        JFrame frame = new JFrame("JTop");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        // Create and set up the content pane.
-        JComponent contentPane = (JComponent) frame.getContentPane();
-        contentPane.add(jtop, BorderLayout.CENTER);
-        contentPane.setOpaque(true); // content panes must be opaque
-        contentPane.setBorder(new EmptyBorder(12, 12, 12, 12));
-        frame.setContentPane(contentPane);
-
-        // Display the window.
-        frame.pack();
-        frame.setVisible(true);
     }
 }

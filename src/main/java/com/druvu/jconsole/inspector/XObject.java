@@ -35,10 +35,7 @@ import javax.swing.SwingConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * This provides a wrapper to the Object class to allow it to be
- * displayed/manipulated as a GUI object.
- */
+/** This provides a wrapper to the Object class to allow it to be displayed/manipulated as a GUI object. */
 @SuppressWarnings("serial")
 public class XObject extends JLabel {
 

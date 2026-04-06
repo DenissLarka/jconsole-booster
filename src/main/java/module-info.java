@@ -28,11 +28,12 @@ import javax.management.remote.JMXConnectorProvider;
 import javax.management.remote.JMXConnectorServerProvider;
 
 /**
- * Defines the JMX graphical tool, <em>{@index jconsole jconsole}</em>, for
- * monitoring and managing a running application.
+ * Defines the JMX graphical tool, <em>{@index jconsole jconsole}</em>, for monitoring and managing a running
+ * application.
+ *
  * <dl class="notes">
- * <dt>See Also:
- * <dd>{@extLink using_jconsole Using JConsole}
+ *   <dt>See Also:
+ *   <dd>{@extLink using_jconsole Using JConsole}
  * </dl>
  *
  * @toolGuide jconsole
@@ -54,7 +55,14 @@ module com.druvu.jconsole {
     requires org.slf4j;
     requires static lombok;
 
-    exports com.druvu.jconsole.extra;
+    exports com.druvu.jconsole.launcher;
+    exports com.druvu.jconsole.util;
+    exports com.druvu.jconsole.jmx;
+    exports com.druvu.jconsole.ui.core;
+    exports com.druvu.jconsole.ui.components;
+    exports com.druvu.jconsole.ui.graphics;
+    exports com.druvu.jconsole.ui.dialogs;
+    exports com.druvu.jconsole.ui.tabs;
 
     uses JConsolePlugin;
     uses JMXConnectorServerProvider;

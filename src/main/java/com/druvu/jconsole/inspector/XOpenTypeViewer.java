@@ -25,9 +25,9 @@
 
 package com.druvu.jconsole.inspector;
 
-import com.druvu.jconsole.JConsole;
-import com.druvu.jconsole.Messages;
-import com.druvu.jconsole.Resources;
+import com.druvu.jconsole.launcher.JConsole;
+import com.druvu.jconsole.util.Messages;
+import com.druvu.jconsole.util.Resources;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -525,9 +525,8 @@ public class XOpenTypeViewer extends JPanel implements ActionListener {
     }
 
     /**
-     * The supplied value is viewable iff: - it's a CompositeData/TabularData, or -
-     * it's a non-empty array of CompositeData/TabularData, or - it's a non-empty
-     * Collection of CompositeData/TabularData.
+     * The supplied value is viewable iff: - it's a CompositeData/TabularData, or - it's a non-empty array of
+     * CompositeData/TabularData, or - it's a non-empty Collection of CompositeData/TabularData.
      */
     public static boolean isViewableValue(Object value) {
         // Check for CompositeData/TabularData

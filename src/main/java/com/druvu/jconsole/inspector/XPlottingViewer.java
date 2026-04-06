@@ -25,10 +25,10 @@
 
 package com.druvu.jconsole.inspector;
 
-import com.druvu.jconsole.MBeansTab;
-import com.druvu.jconsole.Messages;
-import com.druvu.jconsole.Plotter;
-import com.druvu.jconsole.PlotterPanel;
+import com.druvu.jconsole.ui.graphics.Plotter;
+import com.druvu.jconsole.ui.graphics.PlotterPanel;
+import com.druvu.jconsole.ui.tabs.MBeansTab;
+import com.druvu.jconsole.util.Messages;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
@@ -111,7 +111,7 @@ public class XPlottingViewer extends PlotterPanel implements ActionListener {
         plotterCache.remove(key);
         Timer t = timerCache.remove(key);
         t.cancel();
-        ((XMBeanAttributes) table).collapse(attributeName, this);
+        ((XMBeanAttributes) table).collapse(this);
     }
 
     // Create plotter instance

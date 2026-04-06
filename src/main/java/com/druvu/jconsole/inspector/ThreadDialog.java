@@ -26,8 +26,10 @@
 package com.druvu.jconsole.inspector;
 
 // java import
-import java.awt.*;
-import javax.swing.*;
+
+import java.awt.Component;
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 //
 
 public class ThreadDialog implements Runnable {

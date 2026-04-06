@@ -25,8 +25,8 @@
 
 package com.druvu.jconsole.inspector;
 
-import com.druvu.jconsole.JConsole;
-import com.druvu.jconsole.Messages;
+import com.druvu.jconsole.launcher.JConsole;
+import com.druvu.jconsole.util.Messages;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.EventQueue;

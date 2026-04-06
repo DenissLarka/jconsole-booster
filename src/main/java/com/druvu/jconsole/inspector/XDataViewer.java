@@ -25,8 +25,8 @@
 
 package com.druvu.jconsole.inspector;
 
-import com.druvu.jconsole.MBeansTab;
-import com.druvu.jconsole.Messages;
+import com.druvu.jconsole.ui.tabs.MBeansTab;
+import com.druvu.jconsole.util.Messages;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.event.MouseListener;

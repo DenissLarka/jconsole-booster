@@ -62,16 +62,13 @@ public abstract class XTable extends JTable {
     /**
      * Called by TableSorter if a mouse event requests to sort the rows.
      *
-     * @param column
-     *            the column against which the rows are sorted
+     * @param column the column against which the rows are sorted
      */
     void sortRequested(int column) {
         // This is a hook for subclasses
     }
 
-    /**
-     * This returns the select index as the table was at initialization
-     */
+    /** This returns the select index as the table was at initialization */
     public int getSelectedIndex() {
         return convertRowToIndex(getSelectedRow());
     }
@@ -138,10 +135,7 @@ public abstract class XTable extends JTable {
         return null;
     }
 
-    /**
-     * This method sets read write rows to be blue, and other rows to be their
-     * default rendered colour.
-     */
+    /** This method sets read write rows to be blue, and other rows to be their default rendered colour. */
     @Override
     public TableCellRenderer getCellRenderer(int row, int column) {
         DefaultTableCellRenderer tcr = (DefaultTableCellRenderer) super.getCellRenderer(row, column);

@@ -25,7 +25,7 @@
 
 package com.druvu.jconsole.inspector;
 
-import com.druvu.jconsole.Plotter;
+import com.druvu.jconsole.ui.graphics.Plotter;
 import javax.swing.JTable;
 
 @SuppressWarnings("serial")

@@ -26,18 +26,12 @@
 package com.druvu.jconsole.inspector;
 
 /**
- * <p>
  * This class represents the user object of the nodes in the MBean tree.
- * </p>
  *
- * <p>
- * It encapsulates the node's info, i.e. the type of the node, the label to be
- * used when displaying the node in the MBean tree, the node's tool tip text and
- * arbitrary data which varies depending on the type of the node: an XMBean
- * reference for MBEAN, ATTRIBUTES, OPERATIONS and NOTIFICATIONS nodes; the
- * corresponding MBeanInfo for ATTRIBUTE, OPERATION and NOTIFICATION nodes; it
- * is not used for NONMBEAN nodes.
- * </p>
+ * <p>It encapsulates the node's info, i.e. the type of the node, the label to be used when displaying the node in the
+ * MBean tree, the node's tool tip text and arbitrary data which varies depending on the type of the node: an XMBean
+ * reference for MBEAN, ATTRIBUTES, OPERATIONS and NOTIFICATIONS nodes; the corresponding MBeanInfo for ATTRIBUTE,
+ * OPERATION and NOTIFICATION nodes; it is not used for NONMBEAN nodes.
  */
 public class XNodeInfo {
 

@@ -25,9 +25,10 @@
 
 package com.druvu.jconsole.inspector;
 
-import static com.druvu.jconsole.Utilities.*;
+import static com.druvu.jconsole.util.Utilities.*;
 
-import com.druvu.jconsole.Messages;
+import com.druvu.jconsole.util.Messages;
+import com.druvu.jconsole.util.Utilities;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -184,24 +185,8 @@ public class XMBeanInfo extends JPanel {
             for (String fieldName : desc.getFieldNames()) {
                 rowData[0] = fieldName;
                 Object fieldValue = desc.getFieldValue(fieldName);
-                if (fieldValue instanceof boolean[]) {
-                    rowData[1] = Arrays.toString((boolean[]) fieldValue);
-                } else if (fieldValue instanceof byte[]) {
-                    rowData[1] = Arrays.toString((byte[]) fieldValue);
-                } else if (fieldValue instanceof char[]) {
-                    rowData[1] = Arrays.toString((char[]) fieldValue);
-                } else if (fieldValue instanceof double[]) {
-                    rowData[1] = Arrays.toString((double[]) fieldValue);
-                } else if (fieldValue instanceof float[]) {
-                    rowData[1] = Arrays.toString((float[]) fieldValue);
-                } else if (fieldValue instanceof int[]) {
-                    rowData[1] = Arrays.toString((int[]) fieldValue);
-                } else if (fieldValue instanceof long[]) {
-                    rowData[1] = Arrays.toString((long[]) fieldValue);
-                } else if (fieldValue instanceof short[]) {
-                    rowData[1] = Arrays.toString((short[]) fieldValue);
-                } else if (fieldValue instanceof Object[]) {
-                    rowData[1] = Arrays.toString((Object[]) fieldValue);
+                if (fieldValue != null && fieldValue.getClass().isArray()) {
+                    rowData[1] = Utilities.arrayToString(fieldValue);
                 } else {
                     rowData[1] = fieldValue;
                 }

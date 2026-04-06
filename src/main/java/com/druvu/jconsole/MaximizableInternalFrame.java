@@ -34,10 +34,10 @@ import javax.swing.border.*;
 import javax.swing.plaf.basic.*;
 
 /**
- * This class is a temporary workaround for bug 4834918:
- * Win L&F: JInternalFrame should merge with JMenuBar when maximized.
- * It is not a general solution, but intended for use within the
- * limited scope of JConsole when running with XP/Vista styles.
+ * This class is a temporary workaround for bug 4834918: Win L&F: JInternalFrame
+ * should merge with JMenuBar when maximized. It is not a general solution, but
+ * intended for use within the limited scope of JConsole when running with
+ * XP/Vista styles.
  */
 @SuppressWarnings("serial")
 public class MaximizableInternalFrame extends JInternalFrame {
@@ -49,8 +49,7 @@ public class MaximizableInternalFrame extends JInternalFrame {
 	private Border normalBorder;
 	private PropertyChangeListener pcl;
 
-	public MaximizableInternalFrame(String title, boolean resizable,
-			boolean closable, boolean maximizable,
+	public MaximizableInternalFrame(String title, boolean resizable, boolean closable, boolean maximizable,
 			boolean iconifiable) {
 		super(title, resizable, closable, maximizable, iconifiable);
 		init();
@@ -67,9 +66,7 @@ public class MaximizableInternalFrame extends JInternalFrame {
 				pcl = new PropertyChangeListener() {
 					public void propertyChange(PropertyChangeEvent ev) {
 						String prop = ev.getPropertyName();
-						if (prop.equals("icon") ||
-								prop.equals("maximum") ||
-								prop.equals("closed")) {
+						if (prop.equals("icon") || prop.equals("maximum") || prop.equals("closed")) {
 							updateFrame();
 						}
 					}
@@ -139,8 +136,7 @@ public class MaximizableInternalFrame extends JInternalFrame {
 		if (isMax) {
 			try {
 				setMaximum(false);
-			}
-			catch (PropertyVetoException ex) {
+			} catch (PropertyVetoException ex) {
 			}
 		}
 		super.updateUI();
@@ -148,8 +144,7 @@ public class MaximizableInternalFrame extends JInternalFrame {
 		if (isMax) {
 			try {
 				setMaximum(true);
-			}
-			catch (PropertyVetoException ex) {
+			} catch (PropertyVetoException ex) {
 			}
 		}
 	}
@@ -169,11 +164,9 @@ public class MaximizableInternalFrame extends JInternalFrame {
 			JFrame mainFrame = getMainFrame();
 			if (mainFrame != null) {
 				mainMenuBar = mainFrame.getJMenuBar();
-				if (mainMenuBar != null &&
-						!(mainMenuBar.getLayout() instanceof FixedMenuBarLayout)) {
+				if (mainMenuBar != null && !(mainMenuBar.getLayout() instanceof FixedMenuBarLayout)) {
 
-					mainMenuBar.setLayout(new FixedMenuBarLayout(mainMenuBar,
-							BoxLayout.X_AXIS));
+					mainMenuBar.setLayout(new FixedMenuBarLayout(mainMenuBar, BoxLayout.X_AXIS));
 				}
 			}
 		}
@@ -216,14 +209,13 @@ public class MaximizableInternalFrame extends JInternalFrame {
 	// Please note that this will very likely fail in a future version
 	// of Swing, but at least it should fail silently.
 	//
-	private static Object WP_MINBUTTON, WP_RESTOREBUTTON, WP_CLOSEBUTTON,
-			WP_MDIMINBUTTON, WP_MDIRESTOREBUTTON, WP_MDICLOSEBUTTON;
+	private static Object WP_MINBUTTON, WP_RESTOREBUTTON, WP_CLOSEBUTTON, WP_MDIMINBUTTON, WP_MDIRESTOREBUTTON,
+			WP_MDICLOSEBUTTON;
 
 	static {
 		if (JConsole.IS_WIN) {
 			try {
-				Class<?> Part =
-						Class.forName("com.sun.java.swing.plaf.windows.TMSchema$Part");
+				Class<?> Part = Class.forName("com.sun.java.swing.plaf.windows.TMSchema$Part");
 				if (Part != null) {
 					WP_MINBUTTON = Part.getField("WP_MINBUTTON").get(null);
 					WP_RESTOREBUTTON = Part.getField("WP_RESTOREBUTTON").get(null);
@@ -233,24 +225,19 @@ public class MaximizableInternalFrame extends JInternalFrame {
 					WP_MDICLOSEBUTTON = Part.getField("WP_MDICLOSEBUTTON").get(null);
 				}
 
-				for (String str : new String[] {"maximize", "minimize",
-						"iconify", "close"}) {
+				for (String str : new String[]{"maximize", "minimize", "iconify", "close"}) {
 					String key = "InternalFrame." + str + "Icon";
-					UIManager.put(key,
-							new MDIButtonIcon(UIManager.getIcon(key)));
+					UIManager.put(key, new MDIButtonIcon(UIManager.getIcon(key)));
 				}
-			}
-			catch (ClassNotFoundException ex) {
+			} catch (ClassNotFoundException ex) {
 				if (JConsole.debug) {
 					ex.printStackTrace();
 				}
-			}
-			catch (NoSuchFieldException ex) {
+			} catch (NoSuchFieldException ex) {
 				if (JConsole.debug) {
 					ex.printStackTrace();
 				}
-			}
-			catch (IllegalAccessException ex) {
+			} catch (IllegalAccessException ex) {
 				if (JConsole.debug) {
 					ex.printStackTrace();
 				}
@@ -271,8 +258,7 @@ public class MaximizableInternalFrame extends JInternalFrame {
 				try {
 					part = windowsIcon.getClass().getDeclaredField("part");
 					part.setAccessible(true);
-				}
-				catch (NoSuchFieldException ex) {
+				} catch (NoSuchFieldException ex) {
 					if (JConsole.debug) {
 						ex.printStackTrace();
 					}
@@ -304,8 +290,7 @@ public class MaximizableInternalFrame extends JInternalFrame {
 							part.set(windowsIcon, WP_CLOSEBUTTON);
 						}
 					}
-				}
-				catch (IllegalAccessException ex) {
+				} catch (IllegalAccessException ex) {
 					if (JConsole.debug) {
 						ex.printStackTrace();
 					}
@@ -339,8 +324,7 @@ public class MaximizableInternalFrame extends JInternalFrame {
 			}
 			setButtonIcons.invoke(titlePane);
 			enableActions.invoke(titlePane);
-		}
-		catch (Exception ex) {
+		} catch (Exception ex) {
 			if (JConsole.debug) {
 				ex.printStackTrace();
 			}

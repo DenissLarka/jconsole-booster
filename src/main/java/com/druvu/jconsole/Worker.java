@@ -28,51 +28,52 @@ package com.druvu.jconsole;
 import java.util.*;
 
 public class Worker extends Thread {
-    ArrayList<Runnable> jobs = new ArrayList<Runnable>();
-    private volatile boolean stopped = false;
+	ArrayList<Runnable> jobs = new ArrayList<Runnable>();
+	private volatile boolean stopped = false;
 
-    public Worker(String name) {
-        super("Worker-"+name);
+	public Worker(String name) {
+		super("Worker-" + name);
 
-        setPriority(NORM_PRIORITY - 1);
-    }
+		setPriority(NORM_PRIORITY - 1);
+	}
 
-    public void run() {
-        while (!stopped) {
-            Runnable job;
-            synchronized(jobs) {
-                while (!stopped && jobs.size() == 0) {
-                    try {
-                        jobs.wait();
-                    } catch (InterruptedException ex) {
-                    }
-                }
+	public void run() {
+		while (!stopped) {
+			Runnable job;
+			synchronized (jobs) {
+				while (!stopped && jobs.size() == 0) {
+					try {
+						jobs.wait();
+					} catch (InterruptedException ex) {
+					}
+				}
 
-                if(stopped) break;
+				if (stopped)
+					break;
 
-                job = jobs.remove(0);
-            }
-            job.run();
-        }
-    }
+				job = jobs.remove(0);
+			}
+			job.run();
+		}
+	}
 
-    public void stopWorker() {
-        stopped = true;
-        synchronized(jobs) {
-            jobs.notify();
-        }
-    }
+	public void stopWorker() {
+		stopped = true;
+		synchronized (jobs) {
+			jobs.notify();
+		}
+	}
 
-    public void add(Runnable job) {
-        synchronized(jobs) {
-            jobs.add(job);
-            jobs.notify();
-        }
-    }
+	public void add(Runnable job) {
+		synchronized (jobs) {
+			jobs.add(job);
+			jobs.notify();
+		}
+	}
 
-    public boolean queueFull() {
-        synchronized(jobs) {
-            return (jobs.size() > 0);
-        }
-    }
+	public boolean queueFull() {
+		synchronized (jobs) {
+			return (jobs.size() > 0);
+		}
+	}
 }

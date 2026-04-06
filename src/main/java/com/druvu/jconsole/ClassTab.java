@@ -34,216 +34,197 @@ import java.lang.reflect.*;
 import javax.swing.*;
 import javax.swing.border.*;
 
-
 import java.util.concurrent.*;
-
-
 
 @SuppressWarnings("serial")
 class ClassTab extends Tab implements ActionListener {
-    PlotterPanel loadedClassesMeter;
-    TimeComboBox timeComboBox;
-    private JCheckBox verboseCheckBox;
-    private HTMLPane details;
-    private ClassOverviewPanel overviewPanel;
-    private boolean plotterListening = false;
+	PlotterPanel loadedClassesMeter;
+	TimeComboBox timeComboBox;
+	private JCheckBox verboseCheckBox;
+	private HTMLPane details;
+	private ClassOverviewPanel overviewPanel;
+	private boolean plotterListening = false;
 
-    private static final String loadedPlotterKey        = "loaded";
-    private static final String totalLoadedPlotterKey   = "totalLoaded";
-    private static final Color  loadedPlotterColor      = Plotter.defaultColor;
-    private static final Color  totalLoadedPlotterColor = Color.red;
+	private static final String loadedPlotterKey = "loaded";
+	private static final String totalLoadedPlotterKey = "totalLoaded";
+	private static final Color loadedPlotterColor = Plotter.defaultColor;
+	private static final Color totalLoadedPlotterColor = Color.red;
 
-    /*
-      Hierarchy of panels and layouts for this tab:
+	/*
+	 * Hierarchy of panels and layouts for this tab:
+	 * 
+	 * ClassTab (BorderLayout)
+	 * 
+	 * North: topPanel (BorderLayout)
+	 * 
+	 * Center: controlPanel (FlowLayout) timeComboBox
+	 * 
+	 * East: topRightPanel (FlowLayout) verboseCheckBox
+	 * 
+	 * Center: plotterPanel (BorderLayout)
+	 * 
+	 * Center: plotter
+	 * 
+	 * South: bottomPanel (BorderLayout)
+	 * 
+	 * Center: details
+	 */
 
-        ClassTab (BorderLayout)
+	public static String getTabName() {
+		return Messages.CLASSES;
+	}
 
-            North:  topPanel (BorderLayout)
+	public ClassTab(VMPanel vmPanel) {
+		super(vmPanel, getTabName());
 
-                        Center: controlPanel (FlowLayout)
-                                    timeComboBox
+		setLayout(new BorderLayout(0, 0));
+		setBorder(new EmptyBorder(4, 4, 3, 4));
 
-                        East:   topRightPanel (FlowLayout)
-                                    verboseCheckBox
+		JPanel topPanel = new JPanel(new BorderLayout());
+		JPanel plotterPanel = new JPanel(new BorderLayout());
+		JPanel bottomPanel = new JPanel(new BorderLayout());
 
-            Center: plotterPanel (BorderLayout)
+		add(topPanel, BorderLayout.NORTH);
+		add(plotterPanel, BorderLayout.CENTER);
+		add(bottomPanel, BorderLayout.SOUTH);
 
-                        Center: plotter
+		JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 5));
+		topPanel.add(controlPanel, BorderLayout.CENTER);
 
-            South:  bottomPanel (BorderLayout)
+		verboseCheckBox = new JCheckBox(Messages.VERBOSE_OUTPUT);
+		verboseCheckBox.addActionListener(this);
+		verboseCheckBox.setToolTipText(Messages.VERBOSE_OUTPUT_TOOLTIP);
+		JPanel topRightPanel = new JPanel();
+		topRightPanel.setBorder(new EmptyBorder(0, 65 - 8, 0, 70));
+		topRightPanel.add(verboseCheckBox);
+		topPanel.add(topRightPanel, BorderLayout.AFTER_LINE_ENDS);
 
-                        Center: details
-    */
+		loadedClassesMeter = new PlotterPanel(Messages.NUMBER_OF_LOADED_CLASSES, Plotter.Unit.NONE, false);
+		loadedClassesMeter.plotter.createSequence(loadedPlotterKey, Messages.LOADED, loadedPlotterColor, true);
+		loadedClassesMeter.plotter.createSequence(totalLoadedPlotterKey, Messages.TOTAL_LOADED, totalLoadedPlotterColor,
+				true);
+		Utilities.setAccessibleName(loadedClassesMeter.plotter,
+				Messages.CLASS_TAB_LOADED_CLASSES_PLOTTER_ACCESSIBLE_NAME);
+		plotterPanel.add(loadedClassesMeter);
 
-    public static String getTabName() {
-        return Messages.CLASSES;
-    }
+		timeComboBox = new TimeComboBox(loadedClassesMeter.plotter);
+		controlPanel.add(new LabeledComponent(Messages.TIME_RANGE_COLON,
+				Resources.getMnemonicInt(Messages.TIME_RANGE_COLON), timeComboBox));
 
-    public ClassTab(VMPanel vmPanel) {
-        super(vmPanel, getTabName());
+		LabeledComponent.layout(plotterPanel);
 
-        setLayout(new BorderLayout(0, 0));
-        setBorder(new EmptyBorder(4, 4, 3, 4));
+		bottomPanel.setBorder(new CompoundBorder(new TitledBorder(Messages.DETAILS), new EmptyBorder(10, 10, 10, 10)));
 
-        JPanel topPanel     = new JPanel(new BorderLayout());
-        JPanel plotterPanel = new JPanel(new BorderLayout());
-        JPanel bottomPanel  = new JPanel(new BorderLayout());
+		details = new HTMLPane();
+		Utilities.setAccessibleName(details, Messages.DETAILS);
+		JScrollPane scrollPane = new JScrollPane(details);
+		scrollPane.setPreferredSize(new Dimension(0, 150));
+		bottomPanel.add(scrollPane, BorderLayout.SOUTH);
 
-        add(topPanel,     BorderLayout.NORTH);
-        add(plotterPanel, BorderLayout.CENTER);
-        add(bottomPanel,  BorderLayout.SOUTH);
+	}
 
-        JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 5));
-        topPanel.add(controlPanel, BorderLayout.CENTER);
+	public void actionPerformed(ActionEvent ev) {
+		final boolean b = verboseCheckBox.isSelected();
+		workerAdd(new Runnable() {
+			public void run() {
+				ProxyClient proxyClient = vmPanel.getProxyClient();
+				try {
+					proxyClient.getClassLoadingMXBean().setVerbose(b);
+				} catch (UndeclaredThrowableException e) {
+					proxyClient.markAsDead();
+				} catch (IOException ex) {
+					// Ignore
+				}
+			}
+		});
+	}
 
-        verboseCheckBox = new JCheckBox(Messages.VERBOSE_OUTPUT);
-        verboseCheckBox.addActionListener(this);
-        verboseCheckBox.setToolTipText(Messages.VERBOSE_OUTPUT_TOOLTIP);
-        JPanel topRightPanel = new JPanel();
-        topRightPanel.setBorder(new EmptyBorder(0, 65-8, 0, 70));
-        topRightPanel.add(verboseCheckBox);
-        topPanel.add(topRightPanel, BorderLayout.AFTER_LINE_ENDS);
+	public SwingWorker<?, ?> newSwingWorker() {
+		final ProxyClient proxyClient = vmPanel.getProxyClient();
 
-        loadedClassesMeter = new PlotterPanel(Messages.NUMBER_OF_LOADED_CLASSES,
-                                              Plotter.Unit.NONE, false);
-        loadedClassesMeter.plotter.createSequence(loadedPlotterKey,
-                                                  Messages.LOADED,
-                                                  loadedPlotterColor,
-                                                  true);
-        loadedClassesMeter.plotter.createSequence(totalLoadedPlotterKey,
-                                                  Messages.TOTAL_LOADED,
-                                                  totalLoadedPlotterColor,
-                                                  true);
-        Utilities.setAccessibleName(loadedClassesMeter.plotter,
-                          Messages.CLASS_TAB_LOADED_CLASSES_PLOTTER_ACCESSIBLE_NAME);
-        plotterPanel.add(loadedClassesMeter);
+		if (!plotterListening) {
+			proxyClient.addWeakPropertyChangeListener(loadedClassesMeter.plotter);
+			plotterListening = true;
+		}
 
-        timeComboBox = new TimeComboBox(loadedClassesMeter.plotter);
-        controlPanel.add(new LabeledComponent(Messages.TIME_RANGE_COLON,
-                                              Resources.getMnemonicInt(Messages.TIME_RANGE_COLON),
-                                              timeComboBox));
+		return new SwingWorker<Boolean, Object>() {
+			private long clCount, cuCount, ctCount;
+			private boolean isVerbose;
+			private String detailsStr;
+			private long timeStamp;
 
-        LabeledComponent.layout(plotterPanel);
+			public Boolean doInBackground() {
+				try {
+					ClassLoadingMXBean classLoadingMBean = proxyClient.getClassLoadingMXBean();
 
-        bottomPanel.setBorder(new CompoundBorder(new TitledBorder(Messages.DETAILS),
-                                                 new EmptyBorder(10, 10, 10, 10)));
+					clCount = classLoadingMBean.getLoadedClassCount();
+					cuCount = classLoadingMBean.getUnloadedClassCount();
+					ctCount = classLoadingMBean.getTotalLoadedClassCount();
+					isVerbose = classLoadingMBean.isVerbose();
+					detailsStr = formatDetails();
+					timeStamp = System.currentTimeMillis();
 
-        details = new HTMLPane();
-        Utilities.setAccessibleName(details, Messages.DETAILS);
-        JScrollPane scrollPane = new JScrollPane(details);
-        scrollPane.setPreferredSize(new Dimension(0, 150));
-        bottomPanel.add(scrollPane, BorderLayout.SOUTH);
+					return true;
+				} catch (UndeclaredThrowableException e) {
+					proxyClient.markAsDead();
+					return false;
+				} catch (IOException e) {
+					return false;
+				}
+			}
 
-    }
+			protected void done() {
+				try {
+					if (get()) {
+						loadedClassesMeter.plotter.addValues(timeStamp, clCount, ctCount);
 
-    public void actionPerformed(ActionEvent ev) {
-        final boolean b = verboseCheckBox.isSelected();
-        workerAdd(new Runnable() {
-            public void run() {
-                ProxyClient proxyClient = vmPanel.getProxyClient();
-                try {
-                    proxyClient.getClassLoadingMXBean().setVerbose(b);
-                } catch (UndeclaredThrowableException e) {
-                    proxyClient.markAsDead();
-                } catch (IOException ex) {
-                    // Ignore
-                }
-            }
-        });
-    }
+						if (overviewPanel != null) {
+							overviewPanel.updateClassInfo(ctCount, clCount);
+							overviewPanel.getPlotter().addValues(timeStamp, clCount);
+						}
 
+						loadedClassesMeter.setValueLabel(clCount + "");
+						verboseCheckBox.setSelected(isVerbose);
+						details.setText(detailsStr);
+					}
+				} catch (InterruptedException ex) {
+				} catch (ExecutionException ex) {
+					if (JConsole.isDebug()) {
+						ex.printStackTrace();
+					}
+				}
+			}
 
-    public SwingWorker<?, ?> newSwingWorker() {
-        final ProxyClient proxyClient = vmPanel.getProxyClient();
+			private String formatDetails() {
+				String text = "<table cellspacing=0 cellpadding=0>";
 
-        if (!plotterListening) {
-            proxyClient.addWeakPropertyChangeListener(loadedClassesMeter.plotter);
-            plotterListening = true;
-        }
+				long time = System.currentTimeMillis();
+				String timeStamp = Formatter.formatDateTime(time);
+				text += Formatter.newRow(Messages.TIME, timeStamp);
+				text += Formatter.newRow(Messages.CURRENT_CLASSES_LOADED, Formatter.justify(clCount, 5));
+				text += Formatter.newRow(Messages.TOTAL_CLASSES_LOADED, Formatter.justify(ctCount, 5));
+				text += Formatter.newRow(Messages.TOTAL_CLASSES_UNLOADED, Formatter.justify(cuCount, 5));
 
-        return new SwingWorker<Boolean, Object>() {
-            private long clCount, cuCount, ctCount;
-            private boolean isVerbose;
-            private String detailsStr;
-            private long timeStamp;
+				return text;
+			}
+		};
+	}
 
-            public Boolean doInBackground() {
-                try {
-                    ClassLoadingMXBean classLoadingMBean = proxyClient.getClassLoadingMXBean();
+	OverviewPanel[] getOverviewPanels() {
+		if (overviewPanel == null) {
+			overviewPanel = new ClassOverviewPanel();
+		}
+		return new OverviewPanel[]{overviewPanel};
+	}
 
-                    clCount = classLoadingMBean.getLoadedClassCount();
-                    cuCount = classLoadingMBean.getUnloadedClassCount();
-                    ctCount = classLoadingMBean.getTotalLoadedClassCount();
-                    isVerbose = classLoadingMBean.isVerbose();
-                    detailsStr = formatDetails();
-                    timeStamp = System.currentTimeMillis();
+	private static class ClassOverviewPanel extends OverviewPanel {
+		ClassOverviewPanel() {
+			super(Messages.CLASSES, loadedPlotterKey, Messages.LOADED, null);
+		}
 
-                    return true;
-                } catch (UndeclaredThrowableException e) {
-                    proxyClient.markAsDead();
-                    return false;
-                } catch (IOException e) {
-                    return false;
-                }
-            }
-
-            protected void done() {
-                try {
-                    if (get()) {
-                        loadedClassesMeter.plotter.addValues(timeStamp, clCount, ctCount);
-
-                        if (overviewPanel != null) {
-                            overviewPanel.updateClassInfo(ctCount, clCount);
-                            overviewPanel.getPlotter().addValues(timeStamp, clCount);
-                        }
-
-                        loadedClassesMeter.setValueLabel(clCount + "");
-                        verboseCheckBox.setSelected(isVerbose);
-                        details.setText(detailsStr);
-                    }
-                } catch (InterruptedException ex) {
-                } catch (ExecutionException ex) {
-                    if (JConsole.isDebug()) {
-                        ex.printStackTrace();
-                    }
-                }
-            }
-
-            private String formatDetails() {
-                String text = "<table cellspacing=0 cellpadding=0>";
-
-                long time = System.currentTimeMillis();
-                String timeStamp = Formatter.formatDateTime(time);
-                text += Formatter.newRow(Messages.TIME, timeStamp);
-                text += Formatter.newRow(
-						Messages.CURRENT_CLASSES_LOADED, Formatter.justify(clCount, 5));
-                text += Formatter.newRow(
-						Messages.TOTAL_CLASSES_LOADED,   Formatter.justify(ctCount, 5));
-                text += Formatter.newRow(
-						Messages.TOTAL_CLASSES_UNLOADED, Formatter.justify(cuCount, 5));
-
-                return text;
-            }
-        };
-    }
-
-
-    OverviewPanel[] getOverviewPanels() {
-        if (overviewPanel == null) {
-            overviewPanel = new ClassOverviewPanel();
-        }
-        return new OverviewPanel[] { overviewPanel };
-    }
-
-    private static class ClassOverviewPanel extends OverviewPanel {
-        ClassOverviewPanel() {
-            super(Messages.CLASSES, loadedPlotterKey, Messages.LOADED, null);
-        }
-
-        private void updateClassInfo(long total, long loaded) {
-            long unloaded = (total - loaded);
-            getInfoLabel().setText(Resources.format(Messages.CLASS_TAB_INFO_LABEL_FORMAT,
-                                   loaded, unloaded, total));
-        }
-    }
+		private void updateClassInfo(long total, long loaded) {
+			long unloaded = (total - loaded);
+			getInfoLabel().setText(Resources.format(Messages.CLASS_TAB_INFO_LABEL_FORMAT, loaded, unloaded, total));
+		}
+	}
 }

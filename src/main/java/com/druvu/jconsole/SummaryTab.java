@@ -74,8 +74,7 @@ class SummaryTab extends Tab {
 		Utilities.setAccessibleName(info, getTabName());
 		add(new JScrollPane(info));
 
-		headerDateTimeFormat =
-				Formatter.getDateTimeFormat(Messages.SUMMARY_TAB_HEADER_DATE_TIME_FORMAT);
+		headerDateTimeFormat = Formatter.getDateTimeFormat(Messages.SUMMARY_TAB_HEADER_DATE_TIME_FORMAT);
 	}
 
 	public SwingWorker<?, ?> newSwingWorker() {
@@ -89,17 +88,13 @@ class SummaryTab extends Tab {
 					Result result = get();
 					if (result != null) {
 						info.setText(result.summary);
-						if (overviewPanel != null &&
-								result.upTime > 0L &&
-								result.processCpuTime >= 0L) {
+						if (overviewPanel != null && result.upTime > 0L && result.processCpuTime >= 0L) {
 
 							overviewPanel.updateCPUInfo(result);
 						}
 					}
-				}
-				catch (InterruptedException ex) {
-				}
-				catch (ExecutionException ex) {
+				} catch (InterruptedException ex) {
+				} catch (ExecutionException ex) {
 					if (JConsole.isDebug()) {
 						ex.printStackTrace();
 					}
@@ -131,18 +126,16 @@ class SummaryTab extends Tab {
 
 			append("<tr><td colspan=4>");
 			append("<center><b>" + Messages.SUMMARY_TAB_TAB_NAME + "</b></center>");
-			String dateTime =
-					headerDateTimeFormat.format(System.currentTimeMillis());
+			String dateTime = headerDateTimeFormat.format(System.currentTimeMillis());
 			append("<center>" + dateTime + "</center>");
 
 			append(newDivider);
 
-			{  // VM info
+			{ // VM info
 				append(newLeftTable);
 				append(Messages.CONNECTION_NAME, vmPanel.getDisplayName());
 				append(Messages.VIRTUAL_MACHINE,
-						Resources.format(Messages.SUMMARY_TAB_VM_VERSION,
-								rmBean.getVmName(), rmBean.getVmVersion()));
+						Resources.format(Messages.SUMMARY_TAB_VM_VERSION, rmBean.getVmName(), rmBean.getVmVersion()));
 				append(Messages.VENDOR, rmBean.getVmVendor());
 				append(Messages.NAME, rmBean.getName());
 				append(endTable);
@@ -169,14 +162,13 @@ class SummaryTab extends Tab {
 
 			append(newDivider);
 
-			{  // Threads and Classes
+			{ // Threads and Classes
 				append(newLeftTable);
 				int tlCount = tmBean.getThreadCount();
 				int tdCount = tmBean.getDaemonThreadCount();
 				int tpCount = tmBean.getPeakThreadCount();
 				long ttCount = tmBean.getTotalStartedThreadCount();
-				String[] strings1 = Formatter.formatLongs(tlCount, tpCount,
-						tdCount, ttCount);
+				String[] strings1 = Formatter.formatLongs(tlCount, tpCount, tdCount, ttCount);
 				append(Messages.LIVE_THREADS, strings1[0]);
 				append(Messages.PEAK, strings1[1]);
 				append(Messages.DAEMON_THREADS, strings1[2]);
@@ -197,7 +189,7 @@ class SummaryTab extends Tab {
 
 			append(newDivider);
 
-			{  // Memory
+			{ // Memory
 				MemoryUsage u = memoryBean.getHeapMemoryUsage();
 
 				append(newLeftTable);
@@ -215,25 +207,21 @@ class SummaryTab extends Tab {
 				append(endTable);
 
 				append(newTable);
-				Collection<GarbageCollectorMXBean> garbageCollectors =
-						proxyClient.getGarbageCollectorMXBeans();
+				Collection<GarbageCollectorMXBean> garbageCollectors = proxyClient.getGarbageCollectorMXBeans();
 				for (GarbageCollectorMXBean garbageCollectorMBean : garbageCollectors) {
 					String gcName = garbageCollectorMBean.getName();
 					long gcCount = garbageCollectorMBean.getCollectionCount();
 					long gcTime = garbageCollectorMBean.getCollectionTime();
 
-					append(Messages.GARBAGE_COLLECTOR,
-							Resources.format(Messages.GC_INFO, gcName, gcCount,
-									(gcTime >= 0) ? Formatter.formatTime(gcTime)
-											: Messages.UNAVAILABLE),
-							4);
+					append(Messages.GARBAGE_COLLECTOR, Resources.format(Messages.GC_INFO, gcName, gcCount,
+							(gcTime >= 0) ? Formatter.formatTime(gcTime) : Messages.UNAVAILABLE), 4);
 				}
 				append(endTable);
 			}
 
 			append(newDivider);
 
-			{  // Operating System info
+			{ // Operating System info
 				append(newLeftTable);
 				String osName = osMBean.getName();
 				String osVersion = osMBean.getVersion();
@@ -251,19 +239,15 @@ class SummaryTab extends Tab {
 				}
 
 				if (sunOSMBean != null) {
-					String[] kbStrings1 =
-							Formatter.formatKByteStrings(sunOSMBean.getCommittedVirtualMemorySize());
+					String[] kbStrings1 = Formatter.formatKByteStrings(sunOSMBean.getCommittedVirtualMemorySize());
 
 					// getTotalPhysicalMemorySize and getFreePhysicalMemorySize are deprecated,
 					// but we want be able to get the data for old target VMs (see JDK-8255934).
 					@SuppressWarnings("deprecation")
-					String[] kbStrings2 =
-							Formatter.formatKByteStrings(tryToGet(sunOSMBean::getTotalMemorySize,
-											sunOSMBean::getTotalPhysicalMemorySize),
-									tryToGet(sunOSMBean::getFreeMemorySize,
-											sunOSMBean::getFreePhysicalMemorySize),
-									sunOSMBean.getTotalSwapSpaceSize(),
-									sunOSMBean.getFreeSwapSpaceSize());
+					String[] kbStrings2 = Formatter.formatKByteStrings(
+							tryToGet(sunOSMBean::getTotalMemorySize, sunOSMBean::getTotalPhysicalMemorySize),
+							tryToGet(sunOSMBean::getFreeMemorySize, sunOSMBean::getFreePhysicalMemorySize),
+							sunOSMBean.getTotalSwapSpaceSize(), sunOSMBean.getFreeSwapSpaceSize());
 
 					append(Messages.COMMITTED_VIRTUAL_MEMORY, kbStrings1[0]);
 					append(endTable);
@@ -280,7 +264,7 @@ class SummaryTab extends Tab {
 
 			append(newDivider);
 
-			{  // VM arguments and paths
+			{ // VM arguments and paths
 				append(newTable);
 				String args = "";
 				java.util.List<String> inputArguments = rmBean.getInputArguments();
@@ -291,21 +275,16 @@ class SummaryTab extends Tab {
 				append(Messages.CLASS_PATH, rmBean.getClassPath(), 4);
 				append(Messages.LIBRARY_PATH, rmBean.getLibraryPath(), 4);
 				append(Messages.BOOT_CLASS_PATH,
-						rmBean.isBootClassPathSupported()
-								? rmBean.getBootClassPath()
-								: Messages.UNAVAILABLE,
-						4);
+						rmBean.isBootClassPathSupported() ? rmBean.getBootClassPath() : Messages.UNAVAILABLE, 4);
 				append(endTable);
 			}
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
 			if (JConsole.isDebug()) {
 				e.printStackTrace();
 			}
 			proxyClient.markAsDead();
 			return null;
-		}
-		catch (UndeclaredThrowableException e) {
+		} catch (UndeclaredThrowableException e) {
 			if (JConsole.isDebug()) {
 				e.printStackTrace();
 			}
@@ -322,15 +301,14 @@ class SummaryTab extends Tab {
 	}
 
 	/**
-	 * Tries to get the specified value from the list of suppliers.
-	 * Returns -1 if all suppliers fail.
+	 * Tries to get the specified value from the list of suppliers. Returns -1 if
+	 * all suppliers fail.
 	 */
 	private long tryToGet(LongSupplier... getters) {
 		for (LongSupplier getter : getters) {
 			try {
 				return getter.getAsLong();
-			}
-			catch (UndeclaredThrowableException e) {
+			} catch (UndeclaredThrowableException e) {
 			}
 		}
 		return -1;
@@ -346,8 +324,7 @@ class SummaryTab extends Tab {
 
 	private void append(String label, String value, int columnPerRow) {
 		if (columnPerRow == 4 && pathSeparator != null) {
-			value = value.replace(pathSeparator,
-					"<b></b>" + pathSeparator);
+			value = value.replace(pathSeparator, "<b></b>" + pathSeparator);
 		}
 		append(Formatter.newRow(label, value, columnPerRow));
 	}
@@ -356,7 +333,7 @@ class SummaryTab extends Tab {
 		if (overviewPanel == null) {
 			overviewPanel = new CPUOverviewPanel();
 		}
-		return new OverviewPanel[] {overviewPanel};
+		return new OverviewPanel[]{overviewPanel};
 	}
 
 	private static class CPUOverviewPanel extends OverviewPanel {
@@ -375,14 +352,11 @@ class SummaryTab extends Tab {
 				// cpuUsage could go higher than 100% because elapsedTime
 				// and elapsedCpu are not fetched simultaneously. Limit to
 				// 99% to avoid Plotter showing a scale from 0% to 200%.
-				float cpuUsage =
-						Math.min(99F,
-								elapsedCpu / (elapsedTime * 10000F * result.nCPUs));
+				float cpuUsage = Math.min(99F, elapsedCpu / (elapsedTime * 10000F * result.nCPUs));
 
 				cpuUsage = Math.max(0F, cpuUsage);
 
-				getPlotter().addValues(result.timeStamp,
-						Math.round(cpuUsage * Math.pow(10.0, CPU_DECIMALS)));
+				getPlotter().addValues(result.timeStamp, Math.round(cpuUsage * Math.pow(10.0, CPU_DECIMALS)));
 				getInfoLabel().setText(Resources.format(Messages.CPU_USAGE_FORMAT,
 						String.format("%." + CPU_DECIMALS + "f", cpuUsage)));
 			}

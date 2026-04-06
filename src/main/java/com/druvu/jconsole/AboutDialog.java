@@ -75,8 +75,7 @@ public class AboutDialog extends InternalDialog {
 	private static final Color bgColor = new Color(232, 237, 241);
 	private static final Color borderColor = Color.black;
 
-	private Icon mastheadIcon =
-			new MastheadIcon(Messages.HELP_ABOUT_DIALOG_MASTHEAD_TITLE);
+	private Icon mastheadIcon = new MastheadIcon(Messages.HELP_ABOUT_DIALOG_MASTHEAD_TITLE);
 
 	private static AboutDialog aboutDialog;
 
@@ -96,8 +95,7 @@ public class AboutDialog extends InternalDialog {
 		createActions();
 
 		JLabel mastheadLabel = new JLabel(mastheadIcon);
-		Utilities.setAccessibleName(mastheadLabel,
-				Messages.HELP_ABOUT_DIALOG_MASTHEAD_ACCESSIBLE_NAME);
+		Utilities.setAccessibleName(mastheadLabel, Messages.HELP_ABOUT_DIALOG_MASTHEAD_ACCESSIBLE_NAME);
 
 		JPanel mainPanel = new TPanel(0, 0);
 		mainPanel.add(mastheadLabel, NORTH);
@@ -115,10 +113,10 @@ public class AboutDialog extends InternalDialog {
 
 		String colorStr = String.format("%06x", textColor.getRGB() & 0xFFFFFF);
 		helpLink = new JEditorPane("text/html",
-				"<html><font color=#" + colorStr + ">" +
-						Resources.format(Messages.HELP_ABOUT_DIALOG_JCONSOLE_VERSION, jConsoleVersion) +
-						"<p>" + Resources.format(Messages.HELP_ABOUT_DIALOG_JAVA_VERSION, (vmName + ", " + vmVersion)) +
-						"<p>" + locUrlStr + "</html>");
+				"<html><font color=#" + colorStr + ">"
+						+ Resources.format(Messages.HELP_ABOUT_DIALOG_JCONSOLE_VERSION, jConsoleVersion) + "<p>"
+						+ Resources.format(Messages.HELP_ABOUT_DIALOG_JAVA_VERSION, (vmName + ", " + vmVersion)) + "<p>"
+						+ locUrlStr + "</html>");
 
 		helpLink.setOpaque(false);
 		helpLink.setEditable(false);
@@ -195,8 +193,7 @@ public class AboutDialog extends InternalDialog {
 			String text = doc.getText(0, doc.getLength());
 			int pos = text.indexOf(urlStr, 0);
 			hilite.addHighlight(pos, pos + urlStr.length(), new HighlightPainter());
-		}
-		catch (BadLocationException e) {
+		} catch (BadLocationException e) {
 			// ignore
 		}
 	}
@@ -212,8 +209,7 @@ public class AboutDialog extends InternalDialog {
 		try {
 			// Bring to front of other dialogs
 			setSelected(true);
-		}
-		catch (PropertyVetoException e) {
+		} catch (PropertyVetoException e) {
 			// ignore
 		}
 	}
@@ -234,15 +230,13 @@ public class AboutDialog extends InternalDialog {
 	}
 
 	static boolean isBrowseSupported() {
-		return (Desktop.isDesktopSupported() &&
-				Desktop.getDesktop().isSupported(Desktop.Action.BROWSE));
+		return (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE));
 	}
 
 	void browse(String urlStr) {
 		try {
 			Desktop.getDesktop().browse(new URI(urlStr));
-		}
-		catch (Exception ex) {
+		} catch (Exception ex) {
 			showDialog();
 			statusBar.setText(ex.getLocalizedMessage());
 			if (JConsole.isDebug()) {
@@ -262,8 +256,7 @@ public class AboutDialog extends InternalDialog {
 
 	private static String getOnlineDocUrl() {
 		String version = Integer.toString(Runtime.version().feature());
-		return Resources.format(Messages.HELP_ABOUT_DIALOG_USER_GUIDE_LINK_URL,
-				version);
+		return Resources.format(Messages.HELP_ABOUT_DIALOG_USER_GUIDE_LINK_URL, version);
 	}
 
 	private static class TPanel extends JPanel {
@@ -273,16 +266,14 @@ public class AboutDialog extends InternalDialog {
 		}
 	}
 
-	private static class HighlightPainter
-			extends DefaultHighlighter.DefaultHighlightPainter {
+	private static class HighlightPainter extends DefaultHighlighter.DefaultHighlightPainter {
 
 		public HighlightPainter() {
 			super(null);
 		}
 
 		@Override
-		public Shape paintLayer(Graphics g, int offs0, int offs1, Shape bounds,
-				JTextComponent c, View view) {
+		public Shape paintLayer(Graphics g, int offs0, int offs1, Shape bounds, JTextComponent c, View view) {
 			g.setColor(c.getSelectionColor());
 			Rectangle alloc;
 
@@ -295,11 +286,9 @@ public class AboutDialog extends InternalDialog {
 			Graphics2D g2d = (Graphics2D) g;
 
 			float[] dash = {2F, 2F};
-			Stroke dashedStroke = new BasicStroke(1F, BasicStroke.CAP_SQUARE,
-					BasicStroke.JOIN_MITER, 3F, dash, 0F);
-			g2d.fill(dashedStroke.createStrokedShape(
-					new Rectangle2D.Float(alloc.x, alloc.y,
-							alloc.width - 1, alloc.height - 1)));
+			Stroke dashedStroke = new BasicStroke(1F, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 3F, dash, 0F);
+			g2d.fill(dashedStroke
+					.createStrokedShape(new Rectangle2D.Float(alloc.x, alloc.y, alloc.width - 1, alloc.height - 1)));
 			return alloc;
 		}
 	}

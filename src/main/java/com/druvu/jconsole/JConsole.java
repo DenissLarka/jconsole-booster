@@ -70,37 +70,33 @@ import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
 import javax.swing.plaf.BorderUIResource;
 
+import javax.swing.plaf.nimbus.NimbusLookAndFeel;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sun.tools.jconsole.JConsolePlugin;
 
-
 @SuppressWarnings("serial")
 public class JConsole extends JFrame implements ActionListener, InternalFrameListener {
 
 	private static final Logger logger = LoggerFactory.getLogger(JConsole.class);
-	static /*final*/ boolean IS_GTK;
-	static /*final*/ boolean IS_WIN;
+	static /* final */ boolean IS_GTK;
+	static /* final */ boolean IS_WIN;
 
 	static {
-		// Apply the system L&F if it is GTK or Windows, and
-		// the L&F is not specified using a system property.
-		if (System.getProperty("swing.defaultlaf") == null) {
-			String systemLaF = UIManager.getSystemLookAndFeelClassName();
-			if (systemLaF.equals("com.sun.java.swing.plaf.gtk.GTKLookAndFeel") ||
-					systemLaF.equals("com.sun.java.swing.plaf.windows.WindowsLookAndFeel")) {
-
-				try {
-					UIManager.setLookAndFeel(systemLaF);
-				}
-				catch (Exception e) {
-					logger.error(Resources.format(Messages.JCONSOLE_COLON_, e.getMessage()));
-				}
-			}
-		}
-
 		updateLafValues();
+	}
+
+	private static void applyLookAndFeel(Color color) {
+		try {
+			UIManager.setLookAndFeel(new NimbusLookAndFeel());
+		} catch (Exception e) {
+			logger.error(Resources.format(Messages.JCONSOLE_COLON_, e.getMessage()));
+		}
+		if (color != null) {
+			UIManager.put("nimbusBlueGrey", color);
+		}
 	}
 
 	static void updateLafValues() {
@@ -108,7 +104,7 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 		IS_GTK = lafName.equals("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
 		IS_WIN = lafName.equals("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
 
-		//BorderedComponent.updateLafValues();
+		// BorderedComponent.updateLafValues();
 	}
 
 	private static final String title = Messages.JAVA_MONITORING___MANAGEMENT_CONSOLE;
@@ -159,8 +155,7 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 
 		connectMI = new JMenuItem(Messages.NEW_CONNECTION_ELLIPSIS);
 		connectMI.setMnemonic(Resources.getMnemonicInt(Messages.NEW_CONNECTION_ELLIPSIS));
-		connectMI.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N,
-				InputEvent.CTRL_DOWN_MASK));
+		connectMI.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.CTRL_DOWN_MASK));
 		connectMI.addActionListener(this);
 		connectionMenu.add(connectMI);
 
@@ -290,12 +285,8 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 			String indexString = "" + (index + 1);
 			String vmName = vmIF.getVMPanel().getDisplayName();
 			// Maybe truncate menu item string and end with "..."
-			String text =
-					SwingUtilities.layoutCompoundLabel(this,
-							getGraphics().getFontMetrics(getFont()),
-							indexString + " " + vmName,
-							null, 0, 0, 0, 0,
-							viewR, iconR, textR, 0);
+			String text = SwingUtilities.layoutCompoundLabel(this, getGraphics().getFontMetrics(getFont()),
+					indexString + " " + vmName, null, 0, 0, 0, 0, viewR, iconR, textR, 0);
 			JMenuItem mi = new JMenuItem(text);
 			if (text.endsWith("...")) {
 				mi.setToolTipText(vmName);
@@ -358,8 +349,7 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 			for (VMInternalFrame vmIF : windows) {
 				try {
 					vmIF.setIcon(true);
-				}
-				catch (PropertyVetoException ex) {
+				} catch (PropertyVetoException ex) {
 					// Ignore
 				}
 			}
@@ -367,8 +357,7 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 			for (VMInternalFrame vmIF : windows) {
 				try {
 					vmIF.setIcon(false);
-				}
-				catch (PropertyVetoException ex) {
+				} catch (PropertyVetoException ex) {
 					// Ignore
 				}
 			}
@@ -380,14 +369,12 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 			AboutDialog.showAboutDialog(this);
 		} else if (src instanceof JMenuItem) {
 			JMenuItem mi = (JMenuItem) src;
-			VMInternalFrame vmIF = (VMInternalFrame) mi.
-					getClientProperty("JConsole.vmIF");
+			VMInternalFrame vmIF = (VMInternalFrame) mi.getClientProperty("JConsole.vmIF");
 			if (vmIF != null) {
 				try {
 					vmIF.setIcon(false);
 					vmIF.setSelected(true);
-				}
-				catch (PropertyVetoException ex) {
+				} catch (PropertyVetoException ex) {
 					// Ignore
 				}
 				vmIF.moveToFront();
@@ -407,8 +394,7 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 						vmIF.setMaximum(true);
 						w = vmIF.getWidth();
 						h = vmIF.getHeight();
-					}
-					catch (PropertyVetoException ex) {
+					} catch (PropertyVetoException ex) {
 						// Ignore
 					}
 				}
@@ -429,8 +415,7 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 				if (!vmIF.isIcon()) {
 					try {
 						vmIF.setMaximum(n == 1);
-					}
-					catch (PropertyVetoException ex) {
+					} catch (PropertyVetoException ex) {
 						// Ignore
 					}
 					if (n > 1) {
@@ -457,8 +442,7 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 			if (!vmIF.isIcon()) {
 				try {
 					vmIF.setMaximum(false);
-				}
-				catch (PropertyVetoException ex) {
+				} catch (PropertyVetoException ex) {
 					// Ignore
 				}
 				n++;
@@ -471,8 +455,7 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 						w = vmIF.getWidth() - w;
 						h = vmIF.getHeight() - h;
 						vmIF.pack();
-					}
-					catch (PropertyVetoException ex) {
+					} catch (PropertyVetoException ex) {
 						// Ignore
 					}
 				}
@@ -493,8 +476,7 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 	}
 
 	// Call on EDT
-	void addHost(String hostName, int port,
-			String userName, String password) {
+	void addHost(String hostName, int port, String userName, String password) {
 		addHost(hostName, port, userName, password, false);
 	}
 
@@ -509,11 +491,9 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 			public void run() {
 				try {
 					addProxyClient(ProxyClient.getProxyClient(lvm), tile);
-				}
-				catch (final SecurityException ex) {
+				} catch (final SecurityException ex) {
 					failed(ex, null, null, null);
-				}
-				catch (final IOException ex) {
+				} catch (final IOException ex) {
 					failed(ex, null, null, null);
 				}
 			}
@@ -521,23 +501,16 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 	}
 
 	// Call on EDT
-	void addUrl(final String url,
-			final String userName,
-			final String password,
-			final boolean tile) {
+	void addUrl(final String url, final String userName, final String password, final boolean tile) {
 		new Thread("JConsole.addUrl") {
 			public void run() {
 				try {
-					addProxyClient(ProxyClient.getProxyClient(url, userName, password),
-							tile);
-				}
-				catch (final MalformedURLException ex) {
+					addProxyClient(ProxyClient.getProxyClient(url, userName, password), tile);
+				} catch (final MalformedURLException ex) {
 					failed(ex, url, userName, password);
-				}
-				catch (final SecurityException ex) {
+				} catch (final SecurityException ex) {
 					failed(ex, url, userName, password);
-				}
-				catch (final IOException ex) {
+				} catch (final IOException ex) {
 					failed(ex, url, userName, password);
 				}
 			}
@@ -545,22 +518,17 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 	}
 
 	// Call on EDT
-	void addHost(final String hostName, final int port,
-			final String userName, final String password,
+	void addHost(final String hostName, final int port, final String userName, final String password,
 			final boolean tile) {
 		new Thread("JConsole.addHost") {
 			public void run() {
 				try {
-					addProxyClient(ProxyClient.getProxyClient(hostName, port,
-									userName, password),
-							tile);
-				}
-				catch (final IOException ex) {
+					addProxyClient(ProxyClient.getProxyClient(hostName, port, userName, password), tile);
+				} catch (final IOException ex) {
 					dbgStackTrace(ex);
 					SwingUtilities.invokeLater(new Runnable() {
 						public void run() {
-							showConnectDialog(null, hostName, port,
-									userName, password, errorMessage(ex));
+							showConnectDialog(null, hostName, port, userName, password, errorMessage(ex));
 						}
 					});
 				}
@@ -588,19 +556,11 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 	}
 
 	// Call on worker thread
-	private void failed(final Exception ex,
-			final String url,
-			final String userName,
-			final String password) {
+	private void failed(final Exception ex, final String url, final String userName, final String password) {
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				dbgStackTrace(ex);
-				showConnectDialog(url,
-						null,
-						-1,
-						userName,
-						password,
-						errorMessage(ex));
+				showConnectDialog(url, null, -1, userName, password, errorMessage(ex));
 			}
 		});
 	}
@@ -611,8 +571,7 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 		for (VMInternalFrame f : windows) {
 			try {
 				f.setMaximum(false);
-			}
-			catch (PropertyVetoException ex) {
+			} catch (PropertyVetoException ex) {
 				// Ignore
 			}
 		}
@@ -625,8 +584,7 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 		if (windows.size() == 1) {
 			try {
 				vmIF.setMaximum(true);
-			}
-			catch (PropertyVetoException ex) {
+			} catch (PropertyVetoException ex) {
 				// Ignore
 			}
 		}
@@ -636,29 +594,19 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 		return vmIF;
 	}
 
-	private void showConnectDialog(String url,
-			String hostName,
-			int port,
-			String userName,
-			String password,
+	private void showConnectDialog(String url, String hostName, int port, String userName, String password,
 			String msg) {
 		if (connectDialog == null) {
 			connectDialog = new ConnectDialog(this);
 		}
-		connectDialog.setConnectionParameters(url,
-				hostName,
-				port,
-				userName,
-				password,
-				msg);
+		connectDialog.setConnectionParameters(url, hostName, port, userName, password, msg);
 
 		connectDialog.refresh();
 		connectDialog.setVisible(true);
 		try {
 			// Bring to front of other dialogs
 			connectDialog.setSelected(true);
-		}
-		catch (PropertyVetoException e) {
+		} catch (PropertyVetoException e) {
 		}
 	}
 
@@ -670,8 +618,7 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 		try {
 			// Bring to front of other dialogs
 			createDialog.setSelected(true);
-		}
-		catch (PropertyVetoException e) {
+		} catch (PropertyVetoException e) {
 		}
 	}
 
@@ -702,12 +649,12 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 					valid = true;
 				}
 			} else {
-				//---------------------------------------
+				// ---------------------------------------
 				// Supported host and port combinations:
-				//     hostname:port
-				//     IPv4Address:port
-				//     [IPv6Address]:port
-				//---------------------------------------
+				// hostname:port
+				// IPv4Address:port
+				// [IPv6Address]:port
+				// ---------------------------------------
 
 				// Is literal IPv6 address?
 				//
@@ -717,18 +664,17 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 						// Extract literal IPv6 address
 						//
 						String address = txt.substring(1, index);
-							// Extract port
-							//
-							try {
-								String portStr = txt.substring(index + 2);
-								int port = Integer.parseInt(portStr);
-								if (port >= 0 && port <= 0xFFFF) {
-									valid = true;
-								}
+						// Extract port
+						//
+						try {
+							String portStr = txt.substring(index + 2);
+							int port = Integer.parseInt(portStr);
+							if (port >= 0 && port <= 0xFFFF) {
+								valid = true;
 							}
-							catch (NumberFormatException ex) {
-								valid = false;
-							}
+						} catch (NumberFormatException ex) {
+							valid = false;
+						}
 					}
 				} else {
 					String[] s = txt.split(":");
@@ -738,8 +684,7 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 							if (port >= 0 && port <= 0xFFFF) {
 								valid = true;
 							}
-						}
-						catch (NumberFormatException ex) {
+						} catch (NumberFormatException ex) {
 							valid = false;
 						}
 					}
@@ -808,181 +753,54 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 	public void internalFrameDeactivated(InternalFrameEvent e) {
 	}
 
-	private static void usage() {
-		// Usage text should go to stdout, not stderr
-		System.out.println(Resources.format(Messages.ZZ_USAGE_TEXT, "jconsole"));
-	}
-
-	private static void mainInit(final List<String> urls,
-			final List<String> hostNames,
-			final List<Integer> ports,
-			final List<LocalVirtualMachine> vmids,
-			final ProxyClient proxyClient,
-			final boolean noTile,
-			final boolean hotspot) {
-
+	private static void mainInit(final JConsoleOptions options) {
 		// Always create Swing GUI on the Event Dispatching Thread
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				JConsole jConsole = new JConsole(hotspot);
+		SwingUtilities.invokeLater(() -> {
+			JConsole jConsole = new JConsole(options.hotspot());
 
-				// Center the window on screen, taking into account screen
-				// size and insets.
-				Toolkit toolkit = Toolkit.getDefaultToolkit();
-				GraphicsConfiguration gc = jConsole.getGraphicsConfiguration();
-				Dimension scrSize = toolkit.getScreenSize();
-				Insets scrInsets = toolkit.getScreenInsets(gc);
-				Rectangle scrBounds =
-						new Rectangle(scrInsets.left, scrInsets.top,
-								scrSize.width - scrInsets.left - scrInsets.right,
-								scrSize.height - scrInsets.top - scrInsets.bottom);
-				int w = scrBounds.width;
-				int h = scrBounds.height;
-				jConsole.setBounds(scrBounds.x + (scrBounds.width - w) / 2,
-						scrBounds.y + (scrBounds.height - h) / 2,
-						w, h);
+			// Center the window on screen, taking into account screen size and insets.
+			Toolkit toolkit = Toolkit.getDefaultToolkit();
+			GraphicsConfiguration gc = jConsole.getGraphicsConfiguration();
+			Dimension scrSize = toolkit.getScreenSize();
+			Insets scrInsets = toolkit.getScreenInsets(gc);
+			Rectangle scrBounds = new Rectangle(scrInsets.left, scrInsets.top,
+					scrSize.width - scrInsets.left - scrInsets.right,
+					scrSize.height - scrInsets.top - scrInsets.bottom);
+			jConsole.setBounds(scrBounds.x, scrBounds.y, scrBounds.width, scrBounds.height);
+			jConsole.setVisible(true);
+			jConsole.createMDI();
 
-				jConsole.setVisible(true);
-				jConsole.createMDI();
+			List<String> urls = options.urls();
+			List<LocalVirtualMachine> vmids = options.vmids();
+			boolean noTile = options.noTile();
 
-				for (int i = 0; i < hostNames.size(); i++) {
-					jConsole.addHost(hostNames.get(i), ports.get(i),
-							null, null,
-							(i == hostNames.size() - 1) ?
-									!noTile : false);
-				}
+			for (int i = 0; i < urls.size(); i++) {
+				jConsole.addUrl(urls.get(i), null, null, (i == urls.size() - 1) ? !noTile : false);
+			}
 
-				for (int i = 0; i < urls.size(); i++) {
-					jConsole.addUrl(urls.get(i),
-							null,
-							null,
-							(i == urls.size() - 1) ?
-									!noTile : false);
-				}
+			for (int i = 0; i < vmids.size(); i++) {
+				jConsole.addVmid(vmids.get(i), (i == vmids.size() - 1) ? !noTile : false);
+			}
 
-				for (int i = 0; i < vmids.size(); i++) {
-					jConsole.addVmid(vmids.get(i),
-							(i == vmids.size() - 1) ?
-									!noTile : false);
-				}
-
-				if (vmids.size() == 0 &&
-						hostNames.size() == 0 &&
-						urls.size() == 0) {
-					jConsole.showConnectDialog(null,
-							null,
-							0,
-							null,
-							null,
-							null);
-				}
+			if (urls.isEmpty() && vmids.isEmpty()) {
+				jConsole.showConnectDialog(null, null, 0, null, null, null);
 			}
 		});
 	}
 
 	public static void main(String[] args) {
-		boolean noTile = false, hotspot = false;
-		int argIndex = 0;
-		ProxyClient proxyClient = null;
-
 		if (System.getProperty("jconsole.showOutputViewer") != null) {
 			OutputViewer.init();
 		}
 
-		while (args.length - argIndex > 0 && args[argIndex].startsWith("-")) {
-			String arg = args[argIndex++];
-			if (arg.equals("-h") ||
-					arg.equals("-help") ||
-					arg.equals("-?")) {
+		ArgumentParser.parse(args).ifPresent(options -> {
+			debug = options.debug();
+			updateInterval = options.updateInterval();
+			pluginPath = options.pluginPath();
 
-				usage();
-				return;
-			} else if (arg.startsWith("-interval=")) {
-				try {
-					updateInterval = Integer.parseInt(arg.substring(10)) *
-							1000;
-					if (updateInterval <= 0) {
-						usage();
-						return;
-					}
-				}
-				catch (NumberFormatException ex) {
-					usage();
-					return;
-				}
-			} else if (arg.equals("-pluginpath")) {
-				if (argIndex < args.length && !args[argIndex].startsWith("-")) {
-					pluginPath = args[argIndex++];
-				} else {
-					// Invalid argument
-					usage();
-					return;
-				}
-			} else if (arg.equals("-notile")) {
-				noTile = true;
-			} else if (arg.equals("-version")) {
-				Version.print(System.err);
-				return;
-			} else if (arg.equals("-debug")) {
-				debug = true;
-			} else if (arg.equals("-fullversion")) {
-				Version.printFullVersion(System.err);
-				return;
-			} else {
-				// Unknown switch
-				usage();
-				return;
-			}
-		}
-
-		if (System.getProperty("jconsole.showUnsupported") != null) {
-			hotspot = true;
-		}
-
-		List<String> urls = new ArrayList<String>();
-		List<String> hostNames = new ArrayList<String>();
-		List<Integer> ports = new ArrayList<Integer>();
-		List<LocalVirtualMachine> vms = new ArrayList<LocalVirtualMachine>();
-
-		for (int i = argIndex; i < args.length; i++) {
-			String arg = args[i];
-			if (isValidRemoteString(arg)) {
-				if (arg.startsWith(ROOT_URL)) {
-					urls.add(arg);
-				} else if (arg.matches(".*:[0-9]*")) {
-					int p = arg.lastIndexOf(':');
-					hostNames.add(arg.substring(0, p));
-					try {
-						ports.add(Integer.parseInt(arg.substring(p + 1)));
-					}
-					catch (NumberFormatException ex) {
-						usage();
-						return;
-					}
-				}
-			} else {
-				if (!isLocalAttachAvailable()) {
-					logger.error("Local process monitoring is not supported");
-					return;
-				}
-				try {
-					int vmid = Integer.parseInt(arg);
-					LocalVirtualMachine lvm =
-							LocalVirtualMachine.getLocalVirtualMachine(vmid);
-					if (lvm == null) {
-						logger.error("Invalid process id: {}", vmid);
-						return;
-					}
-					vms.add(lvm);
-				}
-				catch (NumberFormatException ex) {
-					usage();
-					return;
-				}
-			}
-		}
-
-		mainInit(urls, hostNames, ports, vms, proxyClient, noTile, hotspot);
+			applyLookAndFeel(options.color());
+			mainInit(options);
+		});
 	}
 
 	public static boolean isDebug() {
@@ -996,8 +814,8 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 	}
 
 	/**
-	 * local attach is supported in this implementation as jdk.jconsole
-	 * requires jdk.attach and jdk.management.agent
+	 * local attach is supported in this implementation as jdk.jconsole requires
+	 * jdk.attach and jdk.management.agent
 	 */
 	public static boolean isLocalAttachAvailable() {
 		return true;
@@ -1026,8 +844,7 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 		if (pluginPath.length() > 0) {
 			try {
 				ClassLoader pluginCL = new URLClassLoader(pathToURLs(pluginPath));
-				ServiceLoader<JConsolePlugin> plugins =
-						ServiceLoader.load(JConsolePlugin.class, pluginCL);
+				ServiceLoader<JConsolePlugin> plugins = ServiceLoader.load(JConsolePlugin.class, pluginCL);
 				// validate all plugins
 				for (JConsolePlugin p : plugins) {
 					if (isDebug()) {
@@ -1035,18 +852,14 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 					}
 				}
 				pluginService = plugins;
-			}
-			catch (ServiceConfigurationError e) {
-				// Error occurs during initialization of plugin
-				logger.error(Resources.format(Messages.FAIL_TO_LOAD_PLUGIN,
-						e.getMessage()));
-			}
-			catch (MalformedURLException e) {
+			} catch (ServiceConfigurationError e) {
+				// Error occurs during initialisation of plugin
+				logger.error(Resources.format(Messages.FAIL_TO_LOAD_PLUGIN, e.getMessage()));
+			} catch (MalformedURLException e) {
 				if (JConsole.isDebug()) {
 					logger.error("Invalid plugin path", e);
 				} else {
-					logger.error(Resources.format(Messages.INVALID_PLUGIN_PATH,
-							e.getMessage()));
+					logger.error(Resources.format(Messages.INVALID_PLUGIN_PATH, e.getMessage()));
 				}
 			}
 		}
@@ -1062,10 +875,11 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 	}
 
 	/**
-	 * Utility method for converting a search path string to an array
-	 * of directory and JAR file URLs.
+	 * Utility method for converting a search path string to an array of directory
+	 * and JAR file URLs.
 	 *
-	 * @param path the search path string
+	 * @param path
+	 *            the search path string
 	 * @return the resulting array of directory and JAR file URLs
 	 */
 	private static URL[] pathToURLs(String path) throws MalformedURLException {
@@ -1080,18 +894,18 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 	}
 
 	/**
-	 * Returns the directory or JAR file URL corresponding to the specified
-	 * local file name.
+	 * Returns the directory or JAR file URL corresponding to the specified local
+	 * file name.
 	 *
-	 * @param file the File object
+	 * @param file
+	 *            the File object
 	 * @return the resulting directory or JAR file URL, or null if unknown
 	 */
 	private static URL fileToURL(File file) throws MalformedURLException {
 		String name;
 		try {
 			name = file.getCanonicalPath();
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
 			name = file.getAbsolutePath();
 		}
 		name = name.replace(File.separatorChar, '/');
@@ -1112,9 +926,8 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 		}
 
 		/**
-		 * The revalidate method seems to be the only one that gets
-		 * called whenever there is a change of L&F or change of theme
-		 * in Windows L&F and GTK L&F.
+		 * The revalidate method seems to be the only one that gets called whenever
+		 * there is a change of L&F or change of theme in Windows L&F and GTK L&F.
 		 */
 		@Override
 		public void revalidate() {
@@ -1129,8 +942,7 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 			if (border instanceof BorderUIResource.EtchedBorderUIResource) {
 				Color highlight = UIManager.getColor("ToolBar.highlight");
 				Color shadow = UIManager.getColor("ToolBar.shadow");
-				border = new BorderUIResource.EtchedBorderUIResource(highlight,
-						shadow);
+				border = new BorderUIResource.EtchedBorderUIResource(highlight, shadow);
 				UIManager.put("TitledBorder.border", border);
 			}
 
@@ -1138,10 +950,8 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 				// Workaround for Swing bug where the titledborder in
 				// GTK L&F use hardcoded color and font for the title
 				// instead of getting them from the theme.
-				UIManager.put("TitledBorder.titleColor",
-						UIManager.getColor("Label.foreground"));
-				UIManager.put("TitledBorder.font",
-						UIManager.getFont("Label.font"));
+				UIManager.put("TitledBorder.titleColor", UIManager.getColor("Label.foreground"));
+				UIManager.put("TitledBorder.font", UIManager.getFont("Label.font"));
 			}
 			super.revalidate();
 		}

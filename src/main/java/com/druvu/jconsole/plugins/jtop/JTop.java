@@ -38,7 +38,6 @@ package com.druvu.jconsole.plugins.jtop;
  * this sample code.
  */
 
-
 /*
  *
  * Example of using the java.lang.management API to sort threads
@@ -91,8 +90,8 @@ import javax.swing.border.*;
 import javax.swing.table.*;
 
 /**
- * JTop is a JPanel to display thread's name, CPU time, and its state
- * in a table.
+ * JTop is a JPanel to display thread's name, CPU time, and its state in a
+ * table.
  */
 public class JTop extends JPanel {
 
@@ -169,8 +168,7 @@ public class JTop extends JPanel {
 		this.server = mbs;
 		try {
 			this.tmbean = newPlatformMXBeanProxy(server, THREAD_MXBEAN_NAME, ThreadMXBean.class);
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		if (!tmbean.isThreadCpuTimeSupported()) {
@@ -178,8 +176,7 @@ public class JTop extends JPanel {
 		} else {
 			try {
 				tmbean.setThreadCpuTimeEnabled(true);
-			}
-			catch (SecurityException e) {
+			} catch (SecurityException e) {
 				statusBar.setMessage("Monitored VM does not have permission for enabling thread cpu time measurement");
 			}
 		}
@@ -214,18 +211,18 @@ public class JTop extends JPanel {
 		public Object getValueAt(int row, int col) {
 			Map.Entry<Long, ThreadInfo> me = threadList.get(row);
 			switch (col) {
-				case 0:
+				case 0 :
 					// Column 0 shows the thread name
 					return me.getValue().getThreadName();
-				case 1:
+				case 1 :
 					// Column 1 shows the CPU usage
 					long ns = me.getKey().longValue();
 					double sec = ns / 1000000000;
 					return new Double(sec);
-				case 2:
+				case 2 :
 					// Column 2 shows the thread state
 					return me.getValue().getThreadState();
-				default:
+				default :
 					return null;
 			}
 		}
@@ -241,8 +238,8 @@ public class JTop extends JPanel {
 	}
 
 	/**
-	 * Get the thread list with CPU consumption and the ThreadInfo
-	 * for each thread sorted by the CPU time.
+	 * Get the thread list with CPU consumption and the ThreadInfo for each thread
+	 * sorted by the CPU time.
 	 */
 	private List<Map.Entry<Long, ThreadInfo>> getThreadList() {
 		// Get all threads and their ThreadInfo objects
@@ -321,10 +318,8 @@ public class JTop extends JPanel {
 				tmodel.setThreadList(get());
 				// refresh the table model
 				tmodel.fireTableDataChanged();
-			}
-			catch (InterruptedException e) {
-			}
-			catch (ExecutionException e) {
+			} catch (InterruptedException e) {
+			} catch (ExecutionException e) {
 			}
 		}
 	}
@@ -348,8 +343,7 @@ public class JTop extends JPanel {
 		int port = -1;
 		try {
 			port = Integer.parseInt(arg2[1]);
-		}
-		catch (NumberFormatException x) {
+		} catch (NumberFormatException x) {
 			usage();
 		}
 		if (port < 0) {
@@ -402,11 +396,9 @@ public class JTop extends JPanel {
 			JMXServiceURL url = new JMXServiceURL("rmi", "", 0, urlPath);
 			JMXConnector jmxc = JMXConnectorFactory.connect(url);
 			server = jmxc.getMBeanServerConnection();
-		}
-		catch (MalformedURLException e) {
+		} catch (MalformedURLException e) {
 			// should not reach here
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
 			logger.error("Communication error: {}", e.getMessage());
 			System.exit(1);
 		}
@@ -420,9 +412,8 @@ public class JTop extends JPanel {
 	}
 
 	/**
-	 * Create the GUI and show it.  For thread safety,
-	 * this method should be invoked from the
-	 * event-dispatching thread.
+	 * Create the GUI and show it. For thread safety, this method should be invoked
+	 * from the event-dispatching thread.
 	 */
 	private static void createAndShowGUI(JPanel jtop) {
 		// Create and set up the window.
@@ -432,7 +423,7 @@ public class JTop extends JPanel {
 		// Create and set up the content pane.
 		JComponent contentPane = (JComponent) frame.getContentPane();
 		contentPane.add(jtop, BorderLayout.CENTER);
-		contentPane.setOpaque(true); //content panes must be opaque
+		contentPane.setOpaque(true); // content panes must be opaque
 		contentPane.setBorder(new EmptyBorder(12, 12, 12, 12));
 		frame.setContentPane(contentPane);
 

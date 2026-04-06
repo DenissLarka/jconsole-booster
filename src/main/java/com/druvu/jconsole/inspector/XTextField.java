@@ -49,7 +49,7 @@ public class XTextField extends JPanel implements DocumentListener, ActionListen
 	private JButton button;
 	private XOperations operation;
 
-	//used in XTestFieldEditor
+	// used in XTestFieldEditor
 	public XTextField() {
 		super(new BorderLayout());
 		add(textField = new JTextField(), BorderLayout.CENTER);
@@ -65,17 +65,12 @@ public class XTextField extends JPanel implements DocumentListener, ActionListen
 		this(value, value.getClass(), colWidth, true, null, null);
 	}
 
-	public XTextField(Object value,
-			Class<?> expectedClass,
-			int colWidth,
-			boolean isCallable,
-			JButton button,
+	public XTextField(Object value, Class<?> expectedClass, int colWidth, boolean isCallable, JButton button,
 			XOperations operation) {
 		super(new BorderLayout());
 		this.button = button;
 		this.operation = operation;
-		add(textField = new JTextField(value.toString(), colWidth),
-				BorderLayout.CENTER);
+		add(textField = new JTextField(value.toString(), colWidth), BorderLayout.CENTER);
 		if (isCallable) {
 			textField.addActionListener(this);
 		}
@@ -102,7 +97,7 @@ public class XTextField extends JPanel implements DocumentListener, ActionListen
 		if (value != null) {
 			textField.setText(value.toString());
 		} else {
-			//null String value for the moment
+			// null String value for the moment
 			textField.setText("");
 		}
 		textField.setToolTipText(null);
@@ -125,15 +120,15 @@ public class XTextField extends JPanel implements DocumentListener, ActionListen
 	}
 
 	private synchronized void setDefaultColors() {
-		//  if (fore != null) textField.setForeground(fore);
-		// if (back != null)  textField.setBackground(back);
+		// if (fore != null) textField.setForeground(fore);
+		// if (back != null) textField.setBackground(back);
 	}
 
 	public void setHorizontalAlignment(int h) {
 		textField.setHorizontalAlignment(h);
 	}
 
-	//can be overwritten
+	// can be overwritten
 	protected JMenuItem buildJMenuItem(XObject xobject, int valueType) {
 		if (valueType == COMPATIBLE_VALUE) {
 			return new JMenuItem(xobject.getText());
@@ -156,13 +151,13 @@ public class XTextField extends JPanel implements DocumentListener, ActionListen
 	}
 
 	/**
-	 * This method returns either the user inputted String, or an XObject
-	 * if one was dropped on the input field.
+	 * This method returns either the user inputted String, or an XObject if one was
+	 * dropped on the input field.
 	 */
 	public Object getValue() {
 		if (selectedObject != null) {
 			if (selectedObject == XObject.NULL_OBJECT) {
-				//null case
+				// null case
 				return null;
 			} else {
 				return selectedObject;

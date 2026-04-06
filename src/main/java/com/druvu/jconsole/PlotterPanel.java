@@ -26,68 +26,67 @@
 package com.druvu.jconsole;
 
 import java.awt.event.*;
-
 import javax.accessibility.*;
 import javax.swing.*;
 
 @SuppressWarnings("serial")
 public class PlotterPanel extends BorderedComponent {
-	Plotter plotter;
+    Plotter plotter;
 
-	public PlotterPanel(String labelStr, Plotter.Unit unit, boolean collapsible) {
-		super(labelStr, new Plotter(unit), collapsible);
+    public PlotterPanel(String labelStr, Plotter.Unit unit, boolean collapsible) {
+        super(labelStr, new Plotter(unit), collapsible);
 
-		this.plotter = (Plotter) comp;
+        this.plotter = (Plotter) comp;
 
-		init();
-	}
+        init();
+    }
 
-	public PlotterPanel(String labelStr) {
-		super(labelStr, null);
+    public PlotterPanel(String labelStr) {
+        super(labelStr, null);
 
-		init();
-	}
+        init();
+    }
 
-	public Plotter getPlotter() {
-		return this.plotter;
-	}
+    public Plotter getPlotter() {
+        return this.plotter;
+    }
 
-	public void setPlotter(Plotter plotter) {
-		this.plotter = plotter;
-		setComponent(plotter);
-	}
+    public void setPlotter(Plotter plotter) {
+        this.plotter = plotter;
+        setComponent(plotter);
+    }
 
-	private void init() {
-		setFocusable(true);
+    private void init() {
+        setFocusable(true);
 
-		addMouseListener(new MouseAdapter() {
-			public void mousePressed(MouseEvent e) {
-				requestFocusInWindow();
-			}
-		});
-	}
+        addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent e) {
+                requestFocusInWindow();
+            }
+        });
+    }
 
-	public JPopupMenu getComponentPopupMenu() {
-		return (getPlotter() != null) ? getPlotter().getComponentPopupMenu() : null;
-	}
+    public JPopupMenu getComponentPopupMenu() {
+        return (getPlotter() != null) ? getPlotter().getComponentPopupMenu() : null;
+    }
 
-	public AccessibleContext getAccessibleContext() {
-		if (accessibleContext == null) {
-			accessibleContext = new AccessiblePlotterPanel();
-		}
-		return accessibleContext;
-	}
+    public AccessibleContext getAccessibleContext() {
+        if (accessibleContext == null) {
+            accessibleContext = new AccessiblePlotterPanel();
+        }
+        return accessibleContext;
+    }
 
-	protected class AccessiblePlotterPanel extends AccessibleJComponent {
-		public String getAccessibleName() {
-			String name = null;
-			if (getPlotter() != null) {
-				name = getPlotter().getAccessibleContext().getAccessibleName();
-			}
-			if (name == null) {
-				name = super.getAccessibleName();
-			}
-			return name;
-		}
-	}
+    protected class AccessiblePlotterPanel extends AccessibleJComponent {
+        public String getAccessibleName() {
+            String name = null;
+            if (getPlotter() != null) {
+                name = getPlotter().getAccessibleContext().getAccessibleName();
+            }
+            if (name == null) {
+                name = super.getAccessibleName();
+            }
+            return name;
+        }
+    }
 }

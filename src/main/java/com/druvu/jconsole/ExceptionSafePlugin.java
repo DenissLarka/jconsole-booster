@@ -24,17 +24,14 @@
  */
 package com.druvu.jconsole;
 
+import com.sun.tools.jconsole.JConsolePlugin;
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingWorker;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.sun.tools.jconsole.JConsolePlugin;
 
 /**
  * Proxy that shields GUI from plug-in exceptions.
@@ -42,74 +39,86 @@ import com.sun.tools.jconsole.JConsolePlugin;
  */
 final class ExceptionSafePlugin extends JConsolePlugin {
 
-	private static final Logger logger = LoggerFactory.getLogger(ExceptionSafePlugin.class);
-	private static boolean ignoreExceptions;
-	private final JConsolePlugin plugin;
+    private static final Logger logger = LoggerFactory.getLogger(ExceptionSafePlugin.class);
+    private static boolean ignoreExceptions;
+    private final JConsolePlugin plugin;
 
-	public ExceptionSafePlugin(JConsolePlugin plugin) {
-		this.plugin = plugin;
-	}
+    public ExceptionSafePlugin(JConsolePlugin plugin) {
+        this.plugin = plugin;
+    }
 
-	@Override
-	public Map<String, JPanel> getTabs() {
-		try {
-			return plugin.getTabs();
-		} catch (RuntimeException e) {
-			handleException(e);
-		}
-		return new HashMap<>();
-	}
+    @Override
+    public Map<String, JPanel> getTabs() {
+        try {
+            return plugin.getTabs();
+        } catch (RuntimeException e) {
+            handleException(e);
+        }
+        return new HashMap<>();
+    }
 
-	@Override
-	public SwingWorker<?, ?> newSwingWorker() {
-		try {
-			return plugin.newSwingWorker();
-		} catch (RuntimeException e) {
-			handleException(e);
-		}
-		return null;
-	}
+    @Override
+    public SwingWorker<?, ?> newSwingWorker() {
+        try {
+            return plugin.newSwingWorker();
+        } catch (RuntimeException e) {
+            handleException(e);
+        }
+        return null;
+    }
 
-	@Override
-	public void dispose() {
-		try {
-			plugin.dispose();
-		} catch (RuntimeException e) {
-			handleException(e);
-		}
-	}
+    @Override
+    public void dispose() {
+        try {
+            plugin.dispose();
+        } catch (RuntimeException e) {
+            handleException(e);
+        }
+    }
 
-	public void executeSwingWorker(SwingWorker<?, ?> sw) {
-		try {
-			sw.execute();
-		} catch (RuntimeException e) {
-			handleException(e);
-		}
-	}
+    public void executeSwingWorker(SwingWorker<?, ?> sw) {
+        try {
+            sw.execute();
+        } catch (RuntimeException e) {
+            handleException(e);
+        }
+    }
 
-	private void handleException(Exception e) {
-		if (JConsole.isDebug()) {
-			logger.error("Plug-in exception:", e);
-		} else {
-			if (!ignoreExceptions) {
-				showExceptionDialog(e);
-			}
-		}
-	}
+    private void handleException(Exception e) {
+        if (JConsole.isDebug()) {
+            logger.error("Plug-in exception:", e);
+        } else {
+            if (!ignoreExceptions) {
+                showExceptionDialog(e);
+            }
+        }
+    }
 
-	private void showExceptionDialog(Exception e) {
-		Object[] buttonTexts = {Messages.PLUGIN_EXCEPTION_DIALOG_BUTTON_OK,
-				Messages.PLUGIN_EXCEPTION_DIALOG_BUTTON_EXIT, Messages.PLUGIN_EXCEPTION_DIALOG_BUTTON_IGNORE};
+    private void showExceptionDialog(Exception e) {
+        Object[] buttonTexts = {
+            Messages.PLUGIN_EXCEPTION_DIALOG_BUTTON_OK,
+            Messages.PLUGIN_EXCEPTION_DIALOG_BUTTON_EXIT,
+            Messages.PLUGIN_EXCEPTION_DIALOG_BUTTON_IGNORE
+        };
 
-		String message = String.format(Messages.PLUGIN_EXCEPTION_DIALOG_MESSAGE, plugin.getClass().getSimpleName(),
-				String.valueOf(e.getMessage()));
+        String message = String.format(
+                Messages.PLUGIN_EXCEPTION_DIALOG_MESSAGE,
+                plugin.getClass().getSimpleName(),
+                String.valueOf(e.getMessage()));
 
-		int buttonIndex = JOptionPane.showOptionDialog(null, message, Messages.PLUGIN_EXCEPTION_DIALOG_TITLE,
-				JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE, null, buttonTexts, buttonTexts[0]);
+        int buttonIndex = JOptionPane.showOptionDialog(
+                null,
+                message,
+                Messages.PLUGIN_EXCEPTION_DIALOG_TITLE,
+                JOptionPane.YES_NO_CANCEL_OPTION,
+                JOptionPane.ERROR_MESSAGE,
+                null,
+                buttonTexts,
+                buttonTexts[0]);
 
-		if (buttonIndex == 1) {
-			System.exit(0);
-		}
-		ignoreExceptions = buttonIndex == 2;
-	}
+        if (buttonIndex == 1) {
+            System.exit(0);
+        }
+        ignoreExceptions = buttonIndex == 2;
+    }
 }

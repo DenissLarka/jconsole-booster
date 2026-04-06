@@ -25,115 +25,98 @@
 
 package com.druvu.jconsole.inspector;
 
-import javax.swing.JTable;
-import javax.swing.JScrollPane;
-import javax.swing.JButton;
-
-import java.awt.event.MouseListener;
-import java.awt.Component;
-import java.awt.Container;
-
 import com.druvu.jconsole.MBeansTab;
 import com.druvu.jconsole.Messages;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.event.MouseListener;
+import javax.swing.JButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 
 public class XDataViewer {
 
-	public static final int OPEN = 1;
-	public static final int ARRAY = 2;
-	public static final int NUMERIC = 3;
-	public static final int NOT_SUPPORTED = 4;
+    public static final int OPEN = 1;
+    public static final int ARRAY = 2;
+    public static final int NUMERIC = 3;
+    public static final int NOT_SUPPORTED = 4;
 
-	private MBeansTab tab;
-	public XDataViewer(MBeansTab tab) {
-		this.tab = tab;
-	}
+    private MBeansTab tab;
 
-	public static void registerForMouseEvent(Component comp, MouseListener mouseListener) {
-		if (comp instanceof JScrollPane) {
-			JScrollPane pane = (JScrollPane) comp;
-			comp = pane.getViewport().getView();
-		}
-		if (comp instanceof Container) {
-			Container container = (Container) comp;
-			Component[] components = container.getComponents();
-			for (int i = 0; i < components.length; i++) {
-				registerForMouseEvent(components[i], mouseListener);
-			}
-		}
+    public XDataViewer(MBeansTab tab) {
+        this.tab = tab;
+    }
 
-		// No registration for XOpenTypedata that are themselves clickable.
-		// No registration for JButton that are themselves clickable.
-		if (comp != null && (!(comp instanceof XOpenTypeViewer.XOpenTypeData) && !(comp instanceof JButton)))
-			comp.addMouseListener(mouseListener);
-	}
+    public static void registerForMouseEvent(Component comp, MouseListener mouseListener) {
+        if (comp instanceof JScrollPane) {
+            JScrollPane pane = (JScrollPane) comp;
+            comp = pane.getViewport().getView();
+        }
+        if (comp instanceof Container) {
+            Container container = (Container) comp;
+            Component[] components = container.getComponents();
+            for (int i = 0; i < components.length; i++) {
+                registerForMouseEvent(components[i], mouseListener);
+            }
+        }
 
-	public static void dispose(MBeansTab tab) {
-		XPlottingViewer.dispose(tab);
-	}
+        // No registration for XOpenTypedata that are themselves clickable.
+        // No registration for JButton that are themselves clickable.
+        if (comp != null && (!(comp instanceof XOpenTypeViewer.XOpenTypeData) && !(comp instanceof JButton)))
+            comp.addMouseListener(mouseListener);
+    }
 
-	public static boolean isViewableValue(Object value) {
-		boolean ret = false;
-		if ((ret = XArrayDataViewer.isViewableValue(value)))
-			return ret;
-		if ((ret = XOpenTypeViewer.isViewableValue(value)))
-			return ret;
-		if ((ret = XPlottingViewer.isViewableValue(value)))
-			return ret;
+    public static void dispose(MBeansTab tab) {
+        XPlottingViewer.dispose(tab);
+    }
 
-		return ret;
-	}
+    public static boolean isViewableValue(Object value) {
+        boolean ret = false;
+        if ((ret = XArrayDataViewer.isViewableValue(value))) return ret;
+        if ((ret = XOpenTypeViewer.isViewableValue(value))) return ret;
+        if ((ret = XPlottingViewer.isViewableValue(value))) return ret;
 
-	public static int getViewerType(Object data) {
-		if (XArrayDataViewer.isViewableValue(data))
-			return ARRAY;
-		if (XOpenTypeViewer.isViewableValue(data))
-			return OPEN;
-		if (XPlottingViewer.isViewableValue(data))
-			return NUMERIC;
+        return ret;
+    }
 
-		return NOT_SUPPORTED;
-	}
+    public static int getViewerType(Object data) {
+        if (XArrayDataViewer.isViewableValue(data)) return ARRAY;
+        if (XOpenTypeViewer.isViewableValue(data)) return OPEN;
+        if (XPlottingViewer.isViewableValue(data)) return NUMERIC;
 
-	public static String getActionLabel(int type) {
-		if (type == ARRAY || type == OPEN)
-			return Messages.VISUALIZE;
-		if (type == NUMERIC)
-			return Messages.PLOT;
-		return Messages.EXPAND;
-	}
+        return NOT_SUPPORTED;
+    }
 
-	public Component createOperationViewer(Object value, XMBean mbean) {
-		if (value instanceof Number)
-			return null;
-		if (value instanceof Component)
-			return (Component) value;
-		return createAttributeViewer(value, mbean, null, null);
-	}
+    public static String getActionLabel(int type) {
+        if (type == ARRAY || type == OPEN) return Messages.VISUALIZE;
+        if (type == NUMERIC) return Messages.PLOT;
+        return Messages.EXPAND;
+    }
 
-	public static Component createNotificationViewer(Object value) {
-		Component comp = null;
+    public Component createOperationViewer(Object value, XMBean mbean) {
+        if (value instanceof Number) return null;
+        if (value instanceof Component) return (Component) value;
+        return createAttributeViewer(value, mbean, null, null);
+    }
 
-		if (value instanceof Number)
-			return null;
+    public static Component createNotificationViewer(Object value) {
+        Component comp = null;
 
-		if ((comp = XArrayDataViewer.loadArray(value)) != null)
-			return comp;
+        if (value instanceof Number) return null;
 
-		if ((comp = XOpenTypeViewer.loadOpenType(value)) != null)
-			return comp;
+        if ((comp = XArrayDataViewer.loadArray(value)) != null) return comp;
 
-		return comp;
-	}
+        if ((comp = XOpenTypeViewer.loadOpenType(value)) != null) return comp;
 
-	public Component createAttributeViewer(Object value, XMBean mbean, String attributeName, JTable table) {
-		Component comp = null;
-		if ((comp = XArrayDataViewer.loadArray(value)) != null)
-			return comp;
-		if ((comp = XOpenTypeViewer.loadOpenType(value)) != null)
-			return comp;
-		if ((comp = XPlottingViewer.loadPlotting(mbean, attributeName, value, table, tab)) != null)
-			return comp;
+        return comp;
+    }
 
-		return comp;
-	}
+    public Component createAttributeViewer(Object value, XMBean mbean, String attributeName, JTable table) {
+        Component comp = null;
+        if ((comp = XArrayDataViewer.loadArray(value)) != null) return comp;
+        if ((comp = XOpenTypeViewer.loadOpenType(value)) != null) return comp;
+        if ((comp = XPlottingViewer.loadPlotting(mbean, attributeName, value, table, tab)) != null) return comp;
+
+        return comp;
+    }
 }

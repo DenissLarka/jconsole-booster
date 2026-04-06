@@ -27,147 +27,145 @@ package com.druvu.jconsole;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Comparator;
 import java.util.List;
 import java.util.TreeSet;
-import java.util.Comparator;
-
+import javax.management.InstanceAlreadyExistsException;
+import javax.management.InstanceNotFoundException;
+import javax.management.MBeanServerConnection;
+import javax.management.ObjectName;
 import javax.swing.*;
 import javax.swing.border.*;
 
-import javax.management.MBeanServerConnection;
-import javax.management.ObjectName;
-import javax.management.InstanceAlreadyExistsException;
-import javax.management.InstanceNotFoundException;
-
 @SuppressWarnings("serial")
 public class CreateMBeanDialog extends InternalDialog implements ActionListener {
-	JConsole jConsole;
-	JComboBox<ProxyClient> connections;
-	JButton createMBeanButton, unregisterMBeanButton, cancelButton;
+    JConsole jConsole;
+    JComboBox<ProxyClient> connections;
+    JButton createMBeanButton, unregisterMBeanButton, cancelButton;
 
-	private static final String HOTSPOT_MBEAN = "sun.management.HotspotInternal";
-	private static final String HOTSPOT_MBEAN_OBJECTNAME = "sun.management:type=HotspotInternal";
-	public CreateMBeanDialog(JConsole jConsole) {
-		super(jConsole, "JConsole: Hotspot MBeans", true);
+    private static final String HOTSPOT_MBEAN = "sun.management.HotspotInternal";
+    private static final String HOTSPOT_MBEAN_OBJECTNAME = "sun.management:type=HotspotInternal";
 
-		this.jConsole = jConsole;
-		Utilities.setAccessibleDescription(this, Messages.HOTSPOT_MBEANS_DIALOG_ACCESSIBLE_DESCRIPTION);
-		Container cp = getContentPane();
-		((JComponent) cp).setBorder(new EmptyBorder(10, 10, 4, 10));
+    public CreateMBeanDialog(JConsole jConsole) {
+        super(jConsole, "JConsole: Hotspot MBeans", true);
 
-		JPanel centerPanel = new JPanel(new VariableGridLayout(0, 1, 4, 4, false, true));
-		cp.add(centerPanel, BorderLayout.CENTER);
-		connections = new JComboBox<ProxyClient>();
-		updateConnections();
+        this.jConsole = jConsole;
+        Utilities.setAccessibleDescription(this, Messages.HOTSPOT_MBEANS_DIALOG_ACCESSIBLE_DESCRIPTION);
+        Container cp = getContentPane();
+        ((JComponent) cp).setBorder(new EmptyBorder(10, 10, 4, 10));
 
-		centerPanel.add(new LabeledComponent(Resources.format(Messages.MANAGE_HOTSPOT_MBEANS_IN_COLON_), connections));
+        JPanel centerPanel = new JPanel(new VariableGridLayout(0, 1, 4, 4, false, true));
+        cp.add(centerPanel, BorderLayout.CENTER);
+        connections = new JComboBox<ProxyClient>();
+        updateConnections();
 
-		JPanel bottomPanel = new JPanel(new BorderLayout());
-		cp.add(bottomPanel, BorderLayout.SOUTH);
+        centerPanel.add(new LabeledComponent(Resources.format(Messages.MANAGE_HOTSPOT_MBEANS_IN_COLON_), connections));
 
-		JPanel buttonPanel = new JPanel();
-		bottomPanel.add(buttonPanel, BorderLayout.NORTH);
-		buttonPanel.add(createMBeanButton = new JButton(Messages.CREATE));
-		buttonPanel.add(unregisterMBeanButton = new JButton(Messages.UNREGISTER));
-		buttonPanel.add(cancelButton = new JButton(Messages.CANCEL));
+        JPanel bottomPanel = new JPanel(new BorderLayout());
+        cp.add(bottomPanel, BorderLayout.SOUTH);
 
-		statusBar = new JLabel(" ", JLabel.CENTER);
-		bottomPanel.add(statusBar, BorderLayout.SOUTH);
+        JPanel buttonPanel = new JPanel();
+        bottomPanel.add(buttonPanel, BorderLayout.NORTH);
+        buttonPanel.add(createMBeanButton = new JButton(Messages.CREATE));
+        buttonPanel.add(unregisterMBeanButton = new JButton(Messages.UNREGISTER));
+        buttonPanel.add(cancelButton = new JButton(Messages.CANCEL));
 
-		createMBeanButton.addActionListener(this);
-		unregisterMBeanButton.addActionListener(this);
-		cancelButton.addActionListener(this);
+        statusBar = new JLabel(" ", JLabel.CENTER);
+        bottomPanel.add(statusBar, BorderLayout.SOUTH);
 
-		LabeledComponent.layout(centerPanel);
-		pack();
-		setLocationRelativeTo(jConsole);
-	}
+        createMBeanButton.addActionListener(this);
+        unregisterMBeanButton.addActionListener(this);
+        cancelButton.addActionListener(this);
 
-	private void updateConnections() {
-		List<VMInternalFrame> frames = jConsole.getInternalFrames();
-		TreeSet<ProxyClient> data = new TreeSet<ProxyClient>(new Comparator<ProxyClient>() {
-			public int compare(ProxyClient o1, ProxyClient o2) {
-				// TODO: Need to understand how this method being used?
-				return o1.connectionName().compareTo(o2.connectionName());
-			}
-		});
+        LabeledComponent.layout(centerPanel);
+        pack();
+        setLocationRelativeTo(jConsole);
+    }
 
-		if (frames.size() == 0) {
-			JComponent cp = (JComponent) jConsole.getContentPane();
-			Component comp = ((BorderLayout) cp.getLayout()).getLayoutComponent(BorderLayout.CENTER);
-			if (comp instanceof VMPanel) {
-				VMPanel vmpanel = (VMPanel) comp;
-				ProxyClient client = vmpanel.getProxyClient(false);
-				if (client != null && client.hasPlatformMXBeans()) {
-					data.add(client);
-				}
-			}
-		} else {
-			for (VMInternalFrame f : frames) {
-				ProxyClient client = f.getVMPanel().getProxyClient(false);
-				if (client != null && client.hasPlatformMXBeans()) {
-					data.add(client);
-				}
-			}
-		}
-		connections.invalidate();
-		connections.setModel(new DefaultComboBoxModel<ProxyClient>(data.toArray(new ProxyClient[data.size()])));
-		connections.validate();
-	}
+    private void updateConnections() {
+        List<VMInternalFrame> frames = jConsole.getInternalFrames();
+        TreeSet<ProxyClient> data = new TreeSet<ProxyClient>(new Comparator<ProxyClient>() {
+            public int compare(ProxyClient o1, ProxyClient o2) {
+                // TODO: Need to understand how this method being used?
+                return o1.connectionName().compareTo(o2.connectionName());
+            }
+        });
 
-	public void actionPerformed(final ActionEvent ev) {
-		setVisible(false);
-		statusBar.setText("");
-		if (ev.getSource() != cancelButton) {
-			new Thread("CreateMBeanDialog.actionPerformed") {
-				public void run() {
-					try {
-						Object c = connections.getSelectedItem();
-						if (c == null)
-							return;
-						if (ev.getSource() == createMBeanButton) {
-							MBeanServerConnection connection = ((ProxyClient) c).getMBeanServerConnection();
-							connection.createMBean(HOTSPOT_MBEAN, null);
-						} else {
-							if (ev.getSource() == unregisterMBeanButton) {
-								MBeanServerConnection connection = ((ProxyClient) c).getMBeanServerConnection();
-								connection.unregisterMBean(new ObjectName(HOTSPOT_MBEAN_OBJECTNAME));
-							}
-						}
-						return;
-					} catch (InstanceAlreadyExistsException e) {
-						statusBar.setText(Messages.ERROR_COLON_MBEANS_ALREADY_EXIST);
-					} catch (InstanceNotFoundException e) {
-						statusBar.setText(Messages.ERROR_COLON_MBEANS_DO_NOT_EXIST);
-					} catch (Exception e) {
-						statusBar.setText(e.toString());
-					}
-					setVisible(true);
-				}
-			}.start();
-		}
-	}
+        if (frames.size() == 0) {
+            JComponent cp = (JComponent) jConsole.getContentPane();
+            Component comp = ((BorderLayout) cp.getLayout()).getLayoutComponent(BorderLayout.CENTER);
+            if (comp instanceof VMPanel) {
+                VMPanel vmpanel = (VMPanel) comp;
+                ProxyClient client = vmpanel.getProxyClient(false);
+                if (client != null && client.hasPlatformMXBeans()) {
+                    data.add(client);
+                }
+            }
+        } else {
+            for (VMInternalFrame f : frames) {
+                ProxyClient client = f.getVMPanel().getProxyClient(false);
+                if (client != null && client.hasPlatformMXBeans()) {
+                    data.add(client);
+                }
+            }
+        }
+        connections.invalidate();
+        connections.setModel(new DefaultComboBoxModel<ProxyClient>(data.toArray(new ProxyClient[data.size()])));
+        connections.validate();
+    }
 
-	public void setVisible(boolean b) {
-		boolean wasVisible = isVisible();
+    public void actionPerformed(final ActionEvent ev) {
+        setVisible(false);
+        statusBar.setText("");
+        if (ev.getSource() != cancelButton) {
+            new Thread("CreateMBeanDialog.actionPerformed") {
+                public void run() {
+                    try {
+                        Object c = connections.getSelectedItem();
+                        if (c == null) return;
+                        if (ev.getSource() == createMBeanButton) {
+                            MBeanServerConnection connection = ((ProxyClient) c).getMBeanServerConnection();
+                            connection.createMBean(HOTSPOT_MBEAN, null);
+                        } else {
+                            if (ev.getSource() == unregisterMBeanButton) {
+                                MBeanServerConnection connection = ((ProxyClient) c).getMBeanServerConnection();
+                                connection.unregisterMBean(new ObjectName(HOTSPOT_MBEAN_OBJECTNAME));
+                            }
+                        }
+                        return;
+                    } catch (InstanceAlreadyExistsException e) {
+                        statusBar.setText(Messages.ERROR_COLON_MBEANS_ALREADY_EXIST);
+                    } catch (InstanceNotFoundException e) {
+                        statusBar.setText(Messages.ERROR_COLON_MBEANS_DO_NOT_EXIST);
+                    } catch (Exception e) {
+                        statusBar.setText(e.toString());
+                    }
+                    setVisible(true);
+                }
+            }.start();
+        }
+    }
 
-		if (b) {
-			setLocationRelativeTo(jConsole);
-			invalidate();
-			updateConnections();
-			validate();
-			repaint();
-		}
+    public void setVisible(boolean b) {
+        boolean wasVisible = isVisible();
 
-		super.setVisible(b);
+        if (b) {
+            setLocationRelativeTo(jConsole);
+            invalidate();
+            updateConnections();
+            validate();
+            repaint();
+        }
 
-		if (b && !wasVisible) {
-			// Need to delay this to make focus stick
-			SwingUtilities.invokeLater(new Runnable() {
-				public void run() {
-					connections.requestFocus();
-				}
-			});
-		}
-	}
+        super.setVisible(b);
+
+        if (b && !wasVisible) {
+            // Need to delay this to make focus stick
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    connections.requestFocus();
+                }
+            });
+        }
+    }
 }

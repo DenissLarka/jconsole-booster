@@ -23,10 +23,9 @@
  * questions.
  */
 
+import com.sun.tools.jconsole.JConsolePlugin;
 import javax.management.remote.JMXConnectorProvider;
 import javax.management.remote.JMXConnectorServerProvider;
-
-import com.sun.tools.jconsole.JConsolePlugin;
 
 /**
  * Defines the JMX graphical tool, <em>{@index jconsole jconsole}</em>, for
@@ -42,24 +41,22 @@ import com.sun.tools.jconsole.JConsolePlugin;
  * @since 9
  */
 module com.druvu.jconsole {
+    requires java.management.rmi;
+    requires java.rmi;
+    requires jdk.attach;
+    requires jdk.internal.jvmstat;
+    requires jdk.management;
+    requires jdk.management.agent;
+    requires transitive java.desktop;
+    requires transitive java.management;
+    requires jdk.jconsole;
+    requires org.beryx.awt.color;
+    requires org.slf4j;
+    requires static lombok;
 
-	requires java.management.rmi;
-	requires java.rmi;
-	requires jdk.attach;
-	requires jdk.internal.jvmstat;
-	requires jdk.management;
-	requires jdk.management.agent;
+    exports com.druvu.jconsole.extra;
 
-	requires transitive java.desktop;
-	requires transitive java.management;
-	requires jdk.jconsole;
-	requires org.beryx.awt.color;
-	requires org.slf4j;
-	requires static lombok;
-
-	exports com.druvu.jconsole.extra;
-
-	uses JConsolePlugin;
-	uses JMXConnectorServerProvider;
-	uses JMXConnectorProvider;
+    uses JConsolePlugin;
+    uses JMXConnectorServerProvider;
+    uses JMXConnectorProvider;
 }

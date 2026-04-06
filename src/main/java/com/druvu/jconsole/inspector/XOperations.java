@@ -25,6 +25,9 @@
 
 package com.druvu.jconsole.inspector;
 
+import com.druvu.jconsole.JConsole;
+import com.druvu.jconsole.MBeansTab;
+import com.druvu.jconsole.Messages;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.FlowLayout;
@@ -37,7 +40,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Hashtable;
-
 import javax.management.MBeanInfo;
 import javax.management.MBeanOperationInfo;
 import javax.management.MBeanParameterInfo;
@@ -48,184 +50,193 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingWorker;
-
-import com.druvu.jconsole.Messages;
-import com.druvu.jconsole.JConsole;
-import com.druvu.jconsole.MBeansTab;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("serial") // JDK implementation class
 public abstract class XOperations extends JPanel implements ActionListener {
 
-	private static final Logger logger = LoggerFactory.getLogger(XOperations.class);
+    private static final Logger logger = LoggerFactory.getLogger(XOperations.class);
 
-	public static final String OPERATION_INVOCATION_EVENT = "jam.xoperations.invoke.result";
-	private java.util.List<NotificationListener> notificationListenersList;
-	private Hashtable<JButton, OperationEntry> operationEntryTable;
-	private XMBean mbean;
-	private MBeanInfo mbeanInfo;
-	private MBeansTab mbeansTab;
+    public static final String OPERATION_INVOCATION_EVENT = "jam.xoperations.invoke.result";
+    private java.util.List<NotificationListener> notificationListenersList;
+    private Hashtable<JButton, OperationEntry> operationEntryTable;
+    private XMBean mbean;
+    private MBeanInfo mbeanInfo;
+    private MBeansTab mbeansTab;
 
-	public XOperations(MBeansTab mbeansTab) {
-		super(new GridLayout(1, 1));
-		this.mbeansTab = mbeansTab;
-		operationEntryTable = new Hashtable<JButton, OperationEntry>();
-		ArrayList<NotificationListener> l = new ArrayList<NotificationListener>(1);
-		notificationListenersList = Collections.synchronizedList(l);
-	}
+    public XOperations(MBeansTab mbeansTab) {
+        super(new GridLayout(1, 1));
+        this.mbeansTab = mbeansTab;
+        operationEntryTable = new Hashtable<JButton, OperationEntry>();
+        ArrayList<NotificationListener> l = new ArrayList<NotificationListener>(1);
+        notificationListenersList = Collections.synchronizedList(l);
+    }
 
-	// Call on EDT
-	public void removeOperations() {
-		removeAll();
-	}
+    // Call on EDT
+    public void removeOperations() {
+        removeAll();
+    }
 
-	// Call on EDT
-	public void loadOperations(XMBean mbean, MBeanInfo mbeanInfo) {
-		this.mbean = mbean;
-		this.mbeanInfo = mbeanInfo;
-		// add operations information
-		MBeanOperationInfo operations[] = mbeanInfo.getOperations();
-		Arrays.sort(operations, new Comparator<MBeanOperationInfo>() {
-			@Override
-			public int compare(MBeanOperationInfo o1, MBeanOperationInfo o2) {
-				final String name1 = o1.getName();
-				final String name2 = o2.getName();
-				return name1.compareTo(name2);
-			}
-		});
-		invalidate();
+    // Call on EDT
+    public void loadOperations(XMBean mbean, MBeanInfo mbeanInfo) {
+        this.mbean = mbean;
+        this.mbeanInfo = mbeanInfo;
+        // add operations information
+        MBeanOperationInfo operations[] = mbeanInfo.getOperations();
+        Arrays.sort(operations, new Comparator<MBeanOperationInfo>() {
+            @Override
+            public int compare(MBeanOperationInfo o1, MBeanOperationInfo o2) {
+                final String name1 = o1.getName();
+                final String name2 = o2.getName();
+                return name1.compareTo(name2);
+            }
+        });
+        invalidate();
 
-		// remove listeners, if any
-		Component listeners[] = getComponents();
-		for (int i = 0; i < listeners.length; i++) {
-			if (listeners[i] instanceof JButton) {
-				((JButton) listeners[i]).removeActionListener(this);
-			}
-		}
+        // remove listeners, if any
+        Component listeners[] = getComponents();
+        for (int i = 0; i < listeners.length; i++) {
+            if (listeners[i] instanceof JButton) {
+                ((JButton) listeners[i]).removeActionListener(this);
+            }
+        }
 
-		removeAll();
-		setLayout(new BorderLayout());
+        removeAll();
+        setLayout(new BorderLayout());
 
-		JButton methodButton;
-		JLabel methodLabel;
-		JPanel innerPanelLeft, innerPanelRight;
-		JPanel outerPanelLeft, outerPanelRight;
-		outerPanelLeft = new JPanel(new GridLayout(operations.length, 1));
-		outerPanelRight = new JPanel(new GridLayout(operations.length, 1));
+        JButton methodButton;
+        JLabel methodLabel;
+        JPanel innerPanelLeft, innerPanelRight;
+        JPanel outerPanelLeft, outerPanelRight;
+        outerPanelLeft = new JPanel(new GridLayout(operations.length, 1));
+        outerPanelRight = new JPanel(new GridLayout(operations.length, 1));
 
-		for (int i = 0; i < operations.length; i++) {
-			final FlowLayout layout1 = new FlowLayout(FlowLayout.RIGHT);
-			layout1.setVgap(12);
-			innerPanelLeft = new JPanel(layout1);
-			final FlowLayout layout2 = new FlowLayout(FlowLayout.LEFT);
-			innerPanelRight = new JPanel(layout2);
-			String returnType = operations[i].getReturnType();
-			if (returnType == null) {
-				methodLabel = new JLabel("null", JLabel.RIGHT);
-				if (JConsole.isDebug()) {
-					logger.error("WARNING: The operation's return type " + "shouldn't be \"null\". Check how the "
-							+ "MBeanOperationInfo for the \"" + operations[i].getName() + "\" operation has "
-							+ "been defined in the MBean's implementation code.");
-				}
-			} else {
-				methodLabel = new JLabel(Utils.getReadableClassName(returnType), JLabel.RIGHT);
-				methodLabel.setFont(new Font(Font.DIALOG, Font.PLAIN, 11));
-			}
-			innerPanelLeft.add(methodLabel);
-			if (methodLabel.getText().length() > 20) {
-				methodLabel.setText(methodLabel.getText().substring(methodLabel.getText().lastIndexOf('.') + 1,
-						methodLabel.getText().length()));
-			}
+        for (int i = 0; i < operations.length; i++) {
+            final FlowLayout layout1 = new FlowLayout(FlowLayout.RIGHT);
+            layout1.setVgap(12);
+            innerPanelLeft = new JPanel(layout1);
+            final FlowLayout layout2 = new FlowLayout(FlowLayout.LEFT);
+            innerPanelRight = new JPanel(layout2);
+            String returnType = operations[i].getReturnType();
+            if (returnType == null) {
+                methodLabel = new JLabel("null", JLabel.RIGHT);
+                if (JConsole.isDebug()) {
+                    logger.error("WARNING: The operation's return type " + "shouldn't be \"null\". Check how the "
+                            + "MBeanOperationInfo for the \"" + operations[i].getName() + "\" operation has "
+                            + "been defined in the MBean's implementation code.");
+                }
+            } else {
+                methodLabel = new JLabel(Utils.getReadableClassName(returnType), JLabel.RIGHT);
+                methodLabel.setFont(new Font(Font.DIALOG, Font.PLAIN, 11));
+            }
+            innerPanelLeft.add(methodLabel);
+            if (methodLabel.getText().length() > 20) {
+                methodLabel.setText(methodLabel
+                        .getText()
+                        .substring(
+                                methodLabel.getText().lastIndexOf('.') + 1,
+                                methodLabel.getText().length()));
+            }
 
-			methodButton = new JButton(operations[i].getName());
-			methodButton.setToolTipText(operations[i].getDescription());
-			boolean callable = isCallable(operations[i].getSignature());
-			if (callable) {
-				methodButton.addActionListener(this);
-			} else {
-				methodButton.setEnabled(false);
-			}
+            methodButton = new JButton(operations[i].getName());
+            methodButton.setToolTipText(operations[i].getDescription());
+            boolean callable = isCallable(operations[i].getSignature());
+            if (callable) {
+                methodButton.addActionListener(this);
+            } else {
+                methodButton.setEnabled(false);
+            }
 
-			MBeanParameterInfo[] signature = operations[i].getSignature();
-			OperationEntry paramEntry = new OperationEntry(operations[i], callable, methodButton, this);
-			operationEntryTable.put(methodButton, paramEntry);
-			innerPanelRight.add(methodButton);
-			if (signature.length == 0) {
-				innerPanelRight.add(new JLabel("( )", JLabel.CENTER));
-			} else {
-				innerPanelRight.add(paramEntry);
-			}
+            MBeanParameterInfo[] signature = operations[i].getSignature();
+            OperationEntry paramEntry = new OperationEntry(operations[i], callable, methodButton, this);
+            operationEntryTable.put(methodButton, paramEntry);
+            innerPanelRight.add(methodButton);
+            if (signature.length == 0) {
+                innerPanelRight.add(new JLabel("( )", JLabel.CENTER));
+            } else {
+                innerPanelRight.add(paramEntry);
+            }
 
-			outerPanelLeft.add(innerPanelLeft, BorderLayout.WEST);
-			outerPanelRight.add(innerPanelRight, BorderLayout.CENTER);
-		}
-		add(outerPanelLeft, BorderLayout.WEST);
-		add(outerPanelRight, BorderLayout.CENTER);
-		validate();
-	}
+            outerPanelLeft.add(innerPanelLeft, BorderLayout.WEST);
+            outerPanelRight.add(innerPanelRight, BorderLayout.CENTER);
+        }
+        add(outerPanelLeft, BorderLayout.WEST);
+        add(outerPanelRight, BorderLayout.CENTER);
+        validate();
+    }
 
-	private boolean isCallable(MBeanParameterInfo[] signature) {
-		for (int i = 0; i < signature.length; i++) {
-			if (!Utils.isEditableType(signature[i].getType())) {
-				return false;
-			}
-		}
-		return true;
-	}
+    private boolean isCallable(MBeanParameterInfo[] signature) {
+        for (int i = 0; i < signature.length; i++) {
+            if (!Utils.isEditableType(signature[i].getType())) {
+                return false;
+            }
+        }
+        return true;
+    }
 
-	// Call on EDT
-	public void actionPerformed(final ActionEvent e) {
-		performInvokeRequest((JButton) e.getSource());
-	}
+    // Call on EDT
+    public void actionPerformed(final ActionEvent e) {
+        performInvokeRequest((JButton) e.getSource());
+    }
 
-	void performInvokeRequest(final JButton button) {
-		final OperationEntry entryIf = operationEntryTable.get(button);
-		new SwingWorker<Object, Void>() {
-			@Override
-			public Object doInBackground() throws Exception {
-				return mbean.invoke(button.getText(), entryIf.getParameters(), entryIf.getSignature());
-			}
-			@Override
-			protected void done() {
-				try {
-					Object result = get();
-					// sends result notification to upper level if
-					// there is a return value
-					if (entryIf.getReturnType() != null && !entryIf.getReturnType().equals(Void.TYPE.getName())
-							&& !entryIf.getReturnType().equals(Void.class.getName())) {
-						fireChangedNotification(OPERATION_INVOCATION_EVENT, button, result);
-					} else {
-						new ThreadDialog(button, Messages.METHOD_SUCCESSFULLY_INVOKED, Messages.INFO,
-								JOptionPane.INFORMATION_MESSAGE).run();
-					}
-				} catch (Throwable t) {
-					t = Utils.getActualException(t);
-					if (JConsole.isDebug()) {
-						t.printStackTrace();
-					}
-					new ThreadDialog(button, Messages.PROBLEM_INVOKING + " " + button.getText() + " : " + t.toString(),
-							Messages.ERROR, JOptionPane.ERROR_MESSAGE).run();
-				}
-			}
-		}.execute();
-	}
+    void performInvokeRequest(final JButton button) {
+        final OperationEntry entryIf = operationEntryTable.get(button);
+        new SwingWorker<Object, Void>() {
+            @Override
+            public Object doInBackground() throws Exception {
+                return mbean.invoke(button.getText(), entryIf.getParameters(), entryIf.getSignature());
+            }
 
-	public void addOperationsListener(NotificationListener nl) {
-		notificationListenersList.add(nl);
-	}
+            @Override
+            protected void done() {
+                try {
+                    Object result = get();
+                    // sends result notification to upper level if
+                    // there is a return value
+                    if (entryIf.getReturnType() != null
+                            && !entryIf.getReturnType().equals(Void.TYPE.getName())
+                            && !entryIf.getReturnType().equals(Void.class.getName())) {
+                        fireChangedNotification(OPERATION_INVOCATION_EVENT, button, result);
+                    } else {
+                        new ThreadDialog(
+                                        button,
+                                        Messages.METHOD_SUCCESSFULLY_INVOKED,
+                                        Messages.INFO,
+                                        JOptionPane.INFORMATION_MESSAGE)
+                                .run();
+                    }
+                } catch (Throwable t) {
+                    t = Utils.getActualException(t);
+                    if (JConsole.isDebug()) {
+                        t.printStackTrace();
+                    }
+                    new ThreadDialog(
+                                    button,
+                                    Messages.PROBLEM_INVOKING + " " + button.getText() + " : " + t.toString(),
+                                    Messages.ERROR,
+                                    JOptionPane.ERROR_MESSAGE)
+                            .run();
+                }
+            }
+        }.execute();
+    }
 
-	public void removeOperationsListener(NotificationListener nl) {
-		notificationListenersList.remove(nl);
-	}
+    public void addOperationsListener(NotificationListener nl) {
+        notificationListenersList.add(nl);
+    }
 
-	// Call on EDT
-	private void fireChangedNotification(String type, Object source, Object handback) {
-		Notification n = new Notification(type, source, 0);
-		for (NotificationListener nl : notificationListenersList) {
-			nl.handleNotification(n, handback);
-		}
-	}
+    public void removeOperationsListener(NotificationListener nl) {
+        notificationListenersList.remove(nl);
+    }
 
-	protected abstract MBeanOperationInfo[] updateOperations(MBeanOperationInfo[] operations);
+    // Call on EDT
+    private void fireChangedNotification(String type, Object source, Object handback) {
+        Notification n = new Notification(type, source, 0);
+        for (NotificationListener nl : notificationListenersList) {
+            nl.handleNotification(n, handback);
+        }
+    }
+
+    protected abstract MBeanOperationInfo[] updateOperations(MBeanOperationInfo[] operations);
 }

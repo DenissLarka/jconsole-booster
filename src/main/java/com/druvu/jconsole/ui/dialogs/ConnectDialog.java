@@ -25,7 +25,9 @@
 
 package com.druvu.jconsole.ui.dialogs;
 
-import static java.awt.BorderLayout.*;
+import static java.awt.BorderLayout.CENTER;
+import static java.awt.BorderLayout.NORTH;
+import static java.awt.BorderLayout.SOUTH;
 
 import com.druvu.jconsole.launcher.ArgumentParser;
 import com.druvu.jconsole.launcher.JConsole;
@@ -33,6 +35,7 @@ import com.druvu.jconsole.ui.components.LabeledComponent;
 import com.druvu.jconsole.util.Messages;
 import com.druvu.jconsole.util.Resources;
 import com.druvu.jconsole.util.Utilities;
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.FlowLayout;
@@ -80,7 +83,7 @@ public class ConnectDialog extends InternalDialog implements DocumentListener, F
 
         JPanel formPanel = new JPanel(new java.awt.BorderLayout(0, 12));
         formPanel.setBorder(new EmptyBorder(12, 12, 12, 12));
-        JPanel bottomPanel = new JPanel(new java.awt.BorderLayout());
+        JPanel bottomPanel = new JPanel(new BorderLayout());
 
         statusBar = new JLabel(" ", JLabel.CENTER);
         Utilities.setAccessibleName(statusBar, Messages.CONNECT_DIALOG_STATUS_BAR_ACCESSIBLE_NAME);

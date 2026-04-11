@@ -706,9 +706,11 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
             GraphicsConfiguration gc = jConsole.getGraphicsConfiguration();
             Dimension scrSize = toolkit.getScreenSize();
             Insets scrInsets = toolkit.getScreenInsets(gc);
+            scrSize.width -= 200;
+            scrSize.height -= 200;
             Rectangle scrBounds = new Rectangle(
-                    scrInsets.left,
-                    scrInsets.top,
+                    scrInsets.left + 100,
+                    scrInsets.top + 100,
                     scrSize.width - scrInsets.left - scrInsets.right,
                     scrSize.height - scrInsets.top - scrInsets.bottom);
             jConsole.setBounds(scrBounds.x, scrBounds.y, scrBounds.width, scrBounds.height);

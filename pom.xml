@@ -163,7 +163,6 @@
 						<configuration>
 							<executable>java</executable>
 							<arguments>
-								<argument>-Dswing.defaultlaf=javax.swing.plaf.nimbus.NimbusLookAndFeel</argument>
 								<argument>--module-path</argument>
 								<modulepath/>
 								<argument>-m</argument>

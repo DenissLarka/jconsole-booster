@@ -2,7 +2,6 @@
   <configuration default="false" name="JConsole" type="Application" factoryName="Application" nameIsGenerated="true">
     <option name="MAIN_CLASS_NAME" value="com.druvu.jconsole.launcher.JConsole" />
     <module name="jconsole-booster" />
-    <option name="VM_PARAMETERS" value="-Dswing.defaultlaf=javax.swing.plaf.nimbus.NimbusLookAndFeel" />
     <option name="PROGRAM_PARAMETERS" value="-c=#8BC6E1FF -debug" />
     <extension name="coverage">
       <pattern>

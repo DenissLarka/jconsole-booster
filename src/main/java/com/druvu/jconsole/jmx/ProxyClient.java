@@ -36,7 +36,6 @@ import static java.lang.management.ManagementFactory.THREAD_MXBEAN_NAME;
 import static java.lang.management.ManagementFactory.newPlatformMXBeanProxy;
 
 import com.druvu.jconsole.jmx.JMXConnectionManager.ConnectionResult;
-import com.druvu.jconsole.jmx.JMXConnectionManager.SslInfo;
 import com.druvu.jconsole.jmx.api.JmxDataAccess;
 import com.druvu.jconsole.launcher.JConsole;
 import com.druvu.jconsole.util.Messages;
@@ -82,7 +81,6 @@ import javax.management.ObjectName;
 import javax.management.ReflectionException;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXServiceURL;
-import javax.management.remote.rmi.RMIServer;
 import javax.swing.event.SwingPropertyChangeSupport;
 
 public class ProxyClient implements JConsoleContext, JmxDataAccess {
@@ -106,22 +104,12 @@ public class ProxyClient implements JConsoleContext, JmxDataAccess {
 
     // REVISIT: VMPanel and other places relying using getUrl().
 
-    // set only if it's created for local monitoring
-    private LocalVirtualMachine lvm;
-
-    // set only if it's created from a given URL via the Advanced tab
-    private String advancedUrl = null;
+    private final String url;
 
     private JMXServiceURL jmxUrl = null;
     private MBeanServerConnection mbsc = null;
     private SnapshotMBeanServerConnection server = null;
     private JMXConnector jmxc = null;
-    private RMIServer stub = null;
-    private String registryHostName = null;
-    private int registryPort = 0;
-    private boolean vmConnector = false;
-    private boolean sslRegistry = false;
-    private boolean sslStub = false;
     private final String connectionName;
     private final String displayName;
 
@@ -140,40 +128,11 @@ public class ProxyClient implements JConsoleContext, JmxDataAccess {
 
     private static final String HOTSPOT_DIAGNOSTIC_MXBEAN_NAME = "com.sun.management:type=HotSpotDiagnostic";
 
-    private ProxyClient(String hostName, int port, String userName, String password) throws IOException {
-        this.connectionName = getConnectionName(hostName, port, userName);
-        this.displayName = connectionName;
-        if (hostName.equals("localhost") && port == 0) {
-            // Monitor self
-            this.hostName = hostName;
-            this.port = port;
-        } else {
-            // Create an RMI connector client and connect it to
-            // the RMI connector server
-            final String urlPath = "/jndi/rmi://" + hostName + ":" + port + "/jmxrmi";
-            JMXServiceURL url = new JMXServiceURL("rmi", "", 0, urlPath);
-            setParameters(url, userName, password);
-            vmConnector = true;
-            registryHostName = hostName;
-            registryPort = port;
-            SslInfo sslInfo = JMXConnectionManager.checkSslConfig(registryHostName, registryPort);
-            this.stub = sslInfo.stub();
-            this.sslRegistry = sslInfo.sslRegistry();
-            this.sslStub = sslInfo.sslStub();
-        }
-    }
-
     private ProxyClient(String url, String userName, String password) throws IOException {
-        this.advancedUrl = url;
+        this.url = url;
         this.connectionName = getConnectionName(url, userName);
         this.displayName = connectionName;
         setParameters(new JMXServiceURL(url), userName, password);
-    }
-
-    private ProxyClient(LocalVirtualMachine lvm) {
-        this.lvm = lvm;
-        this.connectionName = getConnectionName(lvm);
-        this.displayName = "pid: " + lvm.vmid() + " " + lvm.displayName();
     }
 
     private void setParameters(JMXServiceURL url, String userName, String password) {
@@ -182,43 +141,6 @@ public class ProxyClient implements JConsoleContext, JmxDataAccess {
         this.port = jmxUrl.getPort();
         this.userName = userName;
         this.password = password;
-    }
-
-    /**
-     * Returns true if the underlying RMI registry is SSL-protected.
-     *
-     * @throws UnsupportedOperationException If this {@code ProxyClient} does not denote a JMX connector for a JMX VM
-     *     agent.
-     */
-    public boolean isSslRmiRegistry() {
-        // Check for VM connector
-        //
-        if (!isVmConnector()) {
-            throw new UnsupportedOperationException("ProxyClient.isSslRmiRegistry() is only supported if this "
-                    + "ProxyClient is a JMX connector for a JMX VM agent");
-        }
-        return sslRegistry;
-    }
-
-    /**
-     * Returns true if the retrieved RMI stub is SSL-protected.
-     *
-     * @throws UnsupportedOperationException If this {@code ProxyClient} does not denote a JMX connector for a JMX VM
-     *     agent.
-     */
-    public boolean isSslRmiStub() {
-        // Check for VM connector
-        //
-        if (!isVmConnector()) {
-            throw new UnsupportedOperationException("ProxyClient.isSslRmiStub() is only supported if this "
-                    + "ProxyClient is a JMX connector for a JMX VM agent");
-        }
-        return sslStub;
-    }
-
-    /** Returns true if this {@code ProxyClient} denotes a JMX connector for a JMX VM agent. */
-    public boolean isVmConnector() {
-        return vmConnector;
     }
 
     private void setConnectionState(ConnectionState state) {
@@ -237,10 +159,10 @@ public class ProxyClient implements JConsoleContext, JmxDataAccess {
         }
     }
 
-    public void connect(boolean requireSSL) {
+    public void connect() {
         setConnectionState(ConnectionState.CONNECTING);
         try {
-            tryConnect(requireSSL);
+            tryConnect();
             setConnectionState(ConnectionState.CONNECTED);
         } catch (Exception e) {
             if (JConsole.isDebug()) {
@@ -250,51 +172,9 @@ public class ProxyClient implements JConsoleContext, JmxDataAccess {
         }
     }
 
-    private void tryConnect(boolean requireRemoteSSL) throws IOException {
-        final ConnectionResult result;
-
-        if (jmxUrl == null && "localhost".equals(hostName) && port == 0) {
-            // Monitor self
-            result = JMXConnectionManager.connectSelf();
-            this.jmxc = null;
-        } else if (lvm != null) {
-            // Local VM attach path — jmxUrl may be null on first connection
-            if (this.jmxUrl == null) {
-                result = JMXConnectionManager.connect(lvm);
-                // Record the URL that the LVM agent is now listening to so that
-                // reconnections can go through the URL branch.
-                this.jmxUrl = new JMXServiceURL(lvm.connectorAddress());
-            } else {
-                // Reconnect via the URL that was established on first connection
-                result = JMXConnectionManager.connect(
-                        jmxUrl, userName, password, false, null, registryHostName, registryPort, requireRemoteSSL);
-            }
-            this.jmxc = result.connector();
-        } else {
-            // URL / vm-connector path
-            // On reconnection for vm-connector, stub may already be populated;
-            // pass null to let JMXConnectionManager re-check SSL config when stub == null.
-            result = JMXConnectionManager.connect(
-                    jmxUrl,
-                    userName,
-                    password,
-                    isVmConnector(),
-                    stub,
-                    registryHostName,
-                    registryPort,
-                    requireRemoteSSL);
-            this.jmxc = result.connector();
-
-            // If this is a vm-connector and the stub was null (first connect or
-            // after disconnect), capture the SSL info for the reconnection path.
-            if (isVmConnector() && stub == null) {
-                SslInfo sslInfo = JMXConnectionManager.checkSslConfig(registryHostName, registryPort);
-                this.stub = sslInfo.stub();
-                this.sslRegistry = sslInfo.sslRegistry();
-                this.sslStub = sslInfo.sslStub();
-            }
-        }
-
+    private void tryConnect() throws IOException {
+        final ConnectionResult result = JMXConnectionManager.connect(jmxUrl, userName, password);
+        this.jmxc = result.connector();
         this.mbsc = result.connection();
         this.server = Snapshot.newSnapshot(mbsc);
         this.hasPlatformMXBeans = result.hasPlatformMXBeans();
@@ -308,25 +188,6 @@ public class ProxyClient implements JConsoleContext, JmxDataAccess {
             // Check if the access role is correct by getting a RuntimeMXBean
             getRuntimeMXBean();
         }
-    }
-
-    /** Gets a proxy client for a given local virtual machine. */
-    public static ProxyClient getProxyClient(LocalVirtualMachine lvm) throws IOException {
-        final String key = getCacheKey(lvm);
-        ProxyClient proxyClient = cache.get(key);
-        if (proxyClient == null) {
-            proxyClient = new ProxyClient(lvm);
-            cache.put(key, proxyClient);
-        }
-        return proxyClient;
-    }
-
-    public static String getConnectionName(LocalVirtualMachine lvm) {
-        return Integer.toString(lvm.vmid());
-    }
-
-    private static String getCacheKey(LocalVirtualMachine lvm) {
-        return Integer.toString(lvm.vmid());
     }
 
     /** Gets a proxy client for a given JMXServiceURL. */
@@ -350,32 +211,6 @@ public class ProxyClient implements JConsoleContext, JmxDataAccess {
 
     private static String getCacheKey(String url, String userName, String password) {
         return (url == null ? "" : url) + ":" + (userName == null ? "" : userName) + ":"
-                + (password == null ? "" : password);
-    }
-
-    /** Gets a proxy client for a given "hostname:port". */
-    public static ProxyClient getProxyClient(String hostName, int port, String userName, String password)
-            throws IOException {
-        final String key = getCacheKey(hostName, port, userName, password);
-        ProxyClient proxyClient = cache.get(key);
-        if (proxyClient == null) {
-            proxyClient = new ProxyClient(hostName, port, userName, password);
-            cache.put(key, proxyClient);
-        }
-        return proxyClient;
-    }
-
-    public static String getConnectionName(String hostName, int port, String userName) {
-        String name = hostName + ":" + port;
-        if (userName != null && userName.length() > 0) {
-            return userName + "@" + name;
-        } else {
-            return name;
-        }
-    }
-
-    private static String getCacheKey(String hostName, int port, String userName, String password) {
-        return (hostName == null ? "" : hostName) + ":" + port + ":" + (userName == null ? "" : userName) + ":"
                 + (password == null ? "" : password);
     }
 
@@ -404,7 +239,7 @@ public class ProxyClient implements JConsoleContext, JmxDataAccess {
     }
 
     public String getUrl() {
-        return advancedUrl;
+        return url;
     }
 
     public String getHostName() {
@@ -413,10 +248,6 @@ public class ProxyClient implements JConsoleContext, JmxDataAccess {
 
     public int getPort() {
         return port;
-    }
-
-    public int getVmid() {
-        return (lvm != null) ? lvm.vmid() : 0;
     }
 
     public String getUserName() {
@@ -428,8 +259,6 @@ public class ProxyClient implements JConsoleContext, JmxDataAccess {
     }
 
     public void disconnect() {
-        // Reset remote stub
-        stub = null;
         // Close MBeanServer connection
         if (jmxc != null) {
             try {

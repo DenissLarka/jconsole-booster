@@ -1,6 +1,5 @@
 package com.druvu.jconsole.launcher;
 
-import com.druvu.jconsole.jmx.LocalVirtualMachine;
 import com.druvu.jconsole.util.Messages;
 import com.druvu.jconsole.util.Resources;
 import com.druvu.jconsole.util.Version;
@@ -20,7 +19,6 @@ import org.beryx.awt.color.ColorFactory;
  *
  * <ul>
  *   <li>{@code service:jmx:…} — passed through unchanged
- *   <li>{@code rmi:host:port} → {@code service:jmx:rmi:///jndi/rmi://host:port/jmxrmi}
  *   <li>{@code host:port} → {@code service:jmx:jmxmp://host:port}
  * </ul>
  */
@@ -30,7 +28,6 @@ public class ArgumentParser {
     private static final Pattern COLOR_PATTERN = Pattern.compile("^-c=(#\\p{XDigit}+)$");
 
     public static final String JMXMP_PREFIX = "service:jmx:jmxmp://";
-    static final String RMI_PREFIX = "service:jmx:rmi:///jndi/rmi://";
 
     /**
      * Parses {@code args} and returns launch options. Returns {@link Optional#empty()} when the application should exit
@@ -90,36 +87,20 @@ public class ArgumentParser {
 
         // --- connection targets ---
         List<String> urls = new ArrayList<>();
-        List<LocalVirtualMachine> vmids = new ArrayList<>();
 
         for (int i = argIndex; i < args.length; i++) {
             String arg = args[i];
 
-            if (arg.indexOf(':') != -1) {
-                // URL-like: expand shorthands then record as a full service URL
-                urls.add(adaptUrl(arg));
-            } else {
-                // Treat as a local PID
-                if (!JConsole.isLocalAttachAvailable()) {
-                    log.error("Local process monitoring is not supported");
-                    return Optional.empty();
-                }
-                try {
-                    int vmid = Integer.parseInt(arg);
-                    LocalVirtualMachine lvm = LocalVirtualMachine.getLocalVirtualMachine(vmid);
-                    if (lvm == null) {
-                        log.error("Invalid process id: {}", vmid);
-                        return Optional.empty();
-                    }
-                    vmids.add(lvm);
-                } catch (NumberFormatException ex) {
-                    usage();
-                    return Optional.empty();
-                }
+            if (arg.indexOf(':') == -1) {
+                // No colon → not a URL and not a host:port. Bare process ids are no longer supported.
+                log.error("Invalid connection target: {} (expected host:port or full service:jmx: URL)", arg);
+                usage();
+                return Optional.empty();
             }
+            urls.add(adaptUrl(arg));
         }
 
-        return Optional.of(new JConsoleOptions(noTile, hotspot, debug, updateInterval, color, urls, vmids));
+        return Optional.of(new JConsoleOptions(noTile, hotspot, debug, updateInterval, color, urls));
     }
 
     /**
@@ -128,9 +109,6 @@ public class ArgumentParser {
     public static String adaptUrl(String arg) {
         if (arg.startsWith("service:jmx:")) {
             return arg;
-        }
-        if (arg.startsWith("rmi:")) {
-            return RMI_PREFIX + arg.substring(4) + "/jmxrmi";
         }
         // bare host:port → JMXMP
         return JMXMP_PREFIX + arg;

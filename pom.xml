@@ -86,22 +86,6 @@
 					<showWarnings>true</showWarnings>
 					<optimize>true</optimize>
 					<fork>true</fork>
-					<compilerArgs>
-						<arg>--add-exports</arg>
-						<arg>java.base/sun.net.util=com.druvu.jconsole</arg>
-						<arg>--add-exports</arg>
-						<arg>jdk.jconsole/sun.tools.jconsole=com.druvu.jconsole</arg>
-						<arg>--add-exports</arg>
-						<arg>java.rmi/sun.rmi.server=com.druvu.jconsole</arg>
-						<arg>--add-exports</arg>
-						<arg>java.rmi/sun.rmi.transport=com.druvu.jconsole</arg>
-						<arg>--add-exports</arg>
-						<arg>jdk.internal.jvmstat/sun.jvmstat.monitor=com.druvu.jconsole</arg>
-						<arg>--add-exports</arg>
-						<arg>jdk.management.agent/jdk.internal.agent=com.druvu.jconsole</arg>
-						<arg>--add-exports</arg>
-						<arg>jdk.jconsole/tools.jconsole.inspector=com.druvu.jconsole</arg>
-					</compilerArgs>
 					<annotationProcessorPaths>
 						<path>
 							<groupId>org.projectlombok</groupId>
@@ -179,18 +163,6 @@
 						<configuration>
 							<executable>java</executable>
 							<arguments>
-								<argument>--add-exports</argument>
-								<argument>java.base/sun.net.util=com.druvu.jconsole</argument>
-								<argument>--add-exports</argument>
-								<argument>jdk.jconsole/sun.tools.jconsole=com.druvu.jconsole</argument>
-								<argument>--add-exports</argument>
-								<argument>java.rmi/sun.rmi.server=com.druvu.jconsole</argument>
-								<argument>--add-exports</argument>
-								<argument>java.rmi/sun.rmi.transport=com.druvu.jconsole</argument>
-								<argument>--add-exports</argument>
-								<argument>jdk.internal.jvmstat/sun.jvmstat.monitor=com.druvu.jconsole</argument>
-								<argument>--add-exports</argument>
-								<argument>jdk.management.agent/jdk.internal.agent=com.druvu.jconsole</argument>
 								<argument>-Dswing.defaultlaf=javax.swing.plaf.nimbus.NimbusLookAndFeel</argument>
 								<argument>--module-path</argument>
 								<modulepath/>

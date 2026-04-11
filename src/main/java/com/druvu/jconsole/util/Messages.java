@@ -54,7 +54,6 @@ public final class Messages {
     public static final String ATTRIBUTE_VALUE = "Attribute value";
     public static final String ATTRIBUTE_VALUES = "Attribute values";
     public static final String ATTRIBUTES = "Attributes";
-    public static final String BLANK = "Blank";
     public static final String BLOCKED_COUNT_WAITED_COUNT = "Total blocked: {0}  Total waited: {1}\n";
     public static final String BOOT_CLASS_PATH = "Boot class path";
     public static final String BORDERED_COMPONENT_MORE_OR_LESS_BUTTON_TOOLTIP =
@@ -70,8 +69,6 @@ public final class Messages {
     public static final String CLASS_TAB_LOADED_CLASSES_PLOTTER_ACCESSIBLE_NAME = "Chart for Loaded Classes.";
     public static final String CLASSES = "Classes";
     public static final String CLOSE = "Close";
-    public static final String COLUMN_NAME = "Name";
-    public static final String COLUMN_PID = "PID";
     public static final String COMMITTED_MEMORY = "Committed memory";
     public static final String COMMITTED_VIRTUAL_MEMORY = "Committed virtual memory";
     public static final String COMMITTED = "Committed";
@@ -151,7 +148,6 @@ public final class Messages {
     public static final String IMPACT = "Impact";
     public static final String INFO = "Info";
     public static final String INFO_CAPITALIZED = "INFO";
-    public static final String INSECURE = "Insecure connection";
     public static final String INVALID_URL = "Invalid URL: {0}";
     public static final String IS = "Is";
     public static final String JAVA_MONITORING___MANAGEMENT_CONSOLE = "Java Monitoring & Management Console";
@@ -162,12 +158,7 @@ public final class Messages {
     public static final String LIBRARY_PATH = "Library path";
     public static final String LIVE_THREADS = "Live threads";
     public static final String LOADED = "Loaded";
-    public static final String LOCAL_PROCESS_COLON = "Local Process:";
     public static final String MASTHEAD_FONT = "Dialog-PLAIN-25";
-    public static final String MANAGEMENT_NOT_ENABLED =
-            "<b>Note</b>: The management agent is not enabled on this process.";
-    public static final String MANAGEMENT_WILL_BE_ENABLED =
-            "<b>Note</b>: The management agent will be enabled on this process.";
     public static final String MBEAN_ATTRIBUTE_INFO = "MBeanAttributeInfo";
     public static final String MBEAN_INFO = "MBeanInfo";
     public static final String MBEAN_NOTIFICATION_INFO = "MBeanNotificationInfo";
@@ -311,9 +302,6 @@ public final class Messages {
     public static final String CONNECTION_FAILED1 = "Connection Failed: Retry?";
     public static final String CONNECTION_FAILED2 =
             "The connection to {0} did not succeed.<br>Would you like to try again?";
-    public static final String CONNECTION_FAILED_SSL1 = "Secure connection failed. Retry insecurely?";
-    public static final String CONNECTION_FAILED_SSL2 =
-            "The connection to {0} could not be made using SSL.<br>Would you like to try without SSL?<br>(Username and password will be sent in plain text.)";
     public static final String CONNECTION_LOST1 = "Connection Lost: Reconnect?";
     public static final String CONNECTING_TO1 = "Connecting to {0}";
     public static final String CONNECTING_TO2 =
@@ -329,10 +317,9 @@ public final class Messages {
                     + "  -interval   Set the update interval to n seconds (default is 4 seconds)\n"
                     + "  -notile     Do not tile windows initially (for two or more connections)\n"
                     + "  -version    Print program version\n\n"
-                    + "  connection = pid || host:port || JMX URL (service:jmx:<protocol>://...)\n"
-                    + "  pid         The process id of a target process\n"
+                    + "  connection = host:port || JMX URL (service:jmx:jmxmp://...)\n"
                     + "  host        A remote host name or IP address\n"
-                    + "  port        The port number for the remote connection\n\n"
+                    + "  port        The port number of the JMXMP connector on the target JVM\n\n"
                     + "  -J          Specify the input arguments to the Java virtual machine\n"
                     + "              on which jconsole is running";
 }

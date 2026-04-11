@@ -82,7 +82,6 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
     private VMInternalFrame vmIF = null;
     private static ArrayList<TabInfo> tabInfos = new ArrayList<TabInfo>();
     private boolean userDisconnected = false;
-    private boolean shouldUseSSL = false;
 
     private boolean pluginTabsAdded = false;
 
@@ -300,7 +299,7 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
             new Thread("VMPanel.connect") {
 
                 public void run() {
-                    proxyClient.connect(shouldUseSSL);
+                    proxyClient.connect();
                 }
             }.start();
         }
@@ -467,10 +466,6 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
             msgTitle = Messages.CONNECTION_LOST1;
             msgExplanation = Resources.format(Messages.CONNECTING_TO2, getConnectionName());
             buttonStr = Messages.RECONNECT;
-        } else if (shouldUseSSL) {
-            msgTitle = Messages.CONNECTION_FAILED_SSL1;
-            msgExplanation = Resources.format(Messages.CONNECTION_FAILED_SSL2, getConnectionName());
-            buttonStr = Messages.INSECURE;
         } else {
             msgTitle = Messages.CONNECTION_FAILED1;
             msgExplanation = Resources.format(Messages.CONNECTION_FAILED2, getConnectionName());
@@ -493,9 +488,6 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
                     Object value = event.getNewValue();
 
                     if (value == Messages.RECONNECT || value == Messages.CONNECT) {
-                        connect();
-                    } else if (value == Messages.INSECURE) {
-                        shouldUseSSL = false;
                         connect();
                     } else if (!updateCoordinator.wasEverConnected()) {
                         try {

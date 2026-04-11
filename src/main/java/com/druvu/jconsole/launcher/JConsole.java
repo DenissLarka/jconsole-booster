@@ -25,7 +25,6 @@
 
 package com.druvu.jconsole.launcher;
 
-import com.druvu.jconsole.jmx.LocalVirtualMachine;
 import com.druvu.jconsole.jmx.ProxyClient;
 import com.druvu.jconsole.plugins.jtop.JTopPlugin;
 import com.druvu.jconsole.ui.components.OutputViewer;
@@ -331,15 +330,11 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
             if (vmIF instanceof VMInternalFrame) {
                 vmPanel = ((VMInternalFrame) vmIF).getVMPanel();
             }
-            String hostName = "";
             String url = "";
-            if (vmPanel != null) {
-                hostName = vmPanel.getHostName();
-                if (vmPanel.getUrl() != null) {
-                    url = vmPanel.getUrl();
-                }
+            if (vmPanel != null && vmPanel.getUrl() != null) {
+                url = vmPanel.getUrl();
             }
-            showConnectDialog(url, hostName, 0, null, null, null);
+            showConnectDialog(url, null, null, null);
         } else if (src == tileMI) {
             tileWindows();
         } else if (src == cascadeMI) {
@@ -475,31 +470,6 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
     }
 
     // Call on EDT
-    public void addHost(String hostName, int port, String userName, String password) {
-        addHost(hostName, port, userName, password, false);
-    }
-
-    // Call on EDT
-    public void addVmid(LocalVirtualMachine lvm) {
-        addVmid(lvm, false);
-    }
-
-    // Call on EDT
-    public void addVmid(final LocalVirtualMachine lvm, final boolean tile) {
-        new Thread("JConsole.addVmid") {
-            public void run() {
-                try {
-                    addProxyClient(ProxyClient.getProxyClient(lvm), tile);
-                } catch (final SecurityException ex) {
-                    failed(ex, null, null, null);
-                } catch (final IOException ex) {
-                    failed(ex, null, null, null);
-                }
-            }
-        }.start();
-    }
-
-    // Call on EDT
     public void addUrl(final String url, final String userName, final String password, final boolean tile) {
         new Thread("JConsole.addUrl") {
             public void run() {
@@ -511,25 +481,6 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
                     failed(ex, url, userName, password);
                 } catch (final IOException ex) {
                     failed(ex, url, userName, password);
-                }
-            }
-        }.start();
-    }
-
-    // Call on EDT
-    public void addHost(
-            final String hostName, final int port, final String userName, final String password, final boolean tile) {
-        new Thread("JConsole.addHost") {
-            public void run() {
-                try {
-                    addProxyClient(ProxyClient.getProxyClient(hostName, port, userName, password), tile);
-                } catch (final IOException ex) {
-                    dbgStackTrace(ex);
-                    SwingUtilities.invokeLater(new Runnable() {
-                        public void run() {
-                            showConnectDialog(null, hostName, port, userName, password, errorMessage(ex));
-                        }
-                    });
                 }
             }
         }.start();
@@ -559,7 +510,7 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 dbgStackTrace(ex);
-                showConnectDialog(url, null, -1, userName, password, errorMessage(ex));
+                showConnectDialog(url, userName, password, errorMessage(ex));
             }
         });
     }
@@ -593,12 +544,11 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
         return vmIF;
     }
 
-    private void showConnectDialog(
-            String url, String hostName, int port, String userName, String password, String msg) {
+    private void showConnectDialog(String url, String userName, String password, String msg) {
         if (connectDialog == null) {
             connectDialog = new ConnectDialog(this);
         }
-        connectDialog.setConnectionParameters(url, hostName, port, userName, password, msg);
+        connectDialog.setConnectionParameters(url, userName, password, msg);
 
         connectDialog.refresh();
         connectDialog.setVisible(true);
@@ -730,7 +680,7 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
             client.markAsDead();
         }
         if (windows.size() == 0) {
-            showConnectDialog("", "", 0, null, null, null);
+            showConnectDialog("", null, null, null);
         }
     }
 
@@ -766,19 +716,14 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
             jConsole.createMDI();
 
             List<String> urls = options.urls();
-            List<LocalVirtualMachine> vmids = options.vmids();
             boolean noTile = options.noTile();
 
             for (int i = 0; i < urls.size(); i++) {
                 jConsole.addUrl(urls.get(i), null, null, (i == urls.size() - 1) ? !noTile : false);
             }
 
-            for (int i = 0; i < vmids.size(); i++) {
-                jConsole.addVmid(vmids.get(i), (i == vmids.size() - 1) ? !noTile : false);
-            }
-
-            if (urls.isEmpty() && vmids.isEmpty()) {
-                jConsole.showConnectDialog(null, null, 0, null, null, null);
+            if (urls.isEmpty()) {
+                jConsole.showConnectDialog(null, null, null, null);
             }
         });
     }
@@ -807,11 +752,6 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
         }
     }
 
-    /** local attach is supported in this implementation as jdk.jconsole requires jdk.attach and jdk.management.agent */
-    public static boolean isLocalAttachAvailable() {
-        return true;
-    }
-
     /**
      * Returns a fresh list of bundled {@link JConsolePlugin} instances. To register an additional plugin, drop the
      * source under {@code com.druvu.jconsole.plugins.<name>} and add a {@code new XxxPlugin()} entry below.
@@ -821,9 +761,7 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
     }
 
     private static class FixedJRootPane extends JRootPane {
-        /**
-         * The revalidate method seems to be the only one that gets called whenever there is a change of theme.
-         */
+        /** The revalidate method seems to be the only one that gets called whenever there is a change of theme. */
         @Override
         public void revalidate() {
             // Workaround for Swing bug where the titledborder uses

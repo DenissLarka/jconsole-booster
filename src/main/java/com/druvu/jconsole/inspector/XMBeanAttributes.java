@@ -25,7 +25,6 @@
 
 package com.druvu.jconsole.inspector;
 
-import com.druvu.jconsole.jmx.ProxyClient.SnapshotMBeanServerConnection;
 import com.druvu.jconsole.launcher.JConsole;
 import com.druvu.jconsole.ui.tabs.MBeansTab;
 import com.druvu.jconsole.util.Messages;
@@ -102,6 +101,7 @@ public class XMBeanAttributes extends XTable {
         attributesListener = new AttributesListener(this);
         getModel().addTableModelListener(attributesListener);
         getColumnModel().getColumn(NAME_COLUMN).setPreferredWidth(40);
+        getColumnModel().getColumn(VALUE_COLUMN).setPreferredWidth(900);
 
         addMouseListener(mouseListener);
         getTableHeader().setReorderingAllowed(false);
@@ -551,8 +551,7 @@ public class XMBeanAttributes extends XTable {
 
             @Override
             protected Void doInBackground() {
-                SnapshotMBeanServerConnection mbsc = mbeansTab.getSnapshotMBeanServerConnection();
-                mbsc.flush();
+                mbeansTab.flushSnapshot();
                 return null;
             }
 

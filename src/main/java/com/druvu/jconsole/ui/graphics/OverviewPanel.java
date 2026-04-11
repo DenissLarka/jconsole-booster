@@ -27,7 +27,6 @@ package com.druvu.jconsole.ui.graphics;
 
 import static javax.swing.SwingConstants.*;
 
-import com.druvu.jconsole.launcher.JConsole;
 import com.druvu.jconsole.util.Messages;
 import com.druvu.jconsole.util.Resources;
 import com.druvu.jconsole.util.Utilities;
@@ -42,7 +41,7 @@ public abstract class OverviewPanel extends PlotterPanel {
     // This is the default view range for all the overview plotters
     static final int VIEW_RANGE = -1; // Show all data
 
-    static Color PLOTTER_COLOR = JConsole.IS_GTK ? new Color(231, 111, 80) : null;
+    static Color PLOTTER_COLOR = null;
 
     private JLabel infoLabel;
 
@@ -96,15 +95,7 @@ public abstract class OverviewPanel extends PlotterPanel {
                 }
             };
 
-            if (JConsole.IS_GTK) {
-                JPanel southPanel = new JPanel(new BorderLayout());
-                JSeparator separator = new JSeparator(JSeparator.HORIZONTAL);
-                southPanel.add(separator, BorderLayout.NORTH);
-                southPanel.add(infoLabel, BorderLayout.SOUTH);
-                add(southPanel, BorderLayout.SOUTH);
-            } else {
-                add(infoLabel, BorderLayout.SOUTH);
-            }
+            add(infoLabel, BorderLayout.SOUTH);
         }
         return infoLabel;
     }

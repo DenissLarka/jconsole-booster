@@ -10,7 +10,6 @@ public record JConsoleOptions(
         boolean hotspot,
         boolean debug,
         int updateInterval,
-        String pluginPath,
         Color color,
         List<String> urls,
         List<LocalVirtualMachine> vmids) {}

@@ -25,10 +25,10 @@
 
 package com.druvu.jconsole.ui.core;
 
-import com.druvu.jconsole.ExceptionSafePlugin;
 import com.druvu.jconsole.jmx.ProxyClient;
 import com.druvu.jconsole.jmx.api.JmxDataAccess;
 import com.druvu.jconsole.launcher.JConsole;
+import com.druvu.jconsole.plugins.ExceptionSafePlugin;
 import com.druvu.jconsole.ui.dialogs.SheetDialog;
 import com.druvu.jconsole.ui.tabs.ClassTab;
 import com.druvu.jconsole.ui.tabs.MBeansTab;
@@ -42,7 +42,6 @@ import com.druvu.jconsole.util.Utilities;
 import com.sun.tools.jconsole.JConsoleContext;
 import com.sun.tools.jconsole.JConsolePlugin;
 import java.awt.Component;
-import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Insets;
@@ -54,11 +53,8 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyVetoException;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
@@ -66,7 +62,6 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
-import javax.swing.SwingWorker;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 import javax.swing.plaf.TabbedPaneUI;
@@ -78,8 +73,7 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
 
     private static final Logger logger = LoggerFactory.getLogger(VMPanel.class);
     private ProxyClient proxyClient;
-    private Timer timer;
-    private int updateInterval;
+    private final VMUpdateCoordinator updateCoordinator;
     private String hostName;
     private int port;
     private String userName;
@@ -87,24 +81,9 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
     private String url;
     private VMInternalFrame vmIF = null;
     private static ArrayList<TabInfo> tabInfos = new ArrayList<TabInfo>();
-    private boolean wasConnected = false;
     private boolean userDisconnected = false;
     private boolean shouldUseSSL = false;
 
-    // The everConnected flag keeps track of whether the window can be
-    // closed if the user clicks Cancel after a failed connection attempt.
-    //
-    private boolean everConnected = false;
-
-    // The initialUpdate flag is used to enable/disable tabs each time
-    // a connect or reconnect takes place. This flag avoids having to
-    // enable/disable tabs on each update call.
-    //
-    private boolean initialUpdate = true;
-
-    // Each VMPanel has its own instance of the JConsolePlugin
-    // A map of JConsolePlugin to the previous SwingWorker
-    private Map<ExceptionSafePlugin, SwingWorker<?, ?>> plugins = null;
     private boolean pluginTabsAdded = false;
 
     // Update these only on the EDT
@@ -127,7 +106,7 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
 
     public VMPanel(ProxyClient proxyClient, int updateInterval) {
         this.proxyClient = proxyClient;
-        this.updateInterval = updateInterval;
+        this.updateCoordinator = new VMUpdateCoordinator(this, proxyClient, updateInterval);
         this.hostName = proxyClient.getHostName();
         this.port = proxyClient.getPort();
         this.userName = proxyClient.getUserName();
@@ -140,10 +119,9 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
             }
         }
 
-        plugins = new LinkedHashMap<>();
         for (JConsolePlugin p : JConsole.getPlugins()) {
             p.setContext(proxyClient);
-            plugins.put(new ExceptionSafePlugin(p), null);
+            updateCoordinator.addPlugin(new ExceptionSafePlugin(p));
         }
 
         Utilities.updateTransparency(this);
@@ -164,7 +142,7 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
                     if (isConnected()) {
                         userDisconnected = true;
                         disconnect();
-                        wasConnected = false;
+                        updateCoordinator.clearWasConnected();
                     } else {
                         connect();
                     }
@@ -267,7 +245,7 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
     }
 
     public int getUpdateInterval() {
-        return updateInterval;
+        return updateCoordinator.getUpdateInterval();
     }
 
     /**
@@ -297,14 +275,11 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
         for (Tab tab : getTabs()) {
             tab.dispose();
         }
-        for (JConsolePlugin p : plugins.keySet()) {
+        for (JConsolePlugin p : updateCoordinator.getPlugins()) {
             p.dispose();
         }
         // Cancel pending update tasks
-        //
-        if (timer != null) {
-            timer.cancel();
-        }
+        updateCoordinator.stop();
         // Stop listening to connection state events
         //
         proxyClient.removePropertyChangeListener(this);
@@ -318,9 +293,9 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
             // Notify tabs
             fireConnectedChange(true);
             // Enable/disable tabs on initial update
-            initialUpdate = true;
+            updateCoordinator.markInitialUpdate();
             // Start/Restart update timer on connect/reconnect
-            startUpdateTimer();
+            updateCoordinator.start();
         } else {
             new Thread("VMPanel.connect") {
 
@@ -362,9 +337,9 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
                     // Notify tabs
                     fireConnectedChange(true);
                     // Enable/disable tabs on initial update
-                    initialUpdate = true;
+                    updateCoordinator.markInitialUpdate();
                     // Start/Restart update timer on connect/reconnect
-                    startUpdateTimer();
+                    updateCoordinator.start();
                     break;
 
                 case DISCONNECTED:
@@ -470,19 +445,9 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
         return list;
     }
 
-    private void startUpdateTimer() {
-        if (timer != null) {
-            timer.cancel();
-        }
-        TimerTask timerTask = new TimerTask() {
-
-            public void run() {
-                update();
-            }
-        };
-        String timerName = "Timer-" + getConnectionName();
-        timer = new Timer(timerName, true);
-        timer.schedule(timerTask, 0, updateInterval);
+    // Called on EDT from VMUpdateCoordinator when the proxy connection is observed dead.
+    void handleConnectionLost() {
+        vmPanelDied();
     }
 
     // Call on EDT
@@ -497,8 +462,8 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
         JOptionPane optionPane;
         String msgTitle, msgExplanation, buttonStr;
 
-        if (wasConnected) {
-            wasConnected = false;
+        if (updateCoordinator.wasConnectedAtLastCheck()) {
+            updateCoordinator.clearWasConnected();
             msgTitle = Messages.CONNECTION_LOST1;
             msgExplanation = Resources.format(Messages.CONNECTING_TO2, getConnectionName());
             buttonStr = Messages.RECONNECT;
@@ -532,7 +497,7 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
                     } else if (value == Messages.INSECURE) {
                         shouldUseSSL = false;
                         connect();
-                    } else if (!everConnected) {
+                    } else if (!updateCoordinator.wasEverConnected()) {
                         try {
                             getFrame().setClosed(true);
                         } catch (PropertyVetoException ex) {
@@ -542,100 +507,6 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
                 }
             }
         });
-    }
-
-    // Note: This method is called on a TimerTask thread. Any GUI manipulation
-    // must be performed with invokeLater() or invokeAndWait().
-    private Object lockObject = new Object();
-
-    private void update() {
-        synchronized (lockObject) {
-            if (!isConnected()) {
-                if (wasConnected) {
-                    EventQueue.invokeLater(new Runnable() {
-
-                        public void run() {
-                            vmPanelDied();
-                        }
-                    });
-                }
-                wasConnected = false;
-                return;
-            } else {
-                wasConnected = true;
-                everConnected = true;
-            }
-            proxyClient.flush();
-            List<Tab> tabs = getTabs();
-            final int n = tabs.size();
-            for (int i = 0; i < n; i++) {
-                final int index = i;
-                try {
-                    if (!proxyClient.isDead()) {
-                        // Update tab
-                        //
-                        tabs.get(index).update();
-                        // Enable tab on initial update
-                        //
-                        if (initialUpdate) {
-                            EventQueue.invokeLater(new Runnable() {
-
-                                public void run() {
-                                    setEnabledAt(index, true);
-                                }
-                            });
-                        }
-                    }
-                } catch (Exception e) {
-                    // Disable tab on initial update
-                    //
-                    if (initialUpdate) {
-                        EventQueue.invokeLater(new Runnable() {
-                            public void run() {
-                                setEnabledAt(index, false);
-                            }
-                        });
-                    }
-                }
-            }
-
-            // plugin GUI update
-            for (ExceptionSafePlugin p : plugins.keySet()) {
-                SwingWorker<?, ?> sw = p.newSwingWorker();
-                SwingWorker<?, ?> prevSW = plugins.get(p);
-                // schedule SwingWorker to run only if the previous
-                // SwingWorker has finished its task and it hasn't started.
-                if (prevSW == null || prevSW.isDone()) {
-                    if (sw == null || sw.getState() == SwingWorker.StateValue.PENDING) {
-                        plugins.put(p, sw);
-                        if (sw != null) {
-                            p.executeSwingWorker(sw);
-                        }
-                    }
-                }
-            }
-
-            // Set the first enabled tab in the tab's list
-            // as the selected tab on initial update
-            //
-            if (initialUpdate) {
-                EventQueue.invokeLater(new Runnable() {
-                    public void run() {
-                        // Select first enabled tab if current tab isn't.
-                        int index = getSelectedIndex();
-                        if (index < 0 || !isEnabledAt(index)) {
-                            for (int i = 0; i < n; i++) {
-                                if (isEnabledAt(i)) {
-                                    setSelectedIndex(i);
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                });
-                initialUpdate = false;
-            }
-        }
     }
 
     public String getHostName() {
@@ -682,7 +553,7 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
     private void createPluginTabs() {
         // add plugin tabs if not done
         if (!pluginTabsAdded) {
-            for (JConsolePlugin p : plugins.keySet()) {
+            for (JConsolePlugin p : updateCoordinator.getPlugins()) {
                 Map<String, JPanel> tabs = p.getTabs();
                 for (Map.Entry<String, JPanel> e : tabs.entrySet()) {
                     addTab(e.getKey(), e.getValue());

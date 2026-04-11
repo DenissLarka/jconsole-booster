@@ -22,7 +22,7 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
-package com.druvu.jconsole;
+package com.druvu.jconsole.plugins;
 
 import com.druvu.jconsole.launcher.JConsole;
 import com.druvu.jconsole.util.Messages;
@@ -101,9 +101,7 @@ public final class ExceptionSafePlugin extends JConsolePlugin {
         };
 
         String message = String.format(
-                Messages.PLUGIN_EXCEPTION_DIALOG_MESSAGE,
-                plugin.getClass().getSimpleName(),
-				e.getMessage());
+                Messages.PLUGIN_EXCEPTION_DIALOG_MESSAGE, plugin.getClass().getSimpleName(), e.getMessage());
 
         int buttonIndex = JOptionPane.showOptionDialog(
                 null,

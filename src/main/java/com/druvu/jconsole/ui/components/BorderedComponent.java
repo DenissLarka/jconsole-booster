@@ -27,7 +27,6 @@ package com.druvu.jconsole.ui.components;
 
 import static javax.swing.SwingConstants.*;
 
-import com.druvu.jconsole.launcher.JConsole;
 import com.druvu.jconsole.util.Messages;
 import com.druvu.jconsole.util.Resources;
 import java.awt.*;
@@ -47,12 +46,6 @@ public class BorderedComponent extends JPanel implements ActionListener {
 
     private Icon collapseIcon;
     private Icon expandIcon;
-
-    private static Image getImage(String name) {
-        Toolkit tk = Toolkit.getDefaultToolkit();
-        name = "/com/druvu/jconsole/resources/" + name + ".png";
-        return tk.getImage(BorderedComponent.class.getResource(name));
-    }
 
     public BorderedComponent(String text) {
         this(text, null, false);
@@ -82,13 +75,8 @@ public class BorderedComponent extends JPanel implements ActionListener {
                 border = new LabeledBorder(borderLabel);
                 textLabel.setForeground(border.getTitleColor());
 
-                if (JConsole.IS_WIN) {
-                    collapseIcon = new ImageIcon(getImage("collapse-winlf"));
-                    expandIcon = new ImageIcon(getImage("expand-winlf"));
-                } else {
-                    collapseIcon = new ArrowIcon(SOUTH, textLabel);
-                    expandIcon = new ArrowIcon(EAST, textLabel);
-                }
+                collapseIcon = new ArrowIcon(SOUTH, textLabel);
+                expandIcon = new ArrowIcon(EAST, textLabel);
 
                 moreOrLessButton = new JButton(collapseIcon);
                 moreOrLessButton.setContentAreaFilled(false);
@@ -253,8 +241,8 @@ public class BorderedComponent extends JPanel implements ActionListener {
      * (JLabel, JPanel, etc.) in the default position.
      *
      * <p>If the border property value is not specified in the constructor or by invoking the appropriate set method,
-     * the property value will be defined by the current look and feel, using the following property name in the
-     * Default Table:
+     * the property value will be defined by the current look and feel, using the following property name in the Default
+     * Table:
      *
      * <ul>
      *   <li>&quot;TitledBorder.border&quot;

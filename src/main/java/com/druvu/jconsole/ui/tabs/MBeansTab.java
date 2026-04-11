@@ -30,7 +30,7 @@ import com.druvu.jconsole.inspector.XDataViewer;
 import com.druvu.jconsole.inspector.XSheet;
 import com.druvu.jconsole.inspector.XTree;
 import com.druvu.jconsole.inspector.XTreeRenderer;
-import com.druvu.jconsole.jmx.ProxyClient;
+import com.druvu.jconsole.inspector.api.MBeanService;
 import com.druvu.jconsole.jmx.api.JmxDataAccess;
 import com.druvu.jconsole.launcher.JConsole;
 import com.druvu.jconsole.ui.core.Tab;
@@ -71,7 +71,11 @@ import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("serial")
 public class MBeansTab extends Tab
-        implements NotificationListener, PropertyChangeListener, TreeSelectionListener, TreeWillExpandListener {
+        implements MBeanService,
+                NotificationListener,
+                PropertyChangeListener,
+                TreeSelectionListener,
+                TreeWillExpandListener {
 
     private static final Logger logger = LoggerFactory.getLogger(MBeansTab.class);
     private XTree tree;
@@ -175,12 +179,19 @@ public class MBeansTab extends Tab
         }.execute();
     }
 
+    @Override
     public MBeanServerConnection getMBeanServerConnection() {
         return dataAccess.getMBeanServerConnection();
     }
 
-    public ProxyClient.SnapshotMBeanServerConnection getSnapshotMBeanServerConnection() {
+    @Override
+    public MBeanServerConnection getSnapshotMBeanServerConnection() {
         return vmPanel.getProxyClient().getSnapshotMBeanServerConnection();
+    }
+
+    @Override
+    public void flushSnapshot() {
+        vmPanel.getProxyClient().getSnapshotMBeanServerConnection().flush();
     }
 
     @Override

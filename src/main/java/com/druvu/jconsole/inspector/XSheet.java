@@ -34,6 +34,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -268,7 +269,8 @@ public class XSheet extends JPanel implements ActionListener, NotificationListen
                             mainPanel.removeAll();
                             JPanel attributePanel = new JPanel(new BorderLayout());
                             JPanel attributeBorderPanel = new JPanel(new BorderLayout());
-                            attributeBorderPanel.setBorder(BorderFactory.createTitledBorder(Messages.ATTRIBUTE_VALUE));
+                            attributeBorderPanel.setBorder(BorderFactory.createTitledBorder(
+                                    BorderFactory.createEmptyBorder(), Messages.ATTRIBUTE_VALUE));
                             JPanel attributeValuePanel = new JPanel(new BorderLayout());
                             attributeValuePanel.setBorder(LineBorder.createGrayLineBorder());
                             attributeValuePanel.add(mbeanAttributes.getTableHeader(), BorderLayout.PAGE_START);
@@ -310,7 +312,8 @@ public class XSheet extends JPanel implements ActionListener, NotificationListen
                 mainPanel.removeAll();
                 JPanel operationPanel = new JPanel(new BorderLayout());
                 JPanel operationBorderPanel = new JPanel(new BorderLayout());
-                operationBorderPanel.setBorder(BorderFactory.createTitledBorder(Messages.OPERATION_INVOCATION));
+                operationBorderPanel.setBorder(BorderFactory.createTitledBorder(
+                        BorderFactory.createEmptyBorder(), Messages.OPERATION_INVOCATION));
                 operationBorderPanel.add(new JScrollPane(mbeanOperations));
                 operationPanel.add(operationBorderPanel, BorderLayout.NORTH);
                 mbi.addMBeanOperationInfo(mboi);
@@ -365,7 +368,8 @@ public class XSheet extends JPanel implements ActionListener, NotificationListen
                         invalidate();
                         mainPanel.removeAll();
                         JPanel borderPanel = new JPanel(new BorderLayout());
-                        borderPanel.setBorder(BorderFactory.createTitledBorder(Messages.ATTRIBUTE_VALUES));
+                        borderPanel.setBorder(BorderFactory.createTitledBorder(
+                                BorderFactory.createEmptyBorder(), Messages.ATTRIBUTE_VALUES));
                         borderPanel.add(new JScrollPane(mbeanAttributes));
                         mainPanel.add(borderPanel, BorderLayout.CENTER);
                         // add the refresh button to the south panel
@@ -416,7 +420,8 @@ public class XSheet extends JPanel implements ActionListener, NotificationListen
                         invalidate();
                         mainPanel.removeAll();
                         JPanel borderPanel = new JPanel(new BorderLayout());
-                        borderPanel.setBorder(BorderFactory.createTitledBorder(Messages.OPERATION_INVOCATION));
+                        borderPanel.setBorder(BorderFactory.createTitledBorder(
+                                BorderFactory.createEmptyBorder(), Messages.OPERATION_INVOCATION));
                         borderPanel.add(new JScrollPane(mbeanOperations));
                         mainPanel.add(borderPanel, BorderLayout.CENTER);
                         southPanel.setVisible(false);
@@ -450,7 +455,8 @@ public class XSheet extends JPanel implements ActionListener, NotificationListen
         invalidate();
         mainPanel.removeAll();
         JPanel borderPanel = new JPanel(new BorderLayout());
-        borderPanel.setBorder(BorderFactory.createTitledBorder(Messages.NOTIFICATION_BUFFER));
+        borderPanel.setBorder(
+                BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(), Messages.NOTIFICATION_BUFFER));
         borderPanel.add(new JScrollPane(mbeanNotifications));
         mainPanel.add(borderPanel, BorderLayout.CENTER);
         // add the subscribe/unsubscribe/clear buttons to the south panel
@@ -632,13 +638,15 @@ public class XSheet extends JPanel implements ActionListener, NotificationListen
                 Component comp = mbeansTab.getDataViewer().createOperationViewer(handback, mbean);
                 if (comp == null) {
                     JTextArea textArea = new JTextArea(handback.toString());
+                    textArea.setFont(new Font("Monospaced", Font.PLAIN, 11));
+                    textArea.setBackground(new Color(214, 217, 223));
                     textArea.setEditable(false);
                     textArea.setEnabled(true);
                     textArea.setRows(textArea.getLineCount());
                     JScrollPane scrollPane = new JScrollPane(textArea);
                     Dimension d = scrollPane.getPreferredSize();
-                    if (d.getWidth() > 400 || d.getHeight() > 250) {
-                        scrollPane.setPreferredSize(new Dimension(400, 250));
+                    if (d.getWidth() > 1000 || d.getHeight() > 800) {
+                        scrollPane.setPreferredSize(new Dimension(1000, 800));
                     }
                     message = scrollPane;
                 } else {
@@ -646,8 +654,8 @@ public class XSheet extends JPanel implements ActionListener, NotificationListen
                         comp = new JScrollPane(comp);
                     }
                     Dimension d = comp.getPreferredSize();
-                    if (d.getWidth() > 400 || d.getHeight() > 250) {
-                        comp.setPreferredSize(new Dimension(400, 250));
+                    if (d.getWidth() > 1000 || d.getHeight() > 800) {
+                        comp.setPreferredSize(new Dimension(1000, 800));
                     }
                     message = comp;
                 }

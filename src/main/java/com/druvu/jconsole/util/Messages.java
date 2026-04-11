@@ -117,7 +117,6 @@ public final class Messages {
     public static final String ERROR_COLON_MBEANS_DO_NOT_EXIST = "Error: MBeans do not exist";
     public static final String EVENT = "Event";
     public static final String EXIT = "Exit";
-    public static final String FAIL_TO_LOAD_PLUGIN = "Warning: Fail to load plugin: {0}";
     public static final String FILE_CHOOSER_FILE_EXISTS_CANCEL_OPTION = "Cancel";
     public static final String FILE_CHOOSER_FILE_EXISTS_MESSAGE =
             "<html><center>File already exists:<br>{0}<br>Do you want to replace it?";
@@ -153,7 +152,6 @@ public final class Messages {
     public static final String INFO = "Info";
     public static final String INFO_CAPITALIZED = "INFO";
     public static final String INSECURE = "Insecure connection";
-    public static final String INVALID_PLUGIN_PATH = "Warning: Invalid plugin path: {0}";
     public static final String INVALID_URL = "Invalid URL: {0}";
     public static final String IS = "Is";
     public static final String JAVA_MONITORING___MANAGEMENT_CONSOLE = "Java Monitoring & Management Console";
@@ -327,10 +325,9 @@ public final class Messages {
     public static final String PLOT = "plot";
     public static final String VISUALIZE = "visualize";
     public static final String ZZ_USAGE_TEXT =
-            "Usage: {0} [ -interval=n ] [ -notile ] [ -pluginpath <path> ] [ -version ] [ connection ... ]\n\n"
+            "Usage: {0} [ -interval=n ] [ -notile ] [ -version ] [ connection ... ]\n\n"
                     + "  -interval   Set the update interval to n seconds (default is 4 seconds)\n"
                     + "  -notile     Do not tile windows initially (for two or more connections)\n"
-                    + "  -pluginpath Specify the path that jconsole uses to look up the plugins\n"
                     + "  -version    Print program version\n\n"
                     + "  connection = pid || host:port || JMX URL (service:jmx:<protocol>://...)\n"
                     + "  pid         The process id of a target process\n"

@@ -50,14 +50,7 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
 
     private static final Logger logger = LoggerFactory.getLogger(XMBeanNotifications.class);
 
-    private static final String[] columnNames = {
-        Messages.TIME_STAMP,
-        Messages.TYPE,
-        Messages.USER_DATA,
-        Messages.SEQ_NUM,
-        Messages.MESSAGE,
-        Messages.EVENT,
-        Messages.SOURCE
+    private static final String[] columnNames = {Messages.TIME_STAMP, Messages.TYPE, Messages.SEQ_NUM, Messages.MESSAGE
     };
     private HashMap<ObjectName, XMBeanNotificationsListener> listeners =
             new HashMap<ObjectName, XMBeanNotificationsListener>();
@@ -68,7 +61,6 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
     private volatile boolean enabled;
     private Font normalFont, boldFont;
     private int rowMinHeight = -1;
-    private TableCellEditor userDataEditor = new UserDataCellEditor();
     private NotifMouseListener mouseListener = new NotifMouseListener();
     private SimpleDateFormat timeFormater = new SimpleDateFormat("HH:mm:ss:SSS");
     private static TableCellEditor editor = new Utils.ReadOnlyTableCellEditor(new JTextField());
@@ -84,12 +76,10 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
         addMouseListener(mouseListener);
 
         TableColumnModel colModel = getColumnModel();
-        colModel.getColumn(0).setPreferredWidth(45);
-        colModel.getColumn(1).setPreferredWidth(50);
-        colModel.getColumn(2).setPreferredWidth(50);
-        colModel.getColumn(3).setPreferredWidth(40);
-        colModel.getColumn(4).setPreferredWidth(50);
-        colModel.getColumn(5).setPreferredWidth(50);
+        colModel.getColumn(0).setPreferredWidth(40);
+        colModel.getColumn(1).setPreferredWidth(40);
+        colModel.getColumn(2).setPreferredWidth(10);
+        colModel.getColumn(3).setPreferredWidth(800);
         setColumnEditors();
         addKeyListener(new Utils.CopyKeyAdapter());
     }
@@ -351,12 +341,7 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
     private void setColumnEditors() {
         TableColumnModel tcm = getColumnModel();
         for (int i = 0; i < columnNames.length; i++) {
-            TableColumn tc = tcm.getColumn(i);
-            if (i == 2) {
-                tc.setCellEditor(userDataEditor);
-            } else {
-                tc.setCellEditor(editor);
-            }
+            tcm.getColumn(i).setCellEditor(editor);
         }
     }
 
@@ -520,47 +505,6 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
         }
     }
 
-    class UserDataCellEditor extends XTextFieldEditor {
-        // implements javax.swing.table.TableCellEditor
-        @Override
-        public Component getTableCellEditorComponent(
-                JTable table, Object value, boolean isSelected, int row, int column) {
-            Object val = value;
-            if (column == 2) {
-                Object obj = getModel().getValueAt(row, column);
-                if (obj instanceof UserDataCell) {
-                    UserDataCell cell = (UserDataCell) obj;
-                    if (cell.getRenderer() instanceof UserDataCellRenderer) {
-                        UserDataCellRenderer zr = (UserDataCellRenderer) cell.getRenderer();
-                        return zr.getComponent();
-                    }
-                } else {
-                    Component comp = super.getTableCellEditorComponent(table, val, isSelected, row, column);
-                    textField.setEditable(false);
-                    return comp;
-                }
-            }
-            return super.getTableCellEditorComponent(table, val, isSelected, row, column);
-        }
-
-        @Override
-        public boolean stopCellEditing() {
-            int editingRow = getEditingRow();
-            int editingColumn = getEditingColumn();
-            if (editingColumn == 2) {
-                Object obj = getModel().getValueAt(editingRow, editingColumn);
-                if (obj instanceof UserDataCell) {
-                    UserDataCell cell = (UserDataCell) obj;
-                    if (cell.isMaximized()) {
-                        cancelCellEditing();
-                        return true;
-                    }
-                }
-            }
-            return super.stopCellEditing();
-        }
-    }
-
     class XMBeanNotificationsListener implements NotificationListener {
 
         private XMBean xmbean;
@@ -631,23 +575,7 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
                             Date receivedDate = new Date(n.getTimeStamp());
                             String time = timeFormater.format(receivedDate);
 
-                            Object userData = n.getUserData();
-                            Component comp = null;
-                            UserDataCell cell = null;
-                            if ((comp = XDataViewer.createNotificationViewer(userData)) != null) {
-                                XDataViewer.registerForMouseEvent(comp, mouseListener);
-                                cell = new UserDataCell(userData, comp);
-                            }
-
-                            Object[] rowData = {
-                                time,
-                                n.getType(),
-                                (cell == null ? userData : cell),
-                                n.getSequenceNumber(),
-                                n.getMessage(),
-                                n,
-                                n.getSource()
-                            };
+                            Object[] rowData = {time, n.getType(), n.getSequenceNumber(), n.getMessage()};
                             received++;
                             data.add(0, rowData);
 

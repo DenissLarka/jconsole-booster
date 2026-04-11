@@ -63,11 +63,11 @@ public class MaximizableInternalFrame extends JInternalFrame {
 
             if (pcl == null) {
                 pcl = ev -> {
-					String prop = ev.getPropertyName();
-					if (prop.equals("icon") || prop.equals("maximum") || prop.equals("closed")) {
-						updateFrame();
-					}
-				};
+                    String prop = ev.getPropertyName();
+                    if (prop.equals("icon") || prop.equals("maximum") || prop.equals("closed")) {
+                        updateFrame();
+                    }
+                };
                 addPropertyChangeListener(pcl);
             }
         } else if (pcl != null) {
@@ -191,119 +191,6 @@ public class MaximizableInternalFrame extends JInternalFrame {
                     c.setLocation(c.getX(), Math.max(2, y));
                 }
             }
-        }
-    }
-
-    // The rest of this class is messy and should not be relied upon. It
-    // uses reflection to access private, undocumented, and unsupported
-    // classes and fields.
-    //
-    // Install icon wrappers to display MDI icons when the buttons
-    // are in the menubar.
-    //
-    // Please note that this will very likely fail in a future version
-    // of Swing, but at least it should fail silently.
-    //
-    private static Object WP_MINBUTTON,
-            WP_RESTOREBUTTON,
-            WP_CLOSEBUTTON,
-            WP_MDIMINBUTTON,
-            WP_MDIRESTOREBUTTON,
-            WP_MDICLOSEBUTTON;
-
-    static {
-        if (JConsole.IS_WIN) {
-            try {
-                Class<?> Part = Class.forName("com.sun.java.swing.plaf.windows.TMSchema$Part");
-                if (Part != null) {
-                    WP_MINBUTTON = Part.getField("WP_MINBUTTON").get(null);
-                    WP_RESTOREBUTTON = Part.getField("WP_RESTOREBUTTON").get(null);
-                    WP_CLOSEBUTTON = Part.getField("WP_CLOSEBUTTON").get(null);
-                    WP_MDIMINBUTTON = Part.getField("WP_MDIMINBUTTON").get(null);
-                    WP_MDIRESTOREBUTTON = Part.getField("WP_MDIRESTOREBUTTON").get(null);
-                    WP_MDICLOSEBUTTON = Part.getField("WP_MDICLOSEBUTTON").get(null);
-                }
-
-                for (String str : new String[] {"maximize", "minimize", "iconify", "close"}) {
-                    String key = "InternalFrame." + str + "Icon";
-                    UIManager.put(key, new MDIButtonIcon(UIManager.getIcon(key)));
-                }
-            } catch (ClassNotFoundException ex) {
-                if (JConsole.debug) {
-                    ex.printStackTrace();
-                }
-            } catch (NoSuchFieldException ex) {
-                if (JConsole.debug) {
-                    ex.printStackTrace();
-                }
-            } catch (IllegalAccessException ex) {
-                if (JConsole.debug) {
-                    ex.printStackTrace();
-                }
-            }
-        }
-    }
-
-    // A wrapper class for the title pane button icons.
-    // This code should really go in the WindowsIconsFactory class.
-    private static class MDIButtonIcon implements Icon {
-        Icon windowsIcon;
-        Field part;
-
-        MDIButtonIcon(Icon icon) {
-            windowsIcon = icon;
-
-            if (WP_MINBUTTON != null) {
-                try {
-                    part = windowsIcon.getClass().getDeclaredField("part");
-                    part.setAccessible(true);
-                } catch (NoSuchFieldException ex) {
-                    if (JConsole.debug) {
-                        ex.printStackTrace();
-                    }
-                }
-            }
-        }
-
-        public void paintIcon(Component c, Graphics g, int x, int y) {
-            if (part != null) {
-                try {
-                    Object v = part.get(windowsIcon);
-
-                    if (c.getParent() instanceof JMenuBar) {
-                        // Use MDI icons
-                        if (v == WP_MINBUTTON) {
-                            part.set(windowsIcon, WP_MDIMINBUTTON);
-                        } else if (v == WP_RESTOREBUTTON) {
-                            part.set(windowsIcon, WP_MDIRESTOREBUTTON);
-                        } else if (v == WP_CLOSEBUTTON) {
-                            part.set(windowsIcon, WP_MDICLOSEBUTTON);
-                        }
-                    } else {
-                        // Use regular icons
-                        if (v == WP_MDIMINBUTTON) {
-                            part.set(windowsIcon, WP_MINBUTTON);
-                        } else if (v == WP_MDIRESTOREBUTTON) {
-                            part.set(windowsIcon, WP_RESTOREBUTTON);
-                        } else if (v == WP_MDICLOSEBUTTON) {
-                            part.set(windowsIcon, WP_CLOSEBUTTON);
-                        }
-                    }
-                } catch (IllegalAccessException ex) {
-                    if (JConsole.debug) {
-                        ex.printStackTrace();
-                    }
-                }
-            }
-            windowsIcon.paintIcon(c, g, x, y);
-        }
-
-        public int getIconWidth() {
-            return windowsIcon.getIconWidth();
-        }
-
-        public int getIconHeight() {
-            return windowsIcon.getIconHeight();
         }
     }
 

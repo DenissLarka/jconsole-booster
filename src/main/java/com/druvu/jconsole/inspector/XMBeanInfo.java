@@ -132,7 +132,8 @@ public class XMBeanInfo extends JPanel {
         infoTable.addKeyListener(new Utils.CopyKeyAdapter());
         infoTable.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
         JScrollPane infoTableScrollPane = new JScrollPane(infoTable);
-        infoBorderPanel.setBorder(BorderFactory.createTitledBorder("MBeanInfoPlaceHolder"));
+        infoBorderPanel.setBorder(
+                BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(), "MBeanInfoPlaceHolder"));
         infoBorderPanel.add(infoTableScrollPane);
         // Descriptor table
         //
@@ -150,7 +151,8 @@ public class XMBeanInfo extends JPanel {
         descTable.addKeyListener(new Utils.CopyKeyAdapter());
         descTable.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
         JScrollPane descTableScrollPane = new JScrollPane(descTable);
-        descBorderPanel.setBorder(BorderFactory.createTitledBorder(Messages.DESCRIPTOR));
+        descBorderPanel.setBorder(
+                BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(), Messages.DESCRIPTOR));
         descBorderPanel.add(descTableScrollPane);
         // Add the two tables to the grid
         //

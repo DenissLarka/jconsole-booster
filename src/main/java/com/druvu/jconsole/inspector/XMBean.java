@@ -25,9 +25,8 @@
 
 package com.druvu.jconsole.inspector;
 
-import com.druvu.jconsole.jmx.ProxyClient.SnapshotMBeanServerConnection;
+import com.druvu.jconsole.inspector.api.MBeanService;
 import com.druvu.jconsole.launcher.JConsole;
-import com.druvu.jconsole.ui.tabs.MBeansTab;
 import java.io.IOException;
 import javax.management.*;
 import javax.swing.Icon;
@@ -38,7 +37,7 @@ public class XMBean {
 
     private static final Logger logger = LoggerFactory.getLogger(XMBean.class);
 
-    private final MBeansTab mbeansTab;
+    private final MBeanService mbeanService;
     private final ObjectName objectName;
     private Icon icon;
     private String text;
@@ -47,8 +46,8 @@ public class XMBean {
     private MBeanInfo mbeanInfo;
     private final Object mbeanInfoLock = new Object();
 
-    public XMBean(ObjectName objectName, MBeansTab mbeansTab) {
-        this.mbeansTab = mbeansTab;
+    public XMBean(ObjectName objectName, MBeanService mbeanService) {
+        this.mbeanService = mbeanService;
         this.objectName = objectName;
         text = objectName.getKeyProperty("name");
         if (text == null) {
@@ -61,12 +60,12 @@ public class XMBean {
         }
     }
 
-    MBeanServerConnection getMBeanServerConnection() {
-        return mbeansTab.getMBeanServerConnection();
+    public MBeanServerConnection getMBeanServerConnection() {
+        return mbeanService.getMBeanServerConnection();
     }
 
-    SnapshotMBeanServerConnection getSnapshotMBeanServerConnection() {
-        return mbeansTab.getSnapshotMBeanServerConnection();
+    public MBeanServerConnection getSnapshotMBeanServerConnection() {
+        return mbeanService.getSnapshotMBeanServerConnection();
     }
 
     public Boolean isBroadcaster() {

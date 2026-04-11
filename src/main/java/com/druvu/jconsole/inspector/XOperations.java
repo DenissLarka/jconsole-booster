@@ -140,6 +140,7 @@ public abstract class XOperations extends JPanel implements ActionListener {
             }
 
             methodButton = new JButton(operations[i].getName());
+            methodButton.setFont(new Font(Font.DIALOG, Font.PLAIN, 11));
             methodButton.setToolTipText(operations[i].getDescription());
             boolean callable = isCallable(operations[i].getSignature());
             if (callable) {

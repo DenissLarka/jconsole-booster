@@ -25,8 +25,8 @@
 
 package com.druvu.jconsole.inspector;
 
+import com.druvu.jconsole.inspector.api.MBeanService;
 import com.druvu.jconsole.launcher.JConsole;
-import com.druvu.jconsole.ui.tabs.MBeansTab;
 import com.druvu.jconsole.util.Messages;
 import java.awt.Color;
 import java.io.IOException;
@@ -54,16 +54,16 @@ public class XTree extends JTree {
         }
     }
 
-    private MBeansTab mbeansTab;
+    private MBeanService mbeanService;
     private Map<String, DefaultMutableTreeNode> nodes = new HashMap<String, DefaultMutableTreeNode>();
 
-    public XTree(MBeansTab mbeansTab) {
-        this(new DefaultMutableTreeNode("MBeanTreeRootNode"), mbeansTab);
+    public XTree(MBeanService mbeanService) {
+        this(new DefaultMutableTreeNode("MBeanTreeRootNode"), mbeanService);
     }
 
-    public XTree(TreeNode root, MBeansTab mbeansTab) {
+    public XTree(TreeNode root, MBeanService mbeanService) {
         super(root, true);
-        this.mbeansTab = mbeansTab;
+        this.mbeanService = mbeanService;
         setRootVisible(false);
         setShowsRootHandles(true);
         ToolTipManager.sharedInstance().registerComponent(this);
@@ -278,7 +278,7 @@ public class XTree extends JTree {
         }
         for (Dn dn : dns) {
             ObjectName mbean = dn.getObjectName();
-            XMBean xmbean = new XMBean(mbean, mbeansTab);
+            XMBean xmbean = new XMBean(mbean, mbeanService);
             addMBeanToView(mbean, xmbean, dn);
         }
     }
@@ -287,7 +287,7 @@ public class XTree extends JTree {
     public synchronized void addMBeanToView(ObjectName mbean) {
         // Build XMBean for the given MBean
         //
-        XMBean xmbean = new XMBean(mbean, mbeansTab);
+        XMBean xmbean = new XMBean(mbean, mbeanService);
         // Build Dn for the given MBean
         //
         Dn dn = new Dn(mbean);

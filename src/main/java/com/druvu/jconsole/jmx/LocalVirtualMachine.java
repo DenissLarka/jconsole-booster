@@ -25,6 +25,10 @@
 
 package com.druvu.jconsole.jmx;
 
+import com.druvu.jconsole.launcher.JConsole;
+import com.sun.tools.attach.AttachNotSupportedException;
+import com.sun.tools.attach.VirtualMachine;
+import com.sun.tools.attach.VirtualMachineDescriptor;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -32,12 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-
-import com.druvu.jconsole.launcher.JConsole;
-import com.sun.tools.attach.AttachNotSupportedException;
-import com.sun.tools.attach.VirtualMachine;
-import com.sun.tools.attach.VirtualMachineDescriptor;
-
 import jdk.internal.agent.ConnectorAddressLink;
 import sun.jvmstat.monitor.HostIdentifier;
 import sun.jvmstat.monitor.MonitorException;

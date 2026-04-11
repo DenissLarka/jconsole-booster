@@ -68,8 +68,8 @@ public class Utilities {
     }
 
     /**
-     * A slightly modified border for JScrollPane to be used with a JTable inside a JTabbedPane. It has only the top part,
-     * and the rest is clipped to make the overall border less thick. The top border helps differentiate the
+     * A slightly modified border for JScrollPane to be used with a JTable inside a JTabbedPane. It has only the top
+     * part, and the rest is clipped to make the overall border less thick. The top border helps differentiate the
      * containing table from its container.
      */
     public static JScrollPane newTableScrollPane(JComponent comp) {

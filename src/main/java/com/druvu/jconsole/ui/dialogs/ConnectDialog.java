@@ -198,7 +198,7 @@ public class ConnectDialog extends InternalDialog
         JPanel userPwdPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 0, 0));
         userPwdPanel.setBorder(new EmptyBorder(12, 0, 0, 0)); // top padding
 
-        int tfWidth = JConsole.IS_WIN ? 12 : 8;
+        int tfWidth = 8;
 
         userNameTF = new JTextField(tfWidth);
         userNameTF.addActionListener(connectAction);
@@ -235,13 +235,8 @@ public class ConnectDialog extends InternalDialog
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.TRAILING));
         buttonPanel.setBorder(new EmptyBorder(12, 12, 2, 12));
-        if (JConsole.IS_GTK) {
-            buttonPanel.add(cancelButton);
-            buttonPanel.add(connectButton);
-        } else {
-            buttonPanel.add(connectButton);
-            buttonPanel.add(cancelButton);
-        }
+        buttonPanel.add(connectButton);
+        buttonPanel.add(cancelButton);
         bottomPanel.add(buttonPanel, NORTH);
 
         bottomPanel.add(statusBar, SOUTH);
@@ -360,12 +355,8 @@ public class ConnectDialog extends InternalDialog
             super(model);
             this.vmModel = model;
 
-            // Remove vertical lines, expect for GTK L&F.
-            // (because GTK doesn't show header dividers)
-            if (!JConsole.IS_GTK) {
-                setShowVerticalLines(false);
-                setIntercellSpacing(new Dimension(0, 1));
-            }
+            setShowVerticalLines(false);
+            setIntercellSpacing(new Dimension(0, 1));
 
             // Double-click handler
             addMouseListener(new MouseAdapter() {

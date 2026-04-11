@@ -37,8 +37,8 @@ public class HTMLPane extends JEditorPane {
         setContentType("text/html");
         setEditable(false);
         ((DefaultCaret) getCaret()).setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
-		// Listen for selection changes
-		addCaretListener(e -> setHasSelection(e.getDot() != e.getMark()));
+        // Listen for selection changes
+        addCaretListener(e -> setHasSelection(e.getDot() != e.getMark()));
     }
 
     public synchronized void setHasSelection(boolean b) {

@@ -27,6 +27,7 @@ package com.druvu.jconsole.launcher;
 
 import com.druvu.jconsole.jmx.LocalVirtualMachine;
 import com.druvu.jconsole.jmx.ProxyClient;
+import com.druvu.jconsole.plugins.jtop.JTopPlugin;
 import com.druvu.jconsole.ui.components.OutputViewer;
 import com.druvu.jconsole.ui.core.VMInternalFrame;
 import com.druvu.jconsole.ui.core.VMPanel;
@@ -51,18 +52,13 @@ import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.beans.PropertyVetoException;
-import java.io.File;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.MalformedURLException;
 import java.net.NoRouteToHostException;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ServiceConfigurationError;
-import java.util.ServiceLoader;
 import javax.net.ssl.SSLHandshakeException;
 import javax.security.auth.login.FailedLoginException;
 import javax.swing.JButton;
@@ -88,12 +84,6 @@ import org.slf4j.LoggerFactory;
 public class JConsole extends JFrame implements ActionListener, InternalFrameListener {
 
     private static final Logger logger = LoggerFactory.getLogger(JConsole.class);
-    public static /* final */ boolean IS_GTK;
-    public static /* final */ boolean IS_WIN;
-
-    static {
-        updateLafValues();
-    }
 
     private static void applyLookAndFeel(Color color) {
         try {
@@ -106,19 +96,10 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
         }
     }
 
-    static void updateLafValues() {
-        String lafName = UIManager.getLookAndFeel().getClass().getName();
-        IS_GTK = lafName.equals("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
-        IS_WIN = lafName.equals("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
-
-        // BorderedComponent.updateLafValues();
-    }
-
     private static final String title = Messages.JAVA_MONITORING___MANAGEMENT_CONSOLE;
     public static final String ROOT_URL = "service:jmx:";
 
     private static int updateInterval = 4000;
-    private static String pluginPath = "";
 
     private JMenuBar menuBar;
     private JMenuItem hotspotMI, connectMI, exitMI;
@@ -810,7 +791,6 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
         ArgumentParser.parse(args).ifPresent(options -> {
             debug = options.debug();
             updateInterval = options.updateInterval();
-            pluginPath = options.pluginPath();
 
             applyLookAndFeel(options.color());
             mainInit(options);
@@ -832,115 +812,23 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
         return true;
     }
 
-    private static ServiceLoader<JConsolePlugin> pluginService = null;
-
-    // Return a list of newly instantiated JConsolePlugin objects
+    /**
+     * Returns a fresh list of bundled {@link JConsolePlugin} instances. To register an additional plugin, drop the
+     * source under {@code com.druvu.jconsole.plugins.<name>} and add a {@code new XxxPlugin()} entry below.
+     */
     public static synchronized List<JConsolePlugin> getPlugins() {
-        if (pluginService == null) {
-            // First time loading and initializing the plugins
-            initPluginService(pluginPath);
-        } else {
-            // reload the plugin so that new instances will be created
-            pluginService.reload();
-        }
-
-        List<JConsolePlugin> plugins = new ArrayList<JConsolePlugin>();
-        for (JConsolePlugin p : pluginService) {
-            plugins.add(p);
-        }
-        return plugins;
-    }
-
-    private static void initPluginService(String pluginPath) {
-        if (pluginPath.length() > 0) {
-            try {
-                ClassLoader pluginCL = new URLClassLoader(pathToURLs(pluginPath));
-                ServiceLoader<JConsolePlugin> plugins = ServiceLoader.load(JConsolePlugin.class, pluginCL);
-                // validate all plugins
-                for (JConsolePlugin p : plugins) {
-                    if (isDebug()) {
-                        logger.info("Plugin {} loaded.", p.getClass());
-                    }
-                }
-                pluginService = plugins;
-            } catch (ServiceConfigurationError e) {
-                // Error occurs during initialisation of plugin
-                logger.error(Resources.format(Messages.FAIL_TO_LOAD_PLUGIN, e.getMessage()));
-            } catch (MalformedURLException e) {
-                if (JConsole.isDebug()) {
-                    logger.error("Invalid plugin path", e);
-                } else {
-                    logger.error(Resources.format(Messages.INVALID_PLUGIN_PATH, e.getMessage()));
-                }
-            }
-        }
-
-        if (pluginService == null) {
-            initEmptyPlugin();
-        }
-    }
-
-    private static void initEmptyPlugin() {
-        ClassLoader pluginCL = new URLClassLoader(new URL[0]);
-        pluginService = ServiceLoader.load(JConsolePlugin.class, pluginCL);
-    }
-
-    /**
-     * Utility method for converting a search path string to an array of directory and JAR file URLs.
-     *
-     * @param path the search path string
-     * @return the resulting array of directory and JAR file URLs
-     */
-    private static URL[] pathToURLs(String path) throws MalformedURLException {
-        String[] names = path.split(File.pathSeparator);
-        URL[] urls = new URL[names.length];
-        int count = 0;
-        for (String f : names) {
-            URL url = fileToURL(new File(f));
-            urls[count++] = url;
-        }
-        return urls;
-    }
-
-    /**
-     * Returns the directory or JAR file URL corresponding to the specified local file name.
-     *
-     * @param file the File object
-     * @return the resulting directory or JAR file URL, or null if unknown
-     */
-    private static URL fileToURL(File file) throws MalformedURLException {
-        String name;
-        try {
-            name = file.getCanonicalPath();
-        } catch (IOException e) {
-            name = file.getAbsolutePath();
-        }
-        name = name.replace(File.separatorChar, '/');
-        if (!name.startsWith("/")) {
-            name = "/" + name;
-        }
-        // If the file does not exist, then assume that it's a directory
-        if (!file.isFile()) {
-            name = name + "/";
-        }
-        return new URL("file", "", name);
+        return List.of(new JTopPlugin());
     }
 
     private static class FixedJRootPane extends JRootPane {
-        public void updateUI() {
-            updateLafValues();
-            super.updateUI();
-        }
-
         /**
-         * The revalidate method seems to be the only one that gets called whenever there is a change of L&F or change
-         * of theme in Windows L&F and GTK L&F.
+         * The revalidate method seems to be the only one that gets called whenever there is a change of theme.
          */
         @Override
         public void revalidate() {
-            // Workaround for Swing bug where the titledborder in both
-            // GTK and Windows L&F's use calculated colors instead of
-            // the highlight/shadow colors from the theme.
+            // Workaround for Swing bug where the titledborder uses
+            // calculated colors instead of the highlight/shadow colors
+            // from the theme.
             //
             // Putting null removes any previous override and causes a
             // fallback to the current L&F's value.
@@ -951,14 +839,6 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
                 Color shadow = UIManager.getColor("ToolBar.shadow");
                 border = new BorderUIResource.EtchedBorderUIResource(highlight, shadow);
                 UIManager.put("TitledBorder.border", border);
-            }
-
-            if (IS_GTK) {
-                // Workaround for Swing bug where the titledborder in
-                // GTK L&F use hardcoded color and font for the title
-                // instead of getting them from the theme.
-                UIManager.put("TitledBorder.titleColor", UIManager.getColor("Label.foreground"));
-                UIManager.put("TitledBorder.font", UIManager.getFont("Label.font"));
             }
             super.revalidate();
         }

@@ -38,7 +38,6 @@ public class ArgumentParser {
      */
     public static Optional<JConsoleOptions> parse(String[] args) {
         int updateInterval = 4000;
-        String pluginPath = "";
         boolean noTile = false;
         boolean debug = false;
         Color color = null;
@@ -68,13 +67,6 @@ public class ArgumentParser {
                         return Optional.empty();
                     }
                 } catch (NumberFormatException ex) {
-                    usage();
-                    return Optional.empty();
-                }
-            } else if (arg.equals("-pluginpath")) {
-                if (argIndex < args.length && !args[argIndex].startsWith("-")) {
-                    pluginPath = args[argIndex++];
-                } else {
                     usage();
                     return Optional.empty();
                 }
@@ -127,7 +119,7 @@ public class ArgumentParser {
             }
         }
 
-        return Optional.of(new JConsoleOptions(noTile, hotspot, debug, updateInterval, pluginPath, color, urls, vmids));
+        return Optional.of(new JConsoleOptions(noTile, hotspot, debug, updateInterval, color, urls, vmids));
     }
 
     /**

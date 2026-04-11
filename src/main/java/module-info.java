@@ -23,7 +23,6 @@
  * questions.
  */
 
-import com.sun.tools.jconsole.JConsolePlugin;
 import javax.management.remote.JMXConnectorProvider;
 import javax.management.remote.JMXConnectorServerProvider;
 
@@ -37,7 +36,6 @@ import javax.management.remote.JMXConnectorServerProvider;
  * </dl>
  *
  * @toolGuide jconsole
- * @uses com.sun.tools.jconsole.JConsolePlugin
  * @moduleGraph
  * @since 9
  */
@@ -65,7 +63,6 @@ module com.druvu.jconsole {
     exports com.druvu.jconsole.ui.dialogs;
     exports com.druvu.jconsole.ui.tabs;
 
-    uses JConsolePlugin;
     uses JMXConnectorServerProvider;
     uses JMXConnectorProvider;
 }

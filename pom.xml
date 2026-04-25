@@ -6,7 +6,42 @@
 
 	<groupId>com.druvu</groupId>
 	<artifactId>jconsole-booster</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>1.0.0</version>
+	<packaging>jar</packaging>
+
+	<name>JConsole Booster</name>
+	<description>An OpenJDK 25+ fork of JConsole with color theming, markup-driven Operations widgets, connection bookmarks, parameter persistence, and a flat TabularData viewer.</description>
+	<url>https://github.com/DenissLarka/jconsole-booster</url>
+
+	<licenses>
+		<license>
+			<name>GNU General Public License, Version 2 with the Classpath Exception</name>
+			<url>https://openjdk.org/legal/gplv2+ce.html</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<name>Deniss LARKA</name>
+			<email>deniss.larka@gmail.com</email>
+		</developer>
+	</developers>
+
+	<scm>
+		<url>https://github.com/DenissLarka/jconsole-booster</url>
+		<connection>scm:git:https://github.com/DenissLarka/jconsole-booster</connection>
+		<developerConnection>scm:git:https://github.com/DenissLarka/jconsole-booster</developerConnection>
+		<tag>HEAD</tag>
+	</scm>
+
+	<distributionManagement>
+		<repository>
+			<id>github</id>
+			<name>GitHub Packages</name>
+			<url>https://maven.pkg.github.com/DenissLarka/jconsole-booster/</url>
+		</repository>
+	</distributionManagement>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

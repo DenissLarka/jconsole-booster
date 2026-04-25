@@ -13,6 +13,7 @@
 		<java.version>25</java.version>
 		<launcher.name>JConsoleApp</launcher.name>
 		<lombok.version>1.18.46</lombok.version>
+		<target.port>7091</target.port>
 	</properties>
 
 	<dependencies>
@@ -172,6 +173,25 @@
 							</arguments>
 						</configuration>
 					</execution>
+
+					<execution>
+						<id>start-target</id>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+
+						<configuration>
+							<executable>java</executable>
+							<classpathScope>test</classpathScope>
+							<arguments>
+								<argument>-Xmx256m</argument>
+								<argument>-cp</argument>
+								<classpath/>
+								<argument>com.druvu.jconsole.testjvm.SampleTargetJvm</argument>
+								<argument>${target.port}</argument>
+							</arguments>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
 
@@ -202,5 +222,36 @@
 		</plugins>
 	</build>
 
+	<profiles>
+		<!-- Activated by jconsole.ps1 when the user passes a connection target on the
+		     command line, e.g. ./jconsole.ps1 localhost:7091. The target is appended
+		     to the start exec arguments so the connect dialog comes up pre-filled. -->
+		<profile>
+			<id>jconsole-with-target</id>
+			<activation>
+				<property>
+					<name>jconsole.target</name>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>start</id>
+								<configuration>
+									<arguments combine.children="append">
+										<argument>${jconsole.target}</argument>
+									</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 
 </project>

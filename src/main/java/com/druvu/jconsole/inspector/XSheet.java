@@ -26,6 +26,13 @@
 package com.druvu.jconsole.inspector;
 
 import com.druvu.jconsole.inspector.XNodeInfo.Type;
+import com.druvu.jconsole.inspector.attributes.XMBeanAttributes;
+import com.druvu.jconsole.inspector.info.XMBeanInfo;
+import com.druvu.jconsole.inspector.notifications.XMBeanNotifications;
+import com.druvu.jconsole.inspector.operations.MimeHandler;
+import com.druvu.jconsole.inspector.operations.XMBeanOperations;
+import com.druvu.jconsole.inspector.operations.XOperations;
+import com.druvu.jconsole.inspector.viewers.XDataViewer;
 import com.druvu.jconsole.launcher.JConsole;
 import com.druvu.jconsole.ui.tabs.MBeansTab;
 import com.druvu.jconsole.util.Messages;
@@ -53,6 +60,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.border.LineBorder;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -146,6 +154,12 @@ public class XSheet extends JPanel implements ActionListener, NotificationListen
     // Call on EDT
     private void showErrorDialog(Object message, String title) {
         new ThreadDialog(this, message, title, JOptionPane.ERROR_MESSAGE).run();
+    }
+
+    private static Dimension operationDialogSize(Dimension natural) {
+        int w = Math.min(Math.max(natural.width, 1100), 1400);
+        int h = Math.min(Math.max(natural.height, 750), 900);
+        return new Dimension(w, h);
     }
 
     public boolean isMBeanNode(DefaultMutableTreeNode node) {
@@ -247,7 +261,7 @@ public class XSheet extends JPanel implements ActionListener, NotificationListen
         final XMBeanInfo mbi = mbeanInfo;
         switch (uo.getType()) {
             case ATTRIBUTE:
-                SwingWorker<MBeanAttributeInfo, Void> sw = new SwingWorker<MBeanAttributeInfo, Void>() {
+                SwingWorker<MBeanAttributeInfo, Void> sw = new SwingWorker<>() {
                     @Override
                     public MBeanAttributeInfo doInBackground() {
                         Object attrData = uo.getData();
@@ -292,8 +306,7 @@ public class XSheet extends JPanel implements ActionListener, NotificationListen
                             Throwable t = Utils.getActualException(e);
                             if (JConsole.isDebug()) {
                                 logger.error(
-                                        "Problem displaying MBean " + "attribute for MBean [" + mbean.getObjectName()
-                                                + "]",
+                                        "Problem displaying MBean attribute for MBean [" + mbean.getObjectName() + "]",
                                         t);
                             }
                             showErrorDialog(t.toString(), Messages.PROBLEM_DISPLAYING_MBEAN);
@@ -346,12 +359,11 @@ public class XSheet extends JPanel implements ActionListener, NotificationListen
         }
         mbean = (XMBean) uo.getData();
         final XMBean xmb = mbean;
-        SwingWorker<MBeanInfo, Void> sw = new SwingWorker<MBeanInfo, Void>() {
+        SwingWorker<MBeanInfo, Void> sw = new SwingWorker<>() {
             @Override
             public MBeanInfo doInBackground()
                     throws InstanceNotFoundException, IntrospectionException, ReflectionException, IOException {
-                MBeanInfo mbi = xmb.getMBeanInfo();
-                return mbi;
+				return xmb.getMBeanInfo();
             }
 
             @Override
@@ -401,7 +413,7 @@ public class XSheet extends JPanel implements ActionListener, NotificationListen
             return;
         }
         mbean = (XMBean) uo.getData();
-        SwingWorker<MBeanInfo, Void> sw = new SwingWorker<MBeanInfo, Void>() {
+        SwingWorker<MBeanInfo, Void> sw = new SwingWorker<>() {
             @Override
             public MBeanInfo doInBackground()
                     throws InstanceNotFoundException, IntrospectionException, ReflectionException, IOException {
@@ -548,7 +560,7 @@ public class XSheet extends JPanel implements ActionListener, NotificationListen
         }
     }
 
-    /** Update notification node label in MBean tree: "Notifications[received]". */
+    /** Update the notification node label in the MBean tree: "Notifications[received]". */
     // Call on EDT
     private void updateReceivedNotifications(DefaultMutableTreeNode emitter, long received, boolean bold) {
         String text = Messages.NOTIFICATIONS + "[" + received + "]";
@@ -560,13 +572,13 @@ public class XSheet extends JPanel implements ActionListener, NotificationListen
         updateNotificationsNodeLabel(emitter, text);
     }
 
-    /** Update notification node label in MBean tree: "Notifications". */
+    /** Update the notification node label in the MBean tree: "Notifications". */
     // Call on EDT
     private void clearNotifications() {
         updateNotificationsNodeLabel(currentNode, Messages.NOTIFICATIONS);
     }
 
-    /** Update notification node label in MBean tree: "Notifications[0]". */
+    /** Update the notification node label in the MBean tree: "Notifications[0]". */
     // Call on EDT
     private void clearNotifications0() {
         updateNotificationsNodeLabel(currentNode, Messages.NOTIFICATIONS + "[0]");
@@ -627,6 +639,16 @@ public class XSheet extends JPanel implements ActionListener, NotificationListen
     public void handleNotification(Notification e, Object handback) {
         // Operation result
         if (e.getType().equals(XOperations.OPERATION_INVOCATION_EVENT)) {
+            // Phase 2.A2: byte[] result with a {{returns:mime=...}} hint is
+            // routed through MimeHandler instead of the generic array viewer.
+            if (handback instanceof byte[] bytes && e.getSource() instanceof JButton button) {
+                javax.management.MBeanOperationInfo opInfo = mbeanOperations.getOperationInfo(button);
+                Component dialogParent = SwingUtilities.getWindowAncestor(this);
+                if (opInfo != null
+                        && MimeHandler.handle(dialogParent, opInfo.getName(), opInfo.getDescription(), bytes)) {
+                    return;
+                }
+            }
             final Object message;
             if (handback == null) {
                 JTextArea textArea = new JTextArea("null");
@@ -644,24 +666,18 @@ public class XSheet extends JPanel implements ActionListener, NotificationListen
                     textArea.setEnabled(true);
                     textArea.setRows(textArea.getLineCount());
                     JScrollPane scrollPane = new JScrollPane(textArea);
-                    Dimension d = scrollPane.getPreferredSize();
-                    if (d.getWidth() > 1000 || d.getHeight() > 800) {
-                        scrollPane.setPreferredSize(new Dimension(1000, 800));
-                    }
+                    scrollPane.setPreferredSize(operationDialogSize(scrollPane.getPreferredSize()));
                     message = scrollPane;
                 } else {
                     if (!(comp instanceof JScrollPane)) {
                         comp = new JScrollPane(comp);
                     }
-                    Dimension d = comp.getPreferredSize();
-                    if (d.getWidth() > 1000 || d.getHeight() > 800) {
-                        comp.setPreferredSize(new Dimension(1000, 800));
-                    }
+                    comp.setPreferredSize(operationDialogSize(comp.getPreferredSize()));
                     message = comp;
                 }
             }
             new ThreadDialog(
-                            (Component) e.getSource(),
+                            SwingUtilities.getWindowAncestor(this),
                             message,
                             Messages.OPERATION_RETURN_VALUE,
                             JOptionPane.INFORMATION_MESSAGE)

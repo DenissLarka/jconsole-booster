@@ -33,6 +33,7 @@ import com.druvu.jconsole.ui.core.VMPanel;
 import com.druvu.jconsole.ui.dialogs.AboutDialog;
 import com.druvu.jconsole.ui.dialogs.ConnectDialog;
 import com.druvu.jconsole.ui.dialogs.CreateMBeanDialog;
+import com.druvu.jconsole.ui.menu.ConnectionBookmarksMenu;
 import com.druvu.jconsole.util.Messages;
 import com.druvu.jconsole.util.Resources;
 import com.druvu.jconsole.util.Utilities;
@@ -146,6 +147,8 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
         connectMI.addActionListener(this);
         connectionMenu.add(connectMI);
 
+        connectionMenu.addSeparator();
+        connectionMenu.add(ConnectionBookmarksMenu.build("Bookmarks", ConnectionBookmarksMenu.defaultHandler(this)));
         connectionMenu.addSeparator();
 
         exitMI = new JMenuItem(Messages.EXIT);

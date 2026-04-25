@@ -1,0 +1,27 @@
+# JConsole Booster — connection bookmarks
+#
+# Lines starting with '#' are comments. Blank lines are ignored.
+#
+# Syntax:
+#   [GROUP NAME]               ← submenu header
+#   displayName@host:port      ← one bookmark per line
+#   ---                        ← horizontal separator within the current group
+#
+# The right-hand side of '@' is a host:port — it is connected to via JMXMP
+# (service:jmx:jmxmp://host:port). JMXMP is the only supported protocol.
+#
+# Inline display markup (left-hand side of '@'):
+#   *bold-text*                → bold
+#   [color text]               → colored text (allowed colors: red, blue,
+#                                 green, orange, gray, black, purple)
+#
+# This file is your own — edit it freely. Delete it to regenerate this default.
+
+[Local]
+local sample target@localhost:7091
+
+[Examples]
+[orange staging-1]@stg.example.com:7091
+[red prod-1]@prod-1.example.com:7091
+---
+*london-prod*@london-prod.example.com:7091

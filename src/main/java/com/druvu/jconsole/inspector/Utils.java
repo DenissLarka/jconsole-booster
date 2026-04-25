@@ -25,6 +25,7 @@
 
 package com.druvu.jconsole.inspector;
 
+import com.druvu.jconsole.inspector.operations.widgets.ParamWidget;
 import java.awt.event.*;
 import java.lang.reflect.*;
 import java.math.BigDecimal;
@@ -332,15 +333,17 @@ public class Utils {
      * This method is responsible for converting the inputs given by the user into a useful object array for passing
      * into a parameter array.
      */
-    public static Object[] getParameters(XTextField[] inputs, String[] params) throws Exception {
+    public static Object[] getParameters(ParamWidget[] inputs, String[] params) throws Exception {
         Object result[] = new Object[inputs.length];
-        Object userInput;
         for (int i = 0; i < inputs.length; i++) {
-            userInput = inputs[i].getValue();
-            // if it's already a complex object, use the value
-            // else try to instantiate with string constructor
+            Object userInput = inputs[i].getValue();
+            // if it's already a complex object, use the value;
+            // if the widget produced bytes (file picker for byte[]), pass through;
+            // else try to instantiate with string constructor.
             if (userInput instanceof XObject) {
                 result[i] = ((XObject) userInput).getObject();
+            } else if (userInput instanceof byte[]) {
+                result[i] = userInput;
             } else {
                 result[i] = createObjectFromString(params[i].toString(), (String) userInput);
             }

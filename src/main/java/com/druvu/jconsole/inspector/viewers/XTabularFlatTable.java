@@ -17,20 +17,17 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 
 /**
- * Flat multi-column view of a {@link TabularData}: one row per composite,
- * one column per {@code CompositeType} field. Replaces the JDK default
- * per-row arrow navigator (one composite at a time, prev/next buttons),
- * which becomes unusable past a handful of rows.
+ * Flat multi-column view of a {@link TabularData}: one row per composite, one column per {@code CompositeType} field.
+ * Replaces the JDK default per-row arrow navigator (one composite at a time, prev/next buttons), which becomes unusable
+ * past a handful of rows.
  *
- * <p>Column ordering puts {@link TabularType#getIndexNames() index columns}
- * first (in declared order), followed by remaining fields alphabetically.
- * Index columns render in italic so the row-key tuple is visually obvious.
+ * <p>Column ordering puts {@link TabularType#getIndexNames() index columns} first (in declared order), followed by
+ * remaining fields alphabetically. Index columns render in italic so the row-key tuple is visually obvious.
  *
- * <p>Rows are sorted by the index-name tuple via
- * {@link XOpenTypeViewer.TabularDataComparator}.
+ * <p>Rows are sorted by the index-name tuple via {@link XOpenTypeViewer.TabularDataComparator}.
  *
- * <p>v1 limitation: nested complex cell values (CompositeData / TabularData
- * inside a row) render via {@code toString()} — no double-click drill-down.
+ * <p>v1 limitation: nested complex cell values (CompositeData / TabularData inside a row) render via {@code toString()}
+ * — no double-click drill-down.
  */
 final class XTabularFlatTable extends XOpenTypeViewer.XOpenTypeData {
 
@@ -81,8 +78,8 @@ final class XTabularFlatTable extends XOpenTypeViewer.XOpenTypeData {
     @Override
     public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
         Object value = getValueAt(row, column);
-        Component comp = renderer.getTableCellRendererComponent(
-                this, value, isCellSelected(row, column), false, row, column);
+        Component comp =
+                renderer.getTableCellRendererComponent(this, value, isCellSelected(row, column), false, row, column);
         if (normalFont == null) {
             normalFont = comp.getFont();
             italicFont = normalFont.deriveFont(Font.ITALIC);

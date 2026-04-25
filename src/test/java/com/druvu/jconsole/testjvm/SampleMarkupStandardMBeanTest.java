@@ -19,9 +19,10 @@ public class SampleMarkupStandardMBeanTest {
                 case "scheduleAt" -> assertParamDescription(op, 0, "{{date:dd.MM.yyyy}}");
                 case "runQuery" -> assertParamDescription(op, 0, "{{text:rows=10}}");
                 case "uploadCsv" -> assertParamDescription(op, 0, "{{file:*.csv}}");
-                case "getConfig" -> Assert.assertTrue(
-                        op.getDescription().contains("{{returns:format=json}}"),
-                        "operation description: " + op.getDescription());
+                case "getConfig" ->
+                    Assert.assertTrue(
+                            op.getDescription().contains("{{returns:format=json}}"),
+                            "operation description: " + op.getDescription());
             }
         }
     }
@@ -29,8 +30,7 @@ public class SampleMarkupStandardMBeanTest {
     private static void assertParamDescription(MBeanOperationInfo op, int idx, String expectedSubstring) {
         MBeanParameterInfo[] params = op.getSignature();
         Assert.assertTrue(
-                params.length > idx,
-                op.getName() + " has only " + params.length + " parameters, wanted index " + idx);
+                params.length > idx, op.getName() + " has only " + params.length + " parameters, wanted index " + idx);
         Assert.assertTrue(
                 params[idx].getDescription().contains(expectedSubstring),
                 op.getName()

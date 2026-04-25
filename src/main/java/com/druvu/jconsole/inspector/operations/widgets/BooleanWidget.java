@@ -4,9 +4,8 @@ import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 
 /**
- * Checkbox used automatically for {@code boolean}/{@code Boolean} parameters.
- * No markup tag is needed — the factory selects this when the parameter type
- * is boolean.
+ * Checkbox used automatically for {@code boolean}/{@code Boolean} parameters. No markup tag is needed — the factory
+ * selects this when the parameter type is boolean.
  */
 public final class BooleanWidget implements ParamWidget {
 

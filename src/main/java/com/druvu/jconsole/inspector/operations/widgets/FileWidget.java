@@ -17,10 +17,9 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * File picker for {@code {{file}}} or {@code {{file:*.csv,*.json}}}. The
- * returned value is a {@link String} (UTF-8) when the parameter type is
- * {@code String}, or a {@code byte[]} when the parameter type is
- * {@code byte[]}. Falls back to {@code byte[]} for unknown parameter types.
+ * File picker for {@code {{file}}} or {@code {{file:*.csv,*.json}}}. The returned value is a {@link String} (UTF-8)
+ * when the parameter type is {@code String}, or a {@code byte[]} when the parameter type is {@code byte[]}. Falls back
+ * to {@code byte[]} for unknown parameter types.
  */
 @Slf4j
 public final class FileWidget implements ParamWidget {
@@ -68,10 +67,7 @@ public final class FileWidget implements ParamWidget {
         } catch (IOException ex) {
             log.warn("Could not read picked file {}: {}", path, ex.getMessage());
             JOptionPane.showMessageDialog(
-                    panel,
-                    "Could not read file: " + ex.getMessage(),
-                    "File error",
-                    JOptionPane.ERROR_MESSAGE);
+                    panel, "Could not read file: " + ex.getMessage(), "File error", JOptionPane.ERROR_MESSAGE);
         }
     }
 

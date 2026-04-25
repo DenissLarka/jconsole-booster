@@ -11,11 +11,10 @@ public class BundledDefaultConnectionsTest {
 
     @Test
     public void bundledDefaultParsesCleanly() throws Exception {
-        try (InputStream in = getClass().getResourceAsStream(
-                "/com/druvu/jconsole/ui/menu/connections-default.txt")) {
+        try (InputStream in = getClass().getResourceAsStream("/com/druvu/jconsole/ui/menu/connections-default.txt")) {
             Assert.assertNotNull(in, "bundled connections-default.txt resource missing");
-            List<BookmarkGroup> groups = ConnectionBookmarksLoader.parse(
-                    new InputStreamReader(in, StandardCharsets.UTF_8));
+            List<BookmarkGroup> groups =
+                    ConnectionBookmarksLoader.parse(new InputStreamReader(in, StandardCharsets.UTF_8));
             Assert.assertFalse(groups.isEmpty(), "bundled default should contain at least one group");
             for (BookmarkGroup g : groups) {
                 Assert.assertNotNull(g.name());

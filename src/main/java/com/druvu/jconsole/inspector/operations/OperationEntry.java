@@ -121,9 +121,8 @@ public class OperationEntry extends JPanel {
     }
 
     /**
-     * Persists the current input values for next time. Skips file-picker
-     * widgets (the bytes themselves aren't useful to re-fill — see plan
-     * Phase&nbsp;2.B). Called by {@link XOperations} on a successful invoke.
+     * Persists the current input values for next time. Skips file-picker widgets (the bytes themselves aren't useful to
+     * re-fill — see plan Phase&nbsp;2.B). Called by {@link XOperations} on a successful invoke.
      */
     public void saveCurrentValues() {
         if (stateStore == null || inputs == null) {

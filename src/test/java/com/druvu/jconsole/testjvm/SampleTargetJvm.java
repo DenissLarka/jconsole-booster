@@ -49,58 +49,66 @@ public final class SampleTargetJvm {
         startAllocationChurn();
         startNamedIdleThreads();
 
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            try {
-                connector.stop();
-            } catch (Exception ignored) {
-            }
-        }, "sample-shutdown"));
+        Runtime.getRuntime()
+                .addShutdownHook(new Thread(
+                        () -> {
+                            try {
+                                connector.stop();
+                            } catch (Exception ignored) {
+                            }
+                        },
+                        "sample-shutdown"));
 
         Thread.currentThread().join();
     }
 
     private static void startCpuChurn(SampleControl control) {
-        Thread t = new Thread(() -> {
-            Random rnd = new Random();
-            while (!Thread.currentThread().isInterrupted()) {
-                control.recordRequest();
-                long burnUntil = System.nanoTime() + ThreadLocalRandom.current().nextLong(20_000_000L, 80_000_000L);
-                double acc = 0;
-                while (System.nanoTime() < burnUntil) {
-                    acc += Math.sqrt(rnd.nextDouble());
-                }
-                if (acc < 0) {
-                    System.out.println(acc);
-                }
-                try {
-                    Thread.sleep(ThreadLocalRandom.current().nextInt(50, 250));
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    return;
-                }
-            }
-        }, "sample-cpu-churn");
+        Thread t = new Thread(
+                () -> {
+                    Random rnd = new Random();
+                    while (!Thread.currentThread().isInterrupted()) {
+                        control.recordRequest();
+                        long burnUntil =
+                                System.nanoTime() + ThreadLocalRandom.current().nextLong(20_000_000L, 80_000_000L);
+                        double acc = 0;
+                        while (System.nanoTime() < burnUntil) {
+                            acc += Math.sqrt(rnd.nextDouble());
+                        }
+                        if (acc < 0) {
+                            System.out.println(acc);
+                        }
+                        try {
+                            Thread.sleep(ThreadLocalRandom.current().nextInt(50, 250));
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            return;
+                        }
+                    }
+                },
+                "sample-cpu-churn");
         t.setDaemon(true);
         t.start();
     }
 
     private static void startAllocationChurn() {
-        Thread t = new Thread(() -> {
-            while (!Thread.currentThread().isInterrupted()) {
-                int size = ThreadLocalRandom.current().nextInt(64, 1024) * 1024;
-                byte[] junk = new byte[size];
-                junk[0] = 1;
-                if (junk[size - 1] == 99) {
-                    System.out.println("never");
-                }
-                try {
-                    Thread.sleep(ThreadLocalRandom.current().nextInt(20, 120));
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    return;
-                }
-            }
-        }, "sample-alloc-churn");
+        Thread t = new Thread(
+                () -> {
+                    while (!Thread.currentThread().isInterrupted()) {
+                        int size = ThreadLocalRandom.current().nextInt(64, 1024) * 1024;
+                        byte[] junk = new byte[size];
+                        junk[0] = 1;
+                        if (junk[size - 1] == 99) {
+                            System.out.println("never");
+                        }
+                        try {
+                            Thread.sleep(ThreadLocalRandom.current().nextInt(20, 120));
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            return;
+                        }
+                    }
+                },
+                "sample-alloc-churn");
         t.setDaemon(true);
         t.start();
     }
@@ -108,19 +116,21 @@ public final class SampleTargetJvm {
     private static void startNamedIdleThreads() {
         String[] names = {"sample-worker-1", "sample-worker-2", "sample-scheduler", "sample-io-poller"};
         for (String name : names) {
-            Thread t = new Thread(() -> {
-                Object lock = new Object();
-                synchronized (lock) {
-                    while (!Thread.currentThread().isInterrupted()) {
-                        try {
-                            lock.wait(5_000);
-                        } catch (InterruptedException e) {
-                            Thread.currentThread().interrupt();
-                            return;
+            Thread t = new Thread(
+                    () -> {
+                        Object lock = new Object();
+                        synchronized (lock) {
+                            while (!Thread.currentThread().isInterrupted()) {
+                                try {
+                                    lock.wait(5_000);
+                                } catch (InterruptedException e) {
+                                    Thread.currentThread().interrupt();
+                                    return;
+                                }
+                            }
                         }
-                    }
-                }
-            }, name);
+                    },
+                    name);
             t.setDaemon(true);
             t.start();
         }

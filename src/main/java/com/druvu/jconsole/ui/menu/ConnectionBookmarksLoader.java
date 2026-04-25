@@ -8,11 +8,11 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Parses the user-editable {@code connections.txt} bookmarks file into a list
- * of {@link BookmarkGroup}s. Malformed lines are logged at WARN level (with
- * line number) and skipped — never fatal.
+ * Parses the user-editable {@code connections.txt} bookmarks file into a list of {@link BookmarkGroup}s. Malformed
+ * lines are logged at WARN level (with line number) and skipped — never fatal.
  *
  * <p>File grammar:
+ *
  * <pre>
  * # comment lines and blank lines are ignored
  * [GROUP NAME]            ← submenu header
@@ -56,17 +56,11 @@ public final class ConnectionBookmarksLoader {
                 }
                 int at = line.indexOf('@');
                 if (at <= 0 || at == line.length() - 1) {
-                    log.warn(
-                            "connections.txt:{}: malformed entry (expected name@url): {}",
-                            lineNo,
-                            line);
+                    log.warn("connections.txt:{}: malformed entry (expected name@url): {}", lineNo, line);
                     continue;
                 }
                 if (current == null) {
-                    log.warn(
-                            "connections.txt:{}: bookmark before any [group] header — skipped: {}",
-                            lineNo,
-                            line);
+                    log.warn("connections.txt:{}: bookmark before any [group] header — skipped: {}", lineNo, line);
                     continue;
                 }
                 String name = line.substring(0, at).strip();

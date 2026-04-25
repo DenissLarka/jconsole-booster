@@ -64,11 +64,9 @@ public class SampleMarkup implements SampleMarkupMBean {
                         SimpleType.STRING,
                         SimpleType.STRING
                     });
-            return new TabularType(
-                    "OrderBook",
-                    "Resting orders indexed by (symbol, side, orderId)",
-                    row,
-                    new String[] {"symbol", "side", "orderId"});
+            return new TabularType("OrderBook", "Resting orders indexed by (symbol, side, orderId)", row, new String[] {
+                "symbol", "side", "orderId"
+            });
         } catch (OpenDataException e) {
             throw new IllegalStateException(e);
         }
@@ -113,8 +111,7 @@ public class SampleMarkup implements SampleMarkupMBean {
                     String account = String.format("ACCT-%04d", 1000 + rnd.nextInt(9000));
                     String status = statuses[rnd.nextInt(statuses.length)];
                     String tif = tifs[rnd.nextInt(tifs.length)];
-                    String placedAt =
-                            now.plusSeconds(rnd.nextInt(3600)).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                    String placedAt = now.plusSeconds(rnd.nextInt(3600)).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 
                     Map<String, Object> values = new HashMap<>();
                     values.put("orderId", orderId);
@@ -168,7 +165,8 @@ public class SampleMarkup implements SampleMarkupMBean {
         if (payload == null) {
             return "received 0 bytes";
         }
-        return "received " + payload.length + " bytes (" + new String(payload, StandardCharsets.UTF_8).split("\n", -1).length + " lines)";
+        return "received " + payload.length + " bytes ("
+                + new String(payload, StandardCharsets.UTF_8).split("\n", -1).length + " lines)";
     }
 
     @Override
@@ -214,8 +212,7 @@ public class SampleMarkup implements SampleMarkupMBean {
                 startxref
                 344
                 %%EOF
-                """)
-                .getBytes(StandardCharsets.US_ASCII);
+                """).getBytes(StandardCharsets.US_ASCII);
     }
 
     @Override
@@ -225,8 +222,7 @@ public class SampleMarkup implements SampleMarkupMBean {
                 EURUSD,BUY,1000000,1.0850
                 USDCHF,SELL,500000,0.9130
                 GBPUSD,BUY,250000,1.2640
-                """)
-                .getBytes(StandardCharsets.UTF_8);
+                """).getBytes(StandardCharsets.UTF_8);
     }
 
     @Override
@@ -262,8 +258,7 @@ public class SampleMarkup implements SampleMarkupMBean {
     }
 
     @Override
-    public String transferFunds(
-            String fromAccount, String toAccount, String currency, double amount, String memo) {
+    public String transferFunds(String fromAccount, String toAccount, String currency, double amount, String memo) {
         return "transferred " + amount + " " + currency + " from " + fromAccount + " to " + toAccount + ": " + memo;
     }
 }

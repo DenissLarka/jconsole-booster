@@ -14,11 +14,9 @@ import javax.swing.JOptionPane;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Handles {@code byte[]} return values that an operation declares with a
- * {@code {{returns:mime=…}}} hint. On a whitelisted MIME type the bytes are
- * written to a temp file and opened with the OS default handler. Anything
- * else falls through to a confirmation + Save-As dialog so the user has the
- * final say before launching unknown content.
+ * Handles {@code byte[]} return values that an operation declares with a {@code {{returns:mime=…}}} hint. On a
+ * whitelisted MIME type the bytes are written to a temp file and opened with the OS default handler. Anything else
+ * falls through to a confirmation + Save-As dialog so the user has the final say before launching unknown content.
  */
 @Slf4j
 public final class MimeHandler {
@@ -74,10 +72,9 @@ public final class MimeHandler {
     }
 
     /**
-     * Performs the appropriate user-facing action for a byte[] return on the EDT.
-     * Returns {@code true} if this method handled the result (the caller should
-     * NOT fall through to the generic array viewer); {@code false} if no hint
-     * was present.
+     * Performs the appropriate user-facing action for a byte[] return on the EDT. Returns {@code true} if this method
+     * handled the result (the caller should NOT fall through to the generic array viewer); {@code false} if no hint was
+     * present.
      */
     public static boolean handle(Component parent, String operationName, String operationDescription, byte[] data) {
         Optional<String> mimeOpt = mimeFromDescription(operationDescription);
@@ -107,10 +104,7 @@ public final class MimeHandler {
         } catch (IOException ex) {
             log.warn("Could not open byte[] result as {}: {}", mime, ex.getMessage());
             JOptionPane.showMessageDialog(
-                    parent,
-                    "Could not open returned file: " + ex.getMessage(),
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
+                    parent, "Could not open returned file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 

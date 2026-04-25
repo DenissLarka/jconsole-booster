@@ -25,10 +25,9 @@
 
 package com.druvu.jconsole.inspector.info;
 
-import static com.druvu.jconsole.util.Utilities.*;
-
 import static com.druvu.jconsole.inspector.table.XTable.NAME_COLUMN;
 import static com.druvu.jconsole.inspector.table.XTable.VALUE_COLUMN;
+import static com.druvu.jconsole.util.Utilities.*;
 
 import com.druvu.jconsole.inspector.Utils;
 import com.druvu.jconsole.inspector.XMBean;

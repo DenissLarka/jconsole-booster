@@ -11,12 +11,12 @@ import javax.swing.JButton;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Selects which {@link ParamWidget} to render for one operation parameter.
- * Resolution order:
+ * Selects which {@link ParamWidget} to render for one operation parameter. Resolution order:
+ *
  * <ol>
- *   <li>Markup hint in the parameter description ({@code {{combo:…}}}, {@code {{date:…}}}, etc.).</li>
- *   <li>Parameter type ({@code boolean} / {@code Boolean} → checkbox).</li>
- *   <li>Default: single-line {@link TextFieldWidget}.</li>
+ *   <li>Markup hint in the parameter description ({@code {{combo:…}}}, {@code {{date:…}}}, etc.).
+ *   <li>Parameter type ({@code boolean} / {@code Boolean} → checkbox).
+ *   <li>Default: single-line {@link TextFieldWidget}.
  * </ol>
  */
 @Slf4j
@@ -36,8 +36,8 @@ public final class ParamWidgetFactory {
         Class<?> type = resolveClass(paramInfo.getType());
 
         if (hint.isPresent()) {
-            ParamWidget w = createFromHint(
-                    hint.get(), paramInfo, type, tooltip, isCallable, invokeButton, operation, preset);
+            ParamWidget w =
+                    createFromHint(hint.get(), paramInfo, type, tooltip, isCallable, invokeButton, operation, preset);
             if (w != null) {
                 return w;
             }

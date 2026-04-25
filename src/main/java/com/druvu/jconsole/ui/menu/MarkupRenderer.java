@@ -6,11 +6,9 @@ import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Translates bookmark display names that use a tiny inline-markup vocabulary
- * ({@code *bold*}, {@code [color text]}) into {@code <html>...</html>}
- * snippets that {@link javax.swing.JMenuItem} renders. Names without any
- * markup are returned unchanged so JMenuItem keeps its default plain-text
- * rendering (cheaper, no HTML parsing).
+ * Translates bookmark display names that use a tiny inline-markup vocabulary ({@code *bold*}, {@code [color text]})
+ * into {@code <html>...</html>} snippets that {@link javax.swing.JMenuItem} renders. Names without any markup are
+ * returned unchanged so JMenuItem keeps its default plain-text rendering (cheaper, no HTML parsing).
  */
 @Slf4j
 public final class MarkupRenderer {

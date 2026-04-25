@@ -25,10 +25,10 @@
 
 package com.druvu.jconsole.inspector.notifications;
 
-import com.druvu.jconsole.inspector.table.TableSorter;
 import com.druvu.jconsole.inspector.Utils;
 import com.druvu.jconsole.inspector.XMBean;
 import com.druvu.jconsole.inspector.XNodeInfo;
+import com.druvu.jconsole.inspector.table.TableSorter;
 import com.druvu.jconsole.launcher.JConsole;
 import com.druvu.jconsole.util.Messages;
 import java.awt.Component;

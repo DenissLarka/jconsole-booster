@@ -18,7 +18,8 @@ public class ParameterHintTest {
 
     @Test
     public void comboTagParses() {
-        ParameterHint h = ParameterHint.parse("Currency pair {{combo:EURUSD,USDCHF,GBPUSD}}").orElseThrow();
+        ParameterHint h = ParameterHint.parse("Currency pair {{combo:EURUSD,USDCHF,GBPUSD}}")
+                .orElseThrow();
         Assert.assertEquals(h.tag(), "combo");
         Assert.assertEquals(h.options(), "EURUSD,USDCHF,GBPUSD");
         Assert.assertEquals(h.prose(), "Currency pair");
@@ -66,7 +67,8 @@ public class ParameterHintTest {
 
     @Test
     public void returnsTagParses() {
-        ParameterHint h = ParameterHint.parse("Server config {{returns:format=json}}").orElseThrow();
+        ParameterHint h =
+                ParameterHint.parse("Server config {{returns:format=json}}").orElseThrow();
         Assert.assertEquals(h.tag(), "returns");
         Assert.assertEquals(h.optionsAsKeyValue(), Map.of("format", "json"));
         Assert.assertEquals(h.prose(), "Server config");
@@ -74,7 +76,8 @@ public class ParameterHintTest {
 
     @Test
     public void returnsMimeParses() {
-        ParameterHint h = ParameterHint.parse("Report {{returns:mime=application/pdf}}").orElseThrow();
+        ParameterHint h =
+                ParameterHint.parse("Report {{returns:mime=application/pdf}}").orElseThrow();
         Assert.assertEquals(h.optionsAsKeyValue(), Map.of("mime", "application/pdf"));
     }
 

@@ -5,8 +5,8 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 
 /**
- * Editable dropdown picker for {@code {{combo:A,B,C}}}. The listed values act
- * as suggestions; the user can also type any other value into the editor.
+ * Editable dropdown picker for {@code {{combo:A,B,C}}}. The listed values act as suggestions; the user can also type
+ * any other value into the editor.
  */
 public final class ComboWidget implements ParamWidget {
 

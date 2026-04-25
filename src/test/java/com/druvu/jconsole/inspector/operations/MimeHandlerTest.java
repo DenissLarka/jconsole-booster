@@ -12,8 +12,7 @@ public class MimeHandlerTest {
                 MimeHandler.mimeFromDescription("Monthly report {{returns:mime=application/pdf}}"),
                 Optional.of("application/pdf"));
         Assert.assertEquals(
-                MimeHandler.mimeFromDescription("Trades {{returns:mime=text/csv}}"),
-                Optional.of("text/csv"));
+                MimeHandler.mimeFromDescription("Trades {{returns:mime=text/csv}}"), Optional.of("text/csv"));
     }
 
     @Test
@@ -21,8 +20,7 @@ public class MimeHandlerTest {
         // The markup spec uses lowercase keys, but the value (the MIME type)
         // is normalized so the whitelist comparison is robust.
         Assert.assertEquals(
-                MimeHandler.mimeFromDescription("X {{returns:mime=Application/PDF}}"),
-                Optional.of("application/pdf"));
+                MimeHandler.mimeFromDescription("X {{returns:mime=Application/PDF}}"), Optional.of("application/pdf"));
     }
 
     @Test

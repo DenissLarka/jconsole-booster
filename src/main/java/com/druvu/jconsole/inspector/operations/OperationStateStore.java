@@ -12,26 +12,23 @@ import java.util.concurrent.ConcurrentMap;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Per-MBean-class persistence of last-used operation parameter values, so the
- * Operations tab can pre-fill widgets on the next visit.
+ * Per-MBean-class persistence of last-used operation parameter values, so the Operations tab can pre-fill widgets on
+ * the next visit.
  *
  * <p>Values are stored under {@link BoosterHome#operationStateDir()} as
- * {@code <fully.qualified.MBeanClassName>.properties}. Property keys use the
- * format {@code <operationName>.<parameterName>}. Keying off the bean class
- * (not its {@link javax.management.ObjectName}) means all instances of the
- * same bean share the same set of last-used values — usually the right
- * default when debugging.
+ * {@code <fully.qualified.MBeanClassName>.properties}. Property keys use the format
+ * {@code <operationName>.<parameterName>}. Keying off the bean class (not its {@link javax.management.ObjectName})
+ * means all instances of the same bean share the same set of last-used values — usually the right default when
+ * debugging.
  *
- * <p>Implementation notes / bug fixes from the prior implementation
- * ({@code AutoParameters} in jconsole-ojdk8):
+ * <p>Implementation notes / bug fixes from the prior implementation ({@code AutoParameters} in jconsole-ojdk8):
+ *
  * <ul>
- *   <li>Loaded {@link Properties} are cached per class name for the life of
- *       the store, so widget construction does not re-read the file.</li>
- *   <li>{@link #save} only happens after a successful invoke (caller's
- *       responsibility) — never on every render — and refuses to overwrite
- *       an existing value with a blank one.</li>
- *   <li>I/O failures log a warning and degrade gracefully; they never throw
- *       to the UI thread.</li>
+ *   <li>Loaded {@link Properties} are cached per class name for the life of the store, so widget construction does not
+ *       re-read the file.
+ *   <li>{@link #save} only happens after a successful invoke (caller's responsibility) — never on every render — and
+ *       refuses to overwrite an existing value with a blank one.
+ *   <li>I/O failures log a warning and degrade gracefully; they never throw to the UI thread.
  * </ul>
  */
 @Slf4j
@@ -59,9 +56,8 @@ public final class OperationStateStore {
     }
 
     /**
-     * Records the given value for next time. Blank or {@code null} values are
-     * no-ops so a successful invoke with a cleared field doesn't wipe a
-     * previously-good value (the user may have temporarily blanked it).
+     * Records the given value for next time. Blank or {@code null} values are no-ops so a successful invoke with a
+     * cleared field doesn't wipe a previously-good value (the user may have temporarily blanked it).
      */
     public void save(String mbeanClassName, String operationName, String parameterName, String value) {
         if (value == null || value.isBlank()) {

@@ -26,11 +26,11 @@
 package com.druvu.jconsole.ui.tabs;
 
 import com.druvu.jconsole.inspector.Utils;
-import com.druvu.jconsole.inspector.viewers.XDataViewer;
 import com.druvu.jconsole.inspector.XSheet;
+import com.druvu.jconsole.inspector.api.MBeanService;
 import com.druvu.jconsole.inspector.tree.XTree;
 import com.druvu.jconsole.inspector.tree.XTreeRenderer;
-import com.druvu.jconsole.inspector.api.MBeanService;
+import com.druvu.jconsole.inspector.viewers.XDataViewer;
 import com.druvu.jconsole.jmx.api.JmxDataAccess;
 import com.druvu.jconsole.launcher.JConsole;
 import com.druvu.jconsole.ui.core.Tab;

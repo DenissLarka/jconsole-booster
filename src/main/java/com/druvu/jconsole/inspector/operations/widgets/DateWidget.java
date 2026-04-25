@@ -9,13 +9,12 @@ import javax.swing.text.DefaultFormatterFactory;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Date input for {@code {{date:format}}}. v1 implementation uses
- * {@link JFormattedTextField} backed by a {@link SimpleDateFormat} so the
- * field validates the user's input against the operator-supplied pattern but
- * does not render a popup calendar (zero new dependencies).
+ * Date input for {@code {{date:format}}}. v1 implementation uses {@link JFormattedTextField} backed by a
+ * {@link SimpleDateFormat} so the field validates the user's input against the operator-supplied pattern but does not
+ * render a popup calendar (zero new dependencies).
  *
- * <p>If the format string is malformed the widget falls back to a plain text
- * field with the format echoed in the tooltip.
+ * <p>If the format string is malformed the widget falls back to a plain text field with the format echoed in the
+ * tooltip.
  */
 @Slf4j
 public final class DateWidget implements ParamWidget {

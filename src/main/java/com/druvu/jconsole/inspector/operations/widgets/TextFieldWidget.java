@@ -7,8 +7,8 @@ import javax.swing.JComponent;
 import javax.swing.SwingConstants;
 
 /**
- * Default single-line text field. Wraps the existing {@link XTextField} so the
- * legacy drag-and-drop and Enter-to-invoke behavior is preserved unchanged.
+ * Default single-line text field. Wraps the existing {@link XTextField} so the legacy drag-and-drop and Enter-to-invoke
+ * behavior is preserved unchanged.
  */
 public final class TextFieldWidget implements ParamWidget {
 

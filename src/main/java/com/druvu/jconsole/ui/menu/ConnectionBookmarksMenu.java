@@ -15,32 +15,27 @@ import javax.swing.JMenuItem;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Builds the "Bookmarks" submenu added to the Connection menu. On click,
- * each bookmark's URL is run through {@link ArgumentParser#adaptUrl} (so
- * {@code host:port} shorthand expands to JMXMP) and handed to
+ * Builds the "Bookmarks" submenu added to the Connection menu. On click, each bookmark's URL is run through
+ * {@link ArgumentParser#adaptUrl} (so {@code host:port} shorthand expands to JMXMP) and handed to
  * {@link JConsole#addUrl}.
  *
- * <p>The {@code connections.txt} file is loaded from
- * {@link BoosterHome#connectionsFile()}; if it does not exist on launch, a
- * documented default is copied into place from the bundled resource.
+ * <p>The {@code connections.txt} file is loaded from {@link BoosterHome#connectionsFile()}; if it does not exist on
+ * launch, a documented default is copied into place from the bundled resource.
  */
 @Slf4j
 public final class ConnectionBookmarksMenu {
 
-    private static final String BUNDLED_DEFAULT_RESOURCE =
-            "/com/druvu/jconsole/ui/menu/connections-default.txt";
+    private static final String BUNDLED_DEFAULT_RESOURCE = "/com/druvu/jconsole/ui/menu/connections-default.txt";
 
     private ConnectionBookmarksMenu() {}
 
     /**
-     * Builds a {@link JMenu} populated with the bookmarks defined in the
-     * user's {@code connections.txt}. If the file is missing, the bundled
-     * default is copied to {@link BoosterHome#connectionsFile()} first.
+     * Builds a {@link JMenu} populated with the bookmarks defined in the user's {@code connections.txt}. If the file is
+     * missing, the bundled default is copied to {@link BoosterHome#connectionsFile()} first.
      *
-     * @param title  the menu title (e.g. "Bookmarks")
-     * @param onPick callback for the actual connection — production caller
-     *               should pass {@code (url) -> jconsole.addUrl(url, null,
-     *               null, false)}; tests can pass any handler.
+     * @param title the menu title (e.g. "Bookmarks")
+     * @param onPick callback for the actual connection — production caller should pass {@code (url) ->
+     *     jconsole.addUrl(url, null, null, false)}; tests can pass any handler.
      */
     public static JMenu build(String title, BookmarkClickHandler onPick) {
         JMenu menu = new JMenu(title);

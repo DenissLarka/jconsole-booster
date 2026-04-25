@@ -7,12 +7,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
- * Resolves the on-disk location used by JConsole Booster for user-editable
- * configuration (e.g. connection bookmarks, per-MBean operation state).
+ * Resolves the on-disk location used by JConsole Booster for user-editable configuration (e.g. connection bookmarks,
+ * per-MBean operation state).
  *
- * <p>By default the directory is {@code ~/.druvu.com/jconsole-booster}. Set
- * the {@code JCONSOLE_BOOSTER_HOME} environment variable to relocate it (e.g.
- * to a Dropbox-synced path).
+ * <p>By default the directory is {@code ~/.druvu.com/jconsole-booster}. Set the {@code JCONSOLE_BOOSTER_HOME}
+ * environment variable to relocate it (e.g. to a Dropbox-synced path).
  */
 public final class BoosterHome {
 

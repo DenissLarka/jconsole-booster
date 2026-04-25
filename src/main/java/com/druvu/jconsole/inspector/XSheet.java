@@ -363,7 +363,7 @@ public class XSheet extends JPanel implements ActionListener, NotificationListen
             @Override
             public MBeanInfo doInBackground()
                     throws InstanceNotFoundException, IntrospectionException, ReflectionException, IOException {
-				return xmb.getMBeanInfo();
+                return xmb.getMBeanInfo();
             }
 
             @Override

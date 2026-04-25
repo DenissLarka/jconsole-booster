@@ -8,12 +8,12 @@ import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Markup hint embedded in a JMX description string. The first occurrence of
- * {@code {{tag}}} or {@code {{tag:options}}} in the description selects a
- * richer widget; the rest of the description (with the markup excised) is the
+ * Markup hint embedded in a JMX description string. The first occurrence of {@code {{tag}}} or {@code {{tag:options}}}
+ * in the description selects a richer widget; the rest of the description (with the markup excised) is the
  * human-readable prose used as the tooltip.
  *
  * <p>Recognized tags are described in the Phase&nbsp;2.A1 design doc. Examples:
+ *
  * <pre>
  *   "Currency pair {{combo:EURUSD,USDCHF}}"      → tag=combo, options="EURUSD,USDCHF"
  *   "Settle date {{date:dd.MM.yyyy}}"            → tag=date,  options="dd.MM.yyyy"
@@ -46,17 +46,14 @@ public record ParameterHint(String tag, String options, String prose) {
                 .replaceAll("\\s{2,}", " ")
                 .strip();
         if (m.find()) {
-            log.warn(
-                    "Multiple markup tags in description — only the first is honored: {}",
-                    description);
+            log.warn("Multiple markup tags in description — only the first is honored: {}", description);
         }
         return Optional.of(new ParameterHint(tag, options, prose));
     }
 
     /**
-     * Parses the options string as comma-separated {@code key=value} pairs.
-     * Bare tokens (no {@code =}) are stored with an empty value. Insertion
-     * order is preserved.
+     * Parses the options string as comma-separated {@code key=value} pairs. Bare tokens (no {@code =}) are stored with
+     * an empty value. Insertion order is preserved.
      */
     public Map<String, String> optionsAsKeyValue() {
         Map<String, String> result = new LinkedHashMap<>();
@@ -72,7 +69,9 @@ public record ParameterHint(String tag, String options, String prose) {
             if (eq < 0) {
                 result.put(trimmed, "");
             } else {
-                result.put(trimmed.substring(0, eq).strip(), trimmed.substring(eq + 1).strip());
+                result.put(
+                        trimmed.substring(0, eq).strip(),
+                        trimmed.substring(eq + 1).strip());
             }
         }
         return result;

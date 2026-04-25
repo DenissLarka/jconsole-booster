@@ -18,13 +18,11 @@ import javax.swing.table.TableModel;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Top-level viewer for {@link TabularData}. Replaces the JDK navigator chrome
- * (per-row arrows, parent button) with a clean flat-table view plus a small
- * toolbar for clipboard / file CSV export.
+ * Top-level viewer for {@link TabularData}. Replaces the JDK navigator chrome (per-row arrows, parent button) with a
+ * clean flat-table view plus a small toolbar for clipboard / file CSV export.
  *
- * <p>Used only when the operation result is a top-level TabularData. Nested
- * TabularData reached by drilling into a composite cell still rides inside
- * {@link XOpenTypeViewer} so the {@code <<} back button remains available.
+ * <p>Used only when the operation result is a top-level TabularData. Nested TabularData reached by drilling into a
+ * composite cell still rides inside {@link XOpenTypeViewer} so the {@code <<} back button remains available.
  */
 @Slf4j
 final class TabularDataPanel extends JPanel {
@@ -101,10 +99,7 @@ final class TabularDataPanel extends JPanel {
             return "";
         }
         String s = value.toString();
-        boolean quote = s.indexOf(',') >= 0
-                || s.indexOf('"') >= 0
-                || s.indexOf('\n') >= 0
-                || s.indexOf('\r') >= 0;
+        boolean quote = s.indexOf(',') >= 0 || s.indexOf('"') >= 0 || s.indexOf('\n') >= 0 || s.indexOf('\r') >= 0;
         if (quote) {
             return "\"" + s.replace("\"", "\"\"") + "\"";
         }

@@ -302,6 +302,41 @@ Multiple targets open in tiled MDI panels (use `-notile` to disable). Bare proce
 - **Target JVMs.** Any JVM exposing JMX over JMXMP — JDK 8 through latest. Markup features require the target's MBeans to populate `MBeanInfo` descriptions accordingly (`StandardMBean` subclass overriding `getDescription(...)`, or a `DynamicMBean` hand-building `MBeanInfo`).
 - **JPMS.** Ships as the `com.druvu.jconsole` module.
 
+## Maven artifact (for embedding / extending)
+
+The `com.druvu:jconsole-booster` JAR is published to **GitHub Packages**. This is only relevant if you want to embed JConsole Booster in another Maven project or write a JConsole plugin against its APIs — end users should use the installers above.
+
+GitHub Packages requires authentication even for public packages. Generate a [Personal Access Token](https://github.com/settings/tokens) with the `read:packages` scope, then add a server entry to `~/.m2/settings.xml`:
+
+```xml
+<settings>
+  <servers>
+    <server>
+      <id>github</id>
+      <username>YOUR_GITHUB_USERNAME</username>
+      <password>YOUR_PAT_WITH_read:packages</password>
+    </server>
+  </servers>
+</settings>
+```
+
+Add the repository and dependency to your consumer project's `pom.xml`:
+
+```xml
+<repositories>
+  <repository>
+    <id>github</id>
+    <url>https://maven.pkg.github.com/DenissLarka/jconsole-booster/</url>
+  </repository>
+</repositories>
+
+<dependency>
+  <groupId>com.druvu</groupId>
+  <artifactId>jconsole-booster</artifactId>
+  <version>1.0.0</version>
+</dependency>
+```
+
 ## License
 
 JConsole Booster is licensed under the **GNU General Public License v2 with the Classpath Exception**, inherited from upstream OpenJDK JConsole. See [LICENSE](LICENSE) for the full text.

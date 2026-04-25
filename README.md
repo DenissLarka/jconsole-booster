@@ -20,7 +20,7 @@ The markup system is **fully opt-in**: servers that don't add `{{...}}` markup t
 - **Markup-driven Operations form.** Embed `{{combo:EUR,USD,GBP}}`, `{{date:dd.MM.yyyy}}`, `{{text:rows=10}}`, or `{{file:*.csv}}` in `MBeanParameterInfo.getDescription()` and the right widget renders automatically. Server-side opt-in; non-aware tooling shows the description verbatim.
 - **MIME-aware `byte[]` returns.** `{{returns:mime=application/pdf}}` on an operation makes the result open in your PDF viewer instead of showing as a hex blob. Whitelist of safe content types; everything else falls through to a save dialog with an explicit warning.
 - **Per-parameter value persistence.** Last-used parameter values are remembered per `(MBean class, operation, parameter)` and pre-filled on next open. Stop retyping the same JSON payload forty times per debugging session.
-- **Connection bookmarks menu.** A hand-editable text file at `~/.druvu/jconsole-booster/connections.txt` populates a bookmarks menu with grouping, bold/colored items, and the same `host:port` shorthand you use on the command line. Syncable across machines via Dropbox / git / your tool of choice.
+- **Connection bookmarks menu.** A hand-editable text file at `~/.druvu.com/jconsole-booster/connections.txt` populates a bookmarks menu with grouping, bold/colored items, and the same `host:port` shorthand you use on the command line. Syncable across machines via Dropbox / git / your tool of choice.
 - **Smarter `TabularData` viewer.** `TabularData` results are sorted by the columns named in JMX-canonical `TabularType.getIndexNames()`, with key columns rendered in italics. No more 200-row scroll-fests in insertion order.
 - **Modern Nimbus UI with one-line color theming.** Cross-platform consistent rendering; pass `-c=#RRGGBBAA` on launch to set the theme color.
 - **JMXMP transport.** Single TCP port, tunnel-friendly (perfect for SSH-forwarded production debugging), no RMI dynamic-port surprises through firewalls.
@@ -187,10 +187,10 @@ A `DynamicMBean` that hand-builds `MBeanInfo` with explicit `MBeanParameterInfo(
 The bookmarks menu is populated from a plain text file:
 
 ```
-~/.druvu/jconsole-booster/connections.txt
+~/.druvu.com/jconsole-booster/connections.txt
 ```
 
-A default file is written on first launch with documented examples. Format:
+A default file is written on the first launch with documented examples. Format:
 
 ```
 # Comments start with #. Empty lines are ignored.
@@ -227,7 +227,7 @@ URLs accept the same shorthand the rest of the app accepts: `host:port` is expan
 JConsole Booster keeps its state in a single hidden vendor directory under your home:
 
 ```
-~/.druvu/jconsole-booster/
+~/.druvu.com/jconsole-booster/
 ├── connections.txt                                       ← bookmarks
 └── operation-state/
     └── <fully.qualified.MBeanClassName>.properties      ← last-used parameter values
@@ -249,15 +249,6 @@ To relocate the directory (e.g. point it at a Dropbox / iCloud / OneDrive synced
 ![Connection bookmarks menu](docs/images/bookmarks-menu.png)
 *A `connections.txt` with grouping, bold items, and inline color tags rendered into the menu.*
 
-### MBean inspector
-
-![MBean inspector](docs/images/mbeans-inspector.png)
-*MBean tree, attributes, and operations panes — Nimbus LAF, custom color theme.*
-
-### Multi-VM tile view
-
-![Tiled multi-VM view](docs/images/multi-vm-tile.png)
-*Three concurrent JVM connections side-by-side via the MDI desktop.*
 
 ## CLI reference
 
@@ -276,30 +267,30 @@ Multiple targets open in tiled MDI panels (use `-notile` to disable). Bare proce
 
 ### Options
 
-| Flag             | Description                                                    |
-|------------------|----------------------------------------------------------------|
-| `-c=#RRGGBB[AA]` | Apply a Nimbus color theme (sets the `nimbusBlueGrey` base color). |
-| `-interval=N`    | Refresh interval in seconds. Default: `4`.                      |
-| `-notile`        | Don't tile windows when multiple targets are passed.            |
-| `-debug`         | Enable debug logging.                                           |
-| `-version`       | Print version and exit.                                         |
-| `-fullversion`   | Print full version (with build metadata) and exit.              |
-| `-h`, `-help`, `-?` | Print usage and exit.                                        |
+| Flag                | Description                                                        |
+|---------------------|--------------------------------------------------------------------|
+| `-c=#RRGGBB[AA]`    | Apply a Nimbus color theme (sets the `nimbusBlueGrey` base color). |
+| `-interval=N`       | Refresh interval in seconds. Default: `4`.                         |
+| `-notile`           | Don't tile windows when multiple targets are passed.               |
+| `-debug`            | Enable debug logging.                                              |
+| `-version`          | Print version and exit.                                            |
+| `-fullversion`      | Print full version (with build metadata) and exit.                 |
+| `-h`, `-help`, `-?` | Print usage and exit.                                              |
 
 ## JConsole Booster vs vanilla JConsole
 
-|                                  | Vanilla JConsole                                      | JConsole Booster                                                     |
-|----------------------------------|-------------------------------------------------------|----------------------------------------------------------------------|
-| Look-and-feel                    | OS-default (often dated)                              | Nimbus, cross-platform consistent                                    |
-| Color theming                    | None                                                  | `-c=#RRGGBBAA`                                                       |
-| Operations form                  | Plain text fields only                                | `{{markup}}` → dropdowns, date pickers, file pickers, multi-line areas |
-| `byte[]` operation returns       | `[B@1a2b3c]`                                          | MIME-aware open / save with extension hint                           |
-| `TabularData` viewer             | Insertion order, no key cue                           | Sorted by `TabularType.getIndexNames()`, italic key columns          |
-| Parameter persistence            | None                                                  | Last-used values per `(MBean class, op, param)`                      |
-| Connection bookmarks             | None                                                  | Text-file driven, groupable, colorable                               |
-| Transport                        | RMI (multi-port, hostile to firewalls)                | JMXMP (single port, tunnel-friendly)                                 |
-| JDK                              | Bundled with JDK 8/11/17 (deprecated and removed in 9+) | OpenJDK 25 fork, modern Java                                       |
-| Local-process attach             | Yes                                                   | No (explicit URLs only — no surprise connections)                    |
+|                            | Vanilla JConsole                                        | JConsole Booster                                                       |
+|----------------------------|---------------------------------------------------------|------------------------------------------------------------------------|
+| Look-and-feel              | OS-default (often dated)                                | Nimbus, cross-platform consistent                                      |
+| Color theming              | None                                                    | `-c=#RRGGBBAA`                                                         |
+| Operations form            | Plain text fields only                                  | `{{markup}}` → dropdowns, date pickers, file pickers, multi-line areas |
+| `byte[]` operation returns | `[B@1a2b3c]`                                            | MIME-aware open / save with extension hint                             |
+| `TabularData` viewer       | Insertion order, no key cue                             | Sorted by `TabularType.getIndexNames()`, italic key columns            |
+| Parameter persistence      | None                                                    | Last-used values per `(MBean class, op, param)`                        |
+| Connection bookmarks       | None                                                    | Text-file driven, groupable, colorable                                 |
+| Transport                  | RMI (multi-port, hostile to firewalls)                  | JMXMP (single port, tunnel-friendly)                                   |
+| JDK                        | Bundled with JDK 8/11/17 (deprecated and removed in 9+) | OpenJDK 25 fork, modern Java                                           |
+| Local-process attach       | Yes                                                     | No (explicit URLs only — no surprise connections)                      |
 
 ## Compatibility
 
@@ -315,15 +306,8 @@ Multiple targets open in tiled MDI panels (use `-notile` to disable). Bare proce
 
 JConsole Booster is licensed under the **GNU General Public License v2 with the Classpath Exception**, inherited from upstream OpenJDK JConsole. See [LICENSE](LICENSE) for the full text.
 
-The Classpath Exception permits running the application against MBeans defined in proprietary code without the GPL extending to those MBeans.
+## Part of the druvu.com toolkit
 
-## Part of the druvu toolkit
+JConsole Booster is part of [druvu.com](https://druvu.com) — Java tooling for finance and the JVM. See [druvu.com](https://druvu.com) for the rest of the toolkit.
 
-JConsole Booster is part of the [druvu](https://druvu.com) toolkit — Java tooling for finance and the JVM.
-
-Other druvu projects on Maven Central:
-
-- [druvu-lib-loader](https://github.com/DenissLarka/druvu-lib-loader) — type-safe `ServiceLoader` wrapper for clean API/impl separation, JPMS-friendly.
-- [options-math](https://github.com/DenissLarka/options-math) — Black-Scholes pricer and Greeks, zero dependencies.
-
-Issues and pull requests welcome at [github.com/DenissLarka/jconsole-booster](https://github.com/DenissLarka/jconsole-booster).
+Issues and pull requests are welcome at [github.com/DenissLarka/jconsole-booster](https://github.com/DenissLarka/jconsole-booster).

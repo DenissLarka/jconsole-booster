@@ -28,19 +28,7 @@ The markup system is **fully opt-in**: servers that don't add `{{...}}` markup t
 
 ## Install
 
-### Pre-built installers (recommended)
-
-Download from [druvu.com/projects/jconsole-booster](https://druvu.com/projects/jconsole-booster) or the [GitHub Releases page](https://github.com/DenissLarka/jconsole-booster-dist/releases):
-
-| OS      | Format      | Notes                                                                   |
-|---------|-------------|-------------------------------------------------------------------------|
-| Windows | `.msix`     | Code-signed; installs via App Installer; auto-updates handled natively  |
-| macOS   | `.dmg`      | Code-signed and notarized; drag to `/Applications`                      |
-| Linux   | `.AppImage` | Self-contained; `chmod +x` and run                                      |
-
-A bundled JRE is included — no separate Java install needed. Auto-update is wired in: on launch the app checks GitHub Releases for a newer version and, if found, prompts before downloading and applying the platform-appropriate package (DMG mount on macOS, atomic AppImage swap on Linux, `Add-AppxPackage` on Windows).
-
-### Build from source
+### Build from source (current path)
 
 Requires JDK 25+ and Maven 3.9+.
 
@@ -52,6 +40,8 @@ mvn exec:exec@start
 ```
 
 The application's main entry point is `com.druvu.jconsole.launcher.JConsole`. The launcher applies the Nimbus look-and-feel, parses CLI arguments via `ArgumentParser` (including the `-c=` color flag and `host:port` URL shorthand), and then runs the main JConsole UI on the EDT.
+
+> **Pre-built installers** (`.msix`, `.dmg`, `.AppImage`) are produced from a separate dist pipeline and will be code-signed and notarized in upcoming releases. While signing certificates are being procured, unsigned canary builds may be attached to [GitHub Releases](https://github.com/DenissLarka/jconsole-booster/releases) for pipeline validation — they will trigger Gatekeeper / SmartScreen warnings on most machines. For general use, build from source until signed installers land.
 
 ## Quick start
 

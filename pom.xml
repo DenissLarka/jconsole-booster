@@ -86,22 +86,25 @@
 		</dependency>
 
 		<!-- Logging dependencies -->
+		<!-- API only — concrete binding belongs to whoever runs the app.
+		     Installer builds wire logback in jconsole-booster-dist; standalone
+		     source builds get slf4j-simple below. -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 			<version>2.0.17</version>
 		</dependency>
 
+		<!-- Convenience binding for IDE / `mvn exec:java` runs without the dist module.
+		     `optional=true` keeps it off any consumer's transitive classpath, so the
+		     installer build (which pulls jconsole-booster as a dep from dist) never
+		     sees it — logback wins as the sole provider in the jimage. -->
 		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-classic</artifactId>
-			<version>1.5.32</version>
-			<exclusions>
-				<exclusion>
-					<artifactId>slf4j-api</artifactId>
-					<groupId>org.slf4j</groupId>
-				</exclusion>
-			</exclusions>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>2.0.17</version>
+			<scope>runtime</scope>
+			<optional>true</optional>
 		</dependency>
 
 	</dependencies>
@@ -122,6 +125,9 @@
 					<showWarnings>true</showWarnings>
 					<optimize>true</optimize>
 					<fork>true</fork>
+					<compilerArgs>
+						<arg>--module-version=${project.version}</arg>
+					</compilerArgs>
 					<annotationProcessorPaths>
 						<path>
 							<groupId>org.projectlombok</groupId>
@@ -260,7 +266,7 @@
 	<profiles>
 		<!-- Activated by jconsole.ps1 when the user passes a connection target on the
 		     command line, e.g. ./jconsole.ps1 localhost:7091. The target is appended
-		     to the start exec arguments so the connect dialog comes up pre-filled. -->
+		     to the start exec arguments, so the connection dialog comes up pre-filled. -->
 		<profile>
 			<id>jconsole-with-target</id>
 			<activation>

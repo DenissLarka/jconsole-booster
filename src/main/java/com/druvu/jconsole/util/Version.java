@@ -26,9 +26,17 @@
 package com.druvu.jconsole.util;
 
 import java.io.PrintStream;
+import java.lang.module.ModuleDescriptor;
 
 public class Version {
-    private static final String jconsole_version = System.getProperty("java.runtime.version");
+    // Resolved from the module descriptor (--module-version baked in at compile time).
+    // Falls back to the JDK runtime version for non-modular / IDE runs where the
+    // module is unnamed or the descriptor has no version attribute.
+    private static final String jconsole_version = Version.class
+            .getModule()
+            .getDescriptor()
+            .flatMap(ModuleDescriptor::rawVersion)
+            .orElseGet(() -> System.getProperty("java.runtime.version"));
 
     public static void print(PrintStream ps) {
         printFullVersion(ps);

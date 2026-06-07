@@ -33,6 +33,7 @@ import com.druvu.jconsole.launcher.ArgumentParser;
 import com.druvu.jconsole.launcher.JConsole;
 import com.druvu.jconsole.ui.components.LabeledComponent;
 import com.druvu.jconsole.util.Messages;
+import com.druvu.jconsole.util.RecentConnections;
 import com.druvu.jconsole.util.Resources;
 import com.druvu.jconsole.util.Utilities;
 import java.awt.BorderLayout;
@@ -45,12 +46,16 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -64,8 +69,16 @@ public class ConnectDialog extends InternalDialog implements DocumentListener, F
     JConsole jConsole;
     JTextField userNameTF, passwordTF;
     JLabel remoteMessageLabel;
+    JComboBox<String> remoteCombo;
     JTextField remoteTF;
     JButton connectButton, cancelButton;
+
+    private static final String DEFAULT_STATUS = "Ready — enter a connection (host:port) and press Connect.";
+
+    private JTextArea messageArea;
+    private Color messageInfoColor;
+    private final Color messageErrorColor = new Color(0xB0, 0x00, 0x20);
+    private final Color messageBackground = new Color(0xEC, 0xF0, 0xF3);
 
     private Icon mastheadIcon = new MastheadIcon(Messages.CONNECT_DIALOG_MASTHEAD_TITLE);
     private Color hintTextColor;
@@ -101,19 +114,27 @@ public class ConnectDialog extends InternalDialog implements DocumentListener, F
 
         createActions();
 
-        remoteTF = new JTextField(24);
+        // Editable combo of the most-recently-used successful connections; its
+        // editor is reused as remoteTF so all existing listeners keep working.
+        remoteCombo = new JComboBox<>();
+        remoteCombo.setEditable(true);
+        for (String recent : RecentConnections.load()) {
+            remoteCombo.addItem(recent);
+        }
+        remoteCombo.setSelectedItem("");
+        remoteTF = (JTextField) remoteCombo.getEditor().getEditorComponent();
+        remoteTF.setColumns(30);
         remoteTF.addActionListener(connectAction);
         remoteTF.getDocument().addDocumentListener(this);
         remoteTF.addFocusListener(this);
-        remoteTF.setPreferredSize(remoteTF.getPreferredSize());
-        Utilities.setAccessibleName(remoteTF, Messages.REMOTE_PROCESS_TEXT_FIELD_ACCESSIBLE_NAME);
+        Utilities.setAccessibleName(remoteCombo, Messages.REMOTE_PROCESS_TEXT_FIELD_ACCESSIBLE_NAME);
 
         JLabel remoteLabel = new JLabel(Messages.REMOTE_PROCESS_COLON);
         remoteLabel.setFont(boldLabelFont);
 
         JPanel remoteTFPanel = new JPanel(new java.awt.BorderLayout());
         remoteTFPanel.add(remoteLabel, NORTH);
-        remoteTFPanel.add(remoteTF, CENTER);
+        remoteTFPanel.add(remoteCombo, CENTER);
 
         remoteMessageLabel = new JLabel("<html>" + Messages.REMOTE_TF_USAGE + "</html>");
         remoteMessageLabel.setFont(smallLabelFont);
@@ -125,7 +146,7 @@ public class ConnectDialog extends InternalDialog implements DocumentListener, F
         JPanel userPwdPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 0, 0));
         userPwdPanel.setBorder(new EmptyBorder(12, 0, 0, 0)); // top padding
 
-        int tfWidth = 8;
+        int tfWidth = 14;
 
         userNameTF = new JTextField(tfWidth);
         userNameTF.addActionListener(connectAction);
@@ -166,7 +187,41 @@ public class ConnectDialog extends InternalDialog implements DocumentListener, F
         buttonPanel.add(cancelButton);
         bottomPanel.add(buttonPanel, NORTH);
 
-        bottomPanel.add(statusBar, SOUTH);
+        // Dedicated, visually separated panel for status / error messages. A
+        // wrapping, scrollable, read-only text area so long failures (auth
+        // errors, cause chains) are fully readable without resizing the dialog.
+        messageInfoColor = UIManager.getColor("Label.foreground");
+        if (messageInfoColor == null) {
+            messageInfoColor = Color.DARK_GRAY;
+        }
+        messageArea = new JTextArea(3, 0);
+        messageArea.setEditable(false);
+        messageArea.setFocusable(false);
+        messageArea.setLineWrap(true);
+        messageArea.setWrapStyleWord(true);
+        messageArea.setOpaque(true);
+        messageArea.setBackground(messageBackground);
+        messageArea.setFont(normalLabelFont);
+        messageArea.setForeground(messageInfoColor);
+        messageArea.setText(DEFAULT_STATUS);
+        messageArea.setBorder(new EmptyBorder(4, 6, 4, 6));
+        Utilities.setAccessibleName(messageArea, Messages.CONNECT_DIALOG_STATUS_BAR_ACCESSIBLE_NAME);
+
+        JScrollPane messageScroll = new JScrollPane(
+                messageArea, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        messageScroll.setOpaque(true);
+        messageScroll.getViewport().setOpaque(true);
+        messageScroll.getViewport().setBackground(messageBackground);
+        messageScroll.setBorder(null);
+
+        JPanel messagePanel = new JPanel(new BorderLayout());
+        messagePanel.setBorder(BorderFactory.createCompoundBorder(
+                new EmptyBorder(0, 12, 12, 12),
+                BorderFactory.createTitledBorder(
+                        BorderFactory.createLineBorder(new Color(0xBF, 0xBF, 0xBF)), "Status")));
+        messagePanel.add(messageScroll, CENTER);
+
+        bottomPanel.add(messagePanel, SOUTH);
 
         updateButtonStates();
         Utilities.updateTransparency(this);
@@ -202,7 +257,7 @@ public class ConnectDialog extends InternalDialog implements DocumentListener, F
                     return;
                 }
                 setVisible(false);
-                statusBar.setText("");
+                showMessage("", false);
 
                 String txt = remoteTF.getText().trim();
                 String userName = userNameTF.getText().trim();
@@ -212,12 +267,12 @@ public class ConnectDialog extends InternalDialog implements DocumentListener, F
                 try {
                     String url = ArgumentParser.adaptUrl(txt);
                     jConsole.addUrl(url, userName, password, false);
-                    remoteTF.setText("");
+                    remoteCombo.setSelectedItem("");
                     userNameTF.setText("");
                     passwordTF.setText("");
                     return;
                 } catch (Exception ex) {
-                    statusBar.setText(ex.toString());
+                    showMessage(ex.toString(), true);
                 }
                 setVisible(true);
             }
@@ -226,24 +281,32 @@ public class ConnectDialog extends InternalDialog implements DocumentListener, F
         cancelAction = new AbstractAction(Messages.CANCEL) {
             public void actionPerformed(ActionEvent ev) {
                 setVisible(false);
-                statusBar.setText("");
+                showMessage("", false);
             }
         };
     }
 
     public void setConnectionParameters(String url, String userName, String password, String msg) {
         if (url != null && url.length() > 0) {
-            remoteTF.setText(url);
+            remoteCombo.setSelectedItem(url);
             userNameTF.setText((userName != null) ? userName : "");
             passwordTF.setText((password != null) ? password : "");
 
-            statusBar.setText((msg != null) ? msg : "");
+            showMessage(msg, msg != null && !msg.isEmpty());
             if (getPreferredSize().width > getWidth()) {
                 pack();
             }
             remoteTF.requestFocus();
             remoteTF.selectAll();
         }
+    }
+
+    /** Shows a status/error message in the dedicated bottom panel (red for errors). Empty text clears it. */
+    private void showMessage(String msg, boolean error) {
+        boolean empty = (msg == null || msg.isEmpty());
+        messageArea.setForeground(error && !empty ? messageErrorColor : messageInfoColor);
+        messageArea.setText(empty ? DEFAULT_STATUS : msg);
+        messageArea.setCaretPosition(0);
     }
 
     private void updateButtonStates() {

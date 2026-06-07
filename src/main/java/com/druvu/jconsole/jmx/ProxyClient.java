@@ -87,6 +87,9 @@ public class ProxyClient implements JConsoleContext, JmxDataAccess {
 
     private ConnectionState connectionState = ConnectionState.DISCONNECTED;
 
+    // Last exception thrown by connect(); surfaced by the retry dialog on an initial-connect failure.
+    private volatile Exception lastConnectException;
+
     // The SwingPropertyChangeSupport will fire events on the EDT
     private SwingPropertyChangeSupport propertyChangeSupport = new SwingPropertyChangeSupport(this, true);
 
@@ -162,9 +165,11 @@ public class ProxyClient implements JConsoleContext, JmxDataAccess {
     public void connect() {
         setConnectionState(ConnectionState.CONNECTING);
         try {
+            lastConnectException = null;
             tryConnect();
             setConnectionState(ConnectionState.CONNECTED);
         } catch (Exception e) {
+            lastConnectException = e;
             if (JConsole.isDebug()) {
                 e.printStackTrace();
             }
@@ -240,6 +245,11 @@ public class ProxyClient implements JConsoleContext, JmxDataAccess {
 
     public String getUrl() {
         return url;
+    }
+
+    /** The exception from the most recent failed {@link #connect()}, or {@code null} if the last attempt succeeded. */
+    public Exception getLastConnectException() {
+        return lastConnectException;
     }
 
     public String getHostName() {

@@ -28,6 +28,11 @@ public final class BoosterHome {
         return root().resolve("connections.txt");
     }
 
+    /** Most-recently-used successful connection URLs (one per line, most recent first). */
+    public static Path recentConnectionsFile() {
+        return root().resolve("recent-connections.txt");
+    }
+
     public static Path operationStateDir() {
         return ensureDir(root().resolve("operation-state"));
     }

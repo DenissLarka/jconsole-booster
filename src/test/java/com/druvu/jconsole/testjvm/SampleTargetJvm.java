@@ -1,13 +1,19 @@
 package com.druvu.jconsole.testjvm;
 
 import java.lang.management.ManagementFactory;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
+import javax.management.remote.JMXAuthenticator;
 import javax.management.remote.JMXConnectorServer;
 import javax.management.remote.JMXConnectorServerFactory;
+import javax.management.remote.JMXPrincipal;
 import javax.management.remote.JMXServiceURL;
+import javax.security.auth.Subject;
 
 /**
  * Sample target JVM. Starts a JMXMP connector and a custom MBean, then drives synthetic load (CPU, allocations, named
@@ -33,8 +39,28 @@ public final class SampleTargetJvm {
         SampleMarkupStandardMBean markup = new SampleMarkupStandardMBean(new SampleMarkup());
         mbs.registerMBean(markup, new ObjectName(MARKUP_OBJECT_NAME));
 
+        // Integration-test target: exposes a secured JMXMP endpoint. Connect from JCB with
+        // user/password admin/admin.
+        //
+        // druvu-lib-jmxmp 2.0.0 makes this zero-config: with no "jmx.remote.profiles" the server
+        // defaults to "TLS SASL/PLAIN", and with no "jmx.remote.tls.socket.factory" it generates an
+        // ephemeral self-signed certificate on the fly. So a minimal secure target is just a
+        // JMXAuthenticator — no keystore, no SSLContext.
+        JMXAuthenticator authenticator = credentials -> {
+            if (!(credentials instanceof String[] c)
+                    || c.length != 2
+                    || !"admin".equals(c[0])
+                    || !"admin".equals(c[1])) {
+                throw new SecurityException("Invalid credentials (expected admin/admin)");
+            }
+            return new Subject(true, Set.of(new JMXPrincipal(c[0])), Set.of(), Set.of());
+        };
+
+        Map<String, Object> env = new HashMap<>();
+        env.put(JMXConnectorServer.AUTHENTICATOR, authenticator);
+
         JMXServiceURL url = new JMXServiceURL("service:jmx:jmxmp://0.0.0.0:" + port);
-        JMXConnectorServer connector = JMXConnectorServerFactory.newJMXConnectorServer(url, null, mbs);
+        JMXConnectorServer connector = JMXConnectorServerFactory.newJMXConnectorServer(url, env, mbs);
         connector.start();
 
         System.out.println("Sample target JVM ready.");

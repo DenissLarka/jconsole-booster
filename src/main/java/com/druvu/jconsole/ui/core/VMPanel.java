@@ -27,6 +27,7 @@ package com.druvu.jconsole.ui.core;
 
 import com.druvu.jconsole.jmx.ProxyClient;
 import com.druvu.jconsole.jmx.api.JmxDataAccess;
+import com.druvu.jconsole.launcher.ArgumentParser;
 import com.druvu.jconsole.launcher.JConsole;
 import com.druvu.jconsole.plugins.ExceptionSafePlugin;
 import com.druvu.jconsole.ui.dialogs.SheetDialog;
@@ -37,6 +38,7 @@ import com.druvu.jconsole.ui.tabs.OverviewTab;
 import com.druvu.jconsole.ui.tabs.SummaryTab;
 import com.druvu.jconsole.ui.tabs.ThreadTab;
 import com.druvu.jconsole.util.Messages;
+import com.druvu.jconsole.util.RecentConnections;
 import com.druvu.jconsole.util.Resources;
 import com.druvu.jconsole.util.Utilities;
 import com.sun.tools.jconsole.JConsoleContext;
@@ -328,6 +330,7 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
                         progressBar.setIndeterminate(false);
                         progressBar.setValue(100);
                     }
+                    RecentConnections.record(ArgumentParser.shortenUrl(proxyClient.getUrl()));
                     closeOptionPane();
                     updateFrameTitle();
                     // create tabs if not done
@@ -467,9 +470,30 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
             msgExplanation = Resources.format(Messages.CONNECTING_TO2, getConnectionName());
             buttonStr = Messages.RECONNECT;
         } else {
-            msgTitle = Messages.CONNECTION_FAILED1;
-            msgExplanation = Resources.format(Messages.CONNECTION_FAILED2, getConnectionName());
-            buttonStr = Messages.CONNECT;
+            // Initial connect failed (connection was never established). Discard this
+            // stillborn frame and reopen the Connect dialog prefilled with the URL +
+            // user name + failure message, so the user can fix credentials/URL and
+            // retry — instead of a dead frame plus a sheet whose "Connect" only
+            // retried the same (wrong) credentials.
+            java.awt.Window w = SwingUtilities.getWindowAncestor(this);
+            if (w instanceof JConsole jc) {
+                jc.reopenConnectAfterFailure(
+                        getFrame(),
+                        ArgumentParser.shortenUrl(proxyClient.getUrl()),
+                        proxyClient.getUserName(),
+                        proxyClient.getLastConnectException());
+                return;
+            }
+            // Fallback (no JConsole ancestor — should not happen): just close the frame.
+            VMInternalFrame deadFrame = getFrame();
+            if (deadFrame != null) {
+                try {
+                    deadFrame.setClosed(true);
+                } catch (PropertyVetoException ignore) {
+                    // Programmatic close; safe to ignore.
+                }
+            }
+            return;
         }
 
         optionPane = SheetDialog.showOptionDialog(

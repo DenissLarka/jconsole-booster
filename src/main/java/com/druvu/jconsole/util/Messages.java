@@ -139,7 +139,7 @@ public final class Messages {
     public static final String HELP_ABOUT_DIALOG_MASTHEAD_TITLE = "About JConsole";
     public static final String HELP_ABOUT_DIALOG_TITLE = "JConsole: About";
     public static final String HELP_ABOUT_DIALOG_USER_GUIDE_LINK_URL =
-            "http://www.oracle.com/pls/topic/lookup?ctx=javase{0}&id=using_jconsole";
+            "https://github.com/DenissLarka/jconsole-booster";
     public static final String HELP_MENU_ABOUT_TITLE = "About JConsole";
     public static final String HELP_MENU_USER_GUIDE_TITLE = "Online User Guide";
     public static final String HELP_MENU_TITLE = "Help";

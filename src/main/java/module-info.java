@@ -46,6 +46,10 @@ module com.druvu.jconsole {
     requires jdk.jconsole;
     requires org.beryx.awt.color;
     requires org.slf4j;
+    // JMXMP transport: druvu-lib-jmxmp (modular OpenDMK fork). Pulls
+    // com.druvu.jmxmp.common transitively; provides the jmxmp
+    // JMXConnectorProvider discovered by JMXConnectorFactory.
+    requires com.druvu.jmxmp.client;
     requires static lombok;
 
     exports com.druvu.jconsole.launcher;

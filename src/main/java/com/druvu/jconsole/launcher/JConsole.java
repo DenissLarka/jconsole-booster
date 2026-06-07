@@ -562,6 +562,22 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
         }
     }
 
+    /**
+     * Called on the EDT when an <em>initial</em> connect attempt fails (the connection was never established). Discards
+     * the stillborn VM frame and reopens the Connect dialog prefilled with the URL and user name plus the failure
+     * message, so the user can correct credentials/URL and retry instead of being left with a dead frame.
+     */
+    public void reopenConnectAfterFailure(VMInternalFrame frame, String url, String userName, Exception ex) {
+        if (frame != null) {
+            try {
+                frame.setClosed(true);
+            } catch (PropertyVetoException ignore) {
+                // Should not happen for a programmatic close; safe to ignore.
+            }
+        }
+        showConnectDialog(url, userName, null, errorMessage(ex));
+    }
+
     private void showCreateMBeanDialog() {
         if (createDialog == null) {
             createDialog = new CreateMBeanDialog(this);

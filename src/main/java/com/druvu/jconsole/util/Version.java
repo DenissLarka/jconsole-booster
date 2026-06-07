@@ -27,14 +27,15 @@ package com.druvu.jconsole.util;
 
 import java.io.PrintStream;
 import java.lang.module.ModuleDescriptor;
+import java.util.Optional;
 
 public class Version {
     // Resolved from the module descriptor (--module-version baked in at compile time).
-    // Falls back to the JDK runtime version for non-modular / IDE runs where the
-    // module is unnamed or the descriptor has no version attribute.
-    private static final String jconsole_version = Version.class
-            .getModule()
-            .getDescriptor()
+    // getDescriptor() is null for an unnamed module (non-modular / IDE runs); in
+    // that case, or when no version attribute is present, fall back to the JDK
+    // runtime version.
+    private static final String jconsole_version = Optional.ofNullable(
+                    Version.class.getModule().getDescriptor())
             .flatMap(ModuleDescriptor::rawVersion)
             .orElseGet(() -> System.getProperty("java.runtime.version"));
 

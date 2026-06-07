@@ -28,7 +28,9 @@ package com.druvu.jconsole.jmx;
 import static java.lang.management.ManagementFactory.COMPILATION_MXBEAN_NAME;
 import static java.lang.management.ManagementFactory.THREAD_MXBEAN_NAME;
 
+import com.druvu.jmxmp.shared.ClientProfilePolicy;
 import java.io.IOException;
+import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
 import javax.management.InstanceNotFoundException;
@@ -41,6 +43,9 @@ import javax.management.ReflectionException;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 /**
  * Encapsulates pure-JMX connection establishment logic extracted from {@link ProxyClient}. All methods are static; this
@@ -49,6 +54,30 @@ import javax.management.remote.JMXServiceURL;
 public final class JMXConnectionManager {
 
     private static final String HOTSPOT_DIAGNOSTIC_MXBEAN_NAME = "com.sun.management:type=HotSpotDiagnostic";
+
+    /**
+     * Test-only trust manager that accepts any server certificate. Used solely to reach a
+     * druvu-lib-jmxmp server running with its on-the-fly self-signed certificate (no fixed trust
+     * anchor to pin). Enabled only when {@code -Djcb.jmxmp.tls.trustall=true}; never used in normal
+     * operator runs.
+     */
+    @SuppressWarnings("java:S4830") // intentional: trust-all for the self-signed integration target only
+    private static final X509TrustManager TRUST_ALL = new X509TrustManager() {
+        @Override
+        public void checkClientTrusted(X509Certificate[] chain, String authType) {
+            // test-only: accept any client certificate
+        }
+
+        @Override
+        public void checkServerTrusted(X509Certificate[] chain, String authType) {
+            // test-only: accept any server certificate (ephemeral self-signed target)
+        }
+
+        @Override
+        public X509Certificate[] getAcceptedIssuers() {
+            return new X509Certificate[0];
+        }
+    };
 
     // -----------------------------------------------------------------------
     // Public result records
@@ -86,7 +115,7 @@ public final class JMXConnectionManager {
      * Establishes a JMX connection to the given service URL using the supplied credentials.
      *
      * @param jmxUrl the JMX service URL to connect to
-     * @param userName optional user name (may be {@code null})
+     * @param userName optional username (may be {@code null})
      * @param password optional password (may be {@code null})
      * @return a {@link ConnectionResult}
      * @throws IOException on failure
@@ -96,9 +125,41 @@ public final class JMXConnectionManager {
         if (userName != null || password != null) {
             env.put(JMXConnector.CREDENTIALS, new String[] {userName, password});
         }
+        // JCB is an operator-driven JMX client: it must reach whatever endpoint the operator
+        // points it at — overwhelmingly plaintext production JMXMP. druvu-lib-jmxmp's client
+        // gate defaults to mandatory TLS+SASL/PLAIN; unrestricted() restores connect-to-anything
+        // behaviour (plaintext / TLS / SASL alike). The lib's JmxmpSerialFilter still enforces
+        // default-deny deserialization regardless of transport, so this does not widen RCE surface.
+        env.put(ClientProfilePolicy.ENV_KEY, ClientProfilePolicy.unrestricted());
+        applyOptionalTlsProfile(env);
         JMXConnector jmxc = JMXConnectorFactory.connect(jmxUrl, env);
         MBeanServerConnection mbsc = jmxc.getMBeanServerConnection();
         return detectCapabilities(jmxc, mbsc);
+    }
+
+    /**
+     * Optional TLS+SASL/PLAIN profile for the integration test against a druvu-lib-jmxmp server that
+     * uses its on-the-fly self-signed certificate. When {@code -Djcb.jmxmp.tls.trustall=true} is set,
+     * add the {@code "TLS SASL/PLAIN"} profile and a TLS socket factory that trusts any server
+     * certificate (there is no fixed cert to pin against an ephemeral self-signed identity);
+     * credentials flow from the connection dialog as usual. With the property unset (the common case)
+     * this is a no-op and the connection proceeds under the unrestricted client policy.
+     *
+     * <p><b>Test only.</b> Trusting any certificate is not safe for real connections — it is enabled
+     * solely to reach the bundled sample target in the GUI smoke run / integration test.
+     */
+    private static void applyOptionalTlsProfile(Map<String, Object> env) throws IOException {
+        if (!Boolean.getBoolean("jcb.jmxmp.tls.trustall")) {
+            return;
+        }
+        try {
+            SSLContext ctx = SSLContext.getInstance("TLS");
+            ctx.init(null, new TrustManager[] {TRUST_ALL}, null);
+            env.put("jmx.remote.profiles", "TLS SASL/PLAIN");
+            env.put("jmx.remote.tls.socket.factory", ctx.getSocketFactory());
+        } catch (Exception e) {
+            throw new IOException("TLS setup failed", e);
+        }
     }
 
     // -----------------------------------------------------------------------

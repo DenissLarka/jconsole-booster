@@ -114,6 +114,18 @@ public class ArgumentParser {
         return JMXMP_PREFIX + arg;
     }
 
+    /**
+     * Inverse of {@link #adaptUrl} for display/storage: collapses a default JMXMP service URL back to its
+     * {@code host:port} shorthand. Service URLs that are not the plain JMXMP default are returned unchanged.
+     * Round-trips with {@link #adaptUrl} (re-expands {@code host:port} on the next connect).
+     */
+    public static String shortenUrl(String url) {
+        if (url != null && url.startsWith(JMXMP_PREFIX)) {
+            return url.substring(JMXMP_PREFIX.length());
+        }
+        return url;
+    }
+
     private static void usage() {
         System.out.println(Resources.format(Messages.ZZ_USAGE_TEXT, "jconsole"));
     }

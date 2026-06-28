@@ -56,10 +56,9 @@ public final class JMXConnectionManager {
     private static final String HOTSPOT_DIAGNOSTIC_MXBEAN_NAME = "com.sun.management:type=HotSpotDiagnostic";
 
     /**
-     * Test-only trust manager that accepts any server certificate. Used solely to reach a
-     * druvu-lib-jmxmp server running with its on-the-fly self-signed certificate (no fixed trust
-     * anchor to pin). Enabled only when {@code -Djcb.jmxmp.tls.trustall=true}; never used in normal
-     * operator runs.
+     * Test-only trust manager that accepts any server certificate. Used solely to reach a druvu-lib-jmxmp server
+     * running with its on-the-fly self-signed certificate (no fixed trust anchor to pin). Enabled only when
+     * {@code -Djcb.jmxmp.tls.trustall=true}; never used in normal operator runs.
      */
     @SuppressWarnings("java:S4830") // intentional: trust-all for the self-signed integration target only
     private static final X509TrustManager TRUST_ALL = new X509TrustManager() {
@@ -138,15 +137,15 @@ public final class JMXConnectionManager {
     }
 
     /**
-     * Optional TLS+SASL/PLAIN profile for the integration test against a druvu-lib-jmxmp server that
-     * uses its on-the-fly self-signed certificate. When {@code -Djcb.jmxmp.tls.trustall=true} is set,
-     * add the {@code "TLS SASL/PLAIN"} profile and a TLS socket factory that trusts any server
-     * certificate (there is no fixed cert to pin against an ephemeral self-signed identity);
-     * credentials flow from the connection dialog as usual. With the property unset (the common case)
-     * this is a no-op and the connection proceeds under the unrestricted client policy.
+     * Optional TLS+SASL/PLAIN profile for the integration test against a druvu-lib-jmxmp server that uses its
+     * on-the-fly self-signed certificate. When {@code -Djcb.jmxmp.tls.trustall=true} is set, add the {@code "TLS
+     * SASL/PLAIN"} profile and a TLS socket factory that trusts any server certificate (there is no fixed cert to pin
+     * against an ephemeral self-signed identity); credentials flow from the connection dialog as usual. With the
+     * property unset (the common case) this is a no-op and the connection proceeds under the unrestricted client
+     * policy.
      *
-     * <p><b>Test only.</b> Trusting any certificate is not safe for real connections — it is enabled
-     * solely to reach the bundled sample target in the GUI smoke run / integration test.
+     * <p><b>Test only.</b> Trusting any certificate is not safe for real connections — it is enabled solely to reach
+     * the bundled sample target in the GUI smoke run / integration test.
      */
     private static void applyOptionalTlsProfile(Map<String, Object> env) throws IOException {
         if (!Boolean.getBoolean("jcb.jmxmp.tls.trustall")) {

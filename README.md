@@ -28,7 +28,19 @@ The markup system is **fully opt-in**: servers that don't add `{{...}}` markup t
 
 ## Install
 
-### Build from source (current path)
+### Download a signed installer (recommended)
+
+Grab the installer for your platform from the [latest release](https://github.com/DenissLarka/jconsole-booster/releases/latest) or [druvu.com/downloads](https://druvu.com/downloads/). The Java runtime is bundled — nothing else to install.
+
+| Platform | Installer | Availability |
+|----------|-----------|--------------|
+| macOS (Apple Silicon) | `JConsoleBooster.dmg` — signed with a Developer ID and **notarized by Apple** | Available now |
+| Windows 10 / 11 | `.msix` — signed | In progress |
+| Linux | `.AppImage` | In progress |
+
+The macOS build opens without Gatekeeper prompts. Windows and Linux installers are being signed on their respective platforms and will be attached to the same release as they land.
+
+### Build from source
 
 Requires JDK 25+ and Maven 3.9+.
 
@@ -40,8 +52,6 @@ mvn exec:exec@start
 ```
 
 The application's main entry point is `com.druvu.jconsole.launcher.JConsole`. The launcher applies the Nimbus look-and-feel, parses CLI arguments via `ArgumentParser` (including the `-c=` color flag and `host:port` URL shorthand), and then runs the main JConsole UI on the EDT.
-
-> **Pre-built installers** (`.msix`, `.dmg`, `.AppImage`) are produced from a separate dist pipeline and will be code-signed and notarized in upcoming releases. While signing certificates are being procured, unsigned canary builds may be attached to [GitHub Releases](https://github.com/DenissLarka/jconsole-booster/releases) for pipeline validation — they will trigger Gatekeeper / SmartScreen warnings on most machines. For general use, build from source until signed installers land.
 
 ## Quick start
 
@@ -287,7 +297,7 @@ Multiple targets open in tiled MDI panels (use `-notile` to disable). Bare proce
 - **Java runtime.** OpenJDK 25 or later. Bundled with the installer — no separate install needed.
 - **Operating systems.**
   - Windows 10 / 11 (x64)
-  - macOS 12 Monterey or later (Intel and Apple Silicon)
+  - macOS 12 Monterey or later (Apple Silicon; Intel via build-from-source)
   - Linux x64 (any modern glibc-based distribution)
 - **Target JVMs.** Any JVM exposing JMX over JMXMP — JDK 8 through latest. Markup features require the target's MBeans to populate `MBeanInfo` descriptions accordingly (`StandardMBean` subclass overriding `getDescription(...)`, or a `DynamicMBean` hand-building `MBeanInfo`).
 - **JPMS.** Ships as the `com.druvu.jconsole` module.
@@ -323,7 +333,7 @@ Add the repository and dependency to your consumer project's `pom.xml`:
 <dependency>
   <groupId>com.druvu</groupId>
   <artifactId>jconsole-booster</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.2</version>
 </dependency>
 ```
 

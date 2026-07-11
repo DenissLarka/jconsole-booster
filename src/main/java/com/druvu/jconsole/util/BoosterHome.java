@@ -37,6 +37,14 @@ public final class BoosterHome {
         return ensureDir(root().resolve("operation-state"));
     }
 
+    /**
+     * Trusted server-certificate fingerprints (an SSH {@code known_hosts} analog), one {@code host:port <sha-256>} per
+     * line. Hand-editable: delete a line to revoke trust.
+     */
+    public static Path trustedCertsFile() {
+        return root().resolve("trusted-certs.txt");
+    }
+
     static Path computeRoot(String envValue, String userHome) {
         if (envValue != null && !envValue.isBlank()) {
             return Paths.get(envValue);

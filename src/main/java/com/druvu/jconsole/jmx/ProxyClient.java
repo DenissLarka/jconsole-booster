@@ -293,6 +293,26 @@ public class ProxyClient implements JConsoleContext, JmxDataAccess {
         }
     }
 
+    /**
+     * Cleanly closes every cached client's JMX connector. Registered as a JVM shutdown hook (see {@code JConsole.main})
+     * so quitting JCB — via the window close, the Exit menu, or a SIGTERM — closes each connection instead of letting
+     * the socket drop, which the server would otherwise log as "client exited without closing connection". Best-effort:
+     * a snapshot of the cache is closed outside the lock and per-client failures are ignored.
+     */
+    public static void disconnectAll() {
+        List<ProxyClient> clients;
+        synchronized (cache) {
+            clients = new ArrayList<>(cache.values());
+        }
+        for (ProxyClient client : clients) {
+            try {
+                client.disconnect();
+            } catch (Exception ignored) {
+                // best-effort during shutdown
+            }
+        }
+    }
+
     /** Returns the list of domains in which any MBean is currently registered. */
     public String[] getDomains() throws IOException {
         return server.getDomains();

@@ -25,12 +25,14 @@
 
 package com.druvu.jconsole.launcher;
 
+import com.druvu.jconsole.jmx.JMXConnectionManager;
 import com.druvu.jconsole.jmx.ProxyClient;
 import com.druvu.jconsole.plugins.jtop.JTopPlugin;
 import com.druvu.jconsole.ui.components.OutputViewer;
 import com.druvu.jconsole.ui.core.VMInternalFrame;
 import com.druvu.jconsole.ui.core.VMPanel;
 import com.druvu.jconsole.ui.dialogs.AboutDialog;
+import com.druvu.jconsole.ui.dialogs.CertTrustDialog;
 import com.druvu.jconsole.ui.dialogs.ConnectDialog;
 import com.druvu.jconsole.ui.dialogs.CreateMBeanDialog;
 import com.druvu.jconsole.ui.menu.ConnectionBookmarksMenu;
@@ -759,6 +761,8 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
             updateInterval = options.updateInterval();
 
             applyLookAndFeel(options.color());
+            JMXConnectionManager.setCertTrustPrompt(CertTrustDialog::prompt);
+            Runtime.getRuntime().addShutdownHook(new Thread(ProxyClient::disconnectAll, "jcb-connection-close"));
             mainInit(options);
         });
     }

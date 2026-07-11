@@ -572,10 +572,23 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
             for (JConsolePlugin p : updateCoordinator.getPlugins()) {
                 Map<String, JPanel> tabs = p.getTabs();
                 for (Map.Entry<String, JPanel> e : tabs.entrySet()) {
-                    addTab(e.getKey(), e.getValue());
+                    // Insert plugin tabs (e.g. JTop) just before MBeans so MBeans stays the last tab
+                    // and any plugin lands second-to-last. Recompute the index each time: every insert
+                    // pushes MBeans one place to the right.
+                    int mbeansIndex = indexOfTab(MBeansTab.getTabName());
+                    if (mbeansIndex >= 0) {
+                        insertTab(e.getKey(), null, e.getValue(), null, mbeansIndex);
+                    } else {
+                        addTab(e.getKey(), e.getValue());
+                    }
                 }
             }
             pluginTabsAdded = true;
+            // MBeans is the default tab on connect.
+            int mbeansIndex = indexOfTab(MBeansTab.getTabName());
+            if (mbeansIndex >= 0) {
+                setSelectedIndex(mbeansIndex);
+            }
         }
     }
 

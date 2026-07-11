@@ -39,12 +39,19 @@ public final class ConnectionBookmarksMenu {
      */
     public static JMenu build(String title, BookmarkClickHandler onPick) {
         JMenu menu = new JMenu(title);
+        populate(menu, onPick);
+        return menu;
+    }
+
+    /** Clears {@code menu} and (re)populates it from {@code connections.txt} — call to refresh after an add/edit. */
+    public static void populate(JMenu menu, BookmarkClickHandler onPick) {
+        menu.removeAll();
         List<BookmarkGroup> groups = loadGroups();
         if (groups.isEmpty()) {
             JMenuItem empty = new JMenuItem("(no bookmarks — edit connections.txt)");
             empty.setEnabled(false);
             menu.add(empty);
-            return menu;
+            return;
         }
         for (BookmarkGroup group : groups) {
             JMenu submenu = new JMenu(group.name());
@@ -59,7 +66,6 @@ public final class ConnectionBookmarksMenu {
             }
             menu.add(submenu);
         }
-        return menu;
     }
 
     /** Click handler that adapts the URL and forwards it to {@link JConsole}. */

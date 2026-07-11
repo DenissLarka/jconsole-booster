@@ -142,7 +142,14 @@ public final class Messages {
             "https://github.com/DenissLarka/jconsole-booster";
     public static final String HELP_MENU_ABOUT_TITLE = "About JConsole";
     public static final String HELP_MENU_USER_GUIDE_TITLE = "Online User Guide";
+    public static final String HELP_MENU_FEEDBACK_TITLE = "Feedback";
+    public static final String HELP_MENU_FEEDBACK_URL = "https://github.com/DenissLarka/jconsole-booster/issues/new";
     public static final String HELP_MENU_TITLE = "Help";
+    public static final String CONNECTION_MENU_OPEN_BOOKMARKS_FILE = "Open bookmarks file";
+    public static final String CONNECTION_MENU_ADD_BOOKMARK = "Add current connection to bookmarks…";
+    public static final String CONNECT_DIALOG_ADD_BOOKMARK = "Add to bookmarks";
+    public static final String CONNECT_DIALOG_ADD_BOOKMARK_TOOLTIP =
+            "Save this host:port as a bookmark (no credentials are stored)";
     public static final String HOTSPOT_MBEANS_ELLIPSIS = "Hotspot MBeans...";
     public static final String HOTSPOT_MBEANS_DIALOG_ACCESSIBLE_DESCRIPTION = "Dialog for managing Hotspot MBeans";
     public static final String IMPACT = "Impact";

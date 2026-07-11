@@ -234,6 +234,10 @@ public class AboutDialog extends InternalDialog {
         getAboutDialog(jConsole).browse(getOnlineDocUrl());
     }
 
+    public static void browseFeedback(JConsole jConsole) {
+        getAboutDialog(jConsole).browse(Messages.HELP_MENU_FEEDBACK_URL);
+    }
+
     public static boolean isBrowseSupported() {
         return (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE));
     }

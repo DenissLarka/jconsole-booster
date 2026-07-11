@@ -35,6 +35,7 @@ import com.druvu.jconsole.ui.dialogs.AboutDialog;
 import com.druvu.jconsole.ui.dialogs.CertTrustDialog;
 import com.druvu.jconsole.ui.dialogs.ConnectDialog;
 import com.druvu.jconsole.ui.dialogs.CreateMBeanDialog;
+import com.druvu.jconsole.ui.menu.BookmarkWriter;
 import com.druvu.jconsole.ui.menu.ConnectionBookmarksMenu;
 import com.druvu.jconsole.util.Messages;
 import com.druvu.jconsole.util.Resources;
@@ -46,8 +47,10 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.GraphicsConfiguration;
+import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Rectangle;
+import java.awt.Taskbar;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -63,6 +66,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.net.ssl.SSLHandshakeException;
 import javax.security.auth.login.FailedLoginException;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
@@ -70,7 +74,9 @@ import javax.swing.JInternalFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JRootPane;
+import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -98,6 +104,49 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
         }
     }
 
+    /** The JCB app icon (256×256), or {@code null} if the bundled resource is missing. */
+    private static Image appIcon() {
+        var url = JConsole.class.getResource("/com/druvu/jconsole/resources/appicon.png");
+        return url == null ? null : new ImageIcon(url).getImage();
+    }
+
+    /** {@code base} rendered at the common window/taskbar sizes, or an empty list if {@code base} is {@code null}. */
+    private static List<Image> appIconImages(Image base) {
+        if (base == null) {
+            return List.of();
+        }
+        List<Image> icons = new ArrayList<>();
+        for (int size : new int[] {16, 20, 24, 32, 40, 48, 64, 128, 256}) {
+            icons.add(new ImageIcon(base.getScaledInstance(size, size, Image.SCALE_SMOOTH)).getImage());
+        }
+        return icons;
+    }
+
+    /** Applies the JCB icon to this window (title bar / taskbar) and, off macOS, the OS taskbar/dock. */
+    private void applyAppIcon() {
+        Image base = appIcon();
+        // Window icon: harmless on macOS (no title-bar icon there); fixes the Duke title-bar/taskbar icon on
+        // Windows/Linux and in unpackaged runs.
+        setIconImages(appIconImages(base));
+        // Dock/taskbar icon: SKIP on macOS. The packaged .app already carries a native multi-resolution Dock icon
+        // set by jpackage; overriding it at runtime would replace it with a single raster. Off macOS this sets the
+        // Windows/Linux taskbar icon.
+        if (base != null && !isMac() && Taskbar.isTaskbarSupported()) {
+            Taskbar taskbar = Taskbar.getTaskbar();
+            if (taskbar.isSupported(Taskbar.Feature.ICON_IMAGE)) {
+                try {
+                    taskbar.setIconImage(base);
+                } catch (UnsupportedOperationException | SecurityException ignored) {
+                    // taskbar icon not settable here; the window icon above still applies
+                }
+            }
+        }
+    }
+
+    private static boolean isMac() {
+        return System.getProperty("os.name", "").regionMatches(true, 0, "mac", 0, 3);
+    }
+
     private static final String title = Messages.JAVA_MONITORING___MANAGEMENT_CONSOLE;
     public static final String ROOT_URL = "service:jmx:";
 
@@ -107,7 +156,8 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
     private JMenuItem hotspotMI, connectMI, exitMI;
     private WindowMenu windowMenu;
     private JMenuItem tileMI, cascadeMI, minimizeAllMI, restoreAllMI;
-    private JMenuItem userGuideMI, aboutMI;
+    private JMenuItem userGuideMI, feedbackMI, aboutMI;
+    private JMenu bookmarksMenu;
 
     private JButton connectButton;
     private JDesktopPane desktop;
@@ -125,6 +175,7 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
         setRootPane(new FixedJRootPane());
         Utilities.setAccessibleDescription(this, Messages.JCONSOLE_ACCESSIBLE_DESCRIPTION);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        applyAppIcon();
 
         menuBar = new JMenuBar();
         setJMenuBar(menuBar);
@@ -150,7 +201,17 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
         connectionMenu.add(connectMI);
 
         connectionMenu.addSeparator();
-        connectionMenu.add(ConnectionBookmarksMenu.build("Bookmarks", ConnectionBookmarksMenu.defaultHandler(this)));
+        bookmarksMenu = ConnectionBookmarksMenu.build("Bookmarks", ConnectionBookmarksMenu.defaultHandler(this));
+        connectionMenu.add(bookmarksMenu);
+
+        JMenuItem addBookmarkMI = new JMenuItem(Messages.CONNECTION_MENU_ADD_BOOKMARK);
+        addBookmarkMI.addActionListener(e -> addBookmark(currentConnectionUrl()));
+        connectionMenu.add(addBookmarkMI);
+
+        JMenuItem openBookmarksFileMI = new JMenuItem(Messages.CONNECTION_MENU_OPEN_BOOKMARKS_FILE);
+        openBookmarksFileMI.addActionListener(e -> openBookmarksFile());
+        connectionMenu.add(openBookmarksFileMI);
+
         connectionMenu.addSeparator();
 
         exitMI = new JMenuItem(Messages.EXIT);
@@ -168,6 +229,12 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
             userGuideMI.setMnemonic(Resources.getMnemonicInt(Messages.HELP_MENU_USER_GUIDE_TITLE));
             userGuideMI.addActionListener(this);
             helpMenu.add(userGuideMI);
+
+            feedbackMI = new JMenuItem(Messages.HELP_MENU_FEEDBACK_TITLE);
+            feedbackMI.setMnemonic(Resources.getMnemonicInt(Messages.HELP_MENU_FEEDBACK_TITLE));
+            feedbackMI.addActionListener(this);
+            helpMenu.add(feedbackMI);
+
             helpMenu.addSeparator();
         }
         aboutMI = new JMenuItem(Messages.HELP_MENU_ABOUT_TITLE);
@@ -364,6 +431,8 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
             System.exit(0);
         } else if (src == userGuideMI) {
             AboutDialog.browseUserGuide(this);
+        } else if (src == feedbackMI) {
+            AboutDialog.browseFeedback(this);
         } else if (src == aboutMI) {
             AboutDialog.showAboutDialog(this);
         } else if (src instanceof JMenuItem) {
@@ -716,6 +785,64 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
     public void internalFrameActivated(InternalFrameEvent e) {}
 
     public void internalFrameDeactivated(InternalFrameEvent e) {}
+
+    private void openBookmarksFile() {
+        try {
+            BookmarkWriter.openInEditor();
+        } catch (IOException | RuntimeException ex) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Could not open the bookmarks file:\n" + ex.getMessage(),
+                    "Bookmarks",
+                    JOptionPane.WARNING_MESSAGE);
+        }
+    }
+
+    /** Prompts for a label + group and appends a bookmark for {@code url} (already short {@code host:port} form). */
+    public void addBookmark(String url) {
+        if (url == null || url.isBlank()) {
+            JOptionPane.showMessageDialog(
+                    this, "No active connection to bookmark.", "Bookmarks", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        JTextField labelField = new JTextField();
+        JTextField groupField = new JTextField(BookmarkWriter.DEFAULT_GROUP);
+        Object[] form = {"Bookmark for " + url, " ", "Label:", labelField, "Group:", groupField};
+        int result = JOptionPane.showConfirmDialog(
+                this, form, "Add bookmark", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if (result != JOptionPane.OK_OPTION) {
+            return;
+        }
+        String label = labelField.getText().strip();
+        if (label.isEmpty()) {
+            label = url;
+        }
+        try {
+            BookmarkWriter.appendBookmark(groupField.getText(), label, url);
+            refreshBookmarksMenu();
+        } catch (IOException | RuntimeException ex) {
+            JOptionPane.showMessageDialog(
+                    this, "Could not add the bookmark:\n" + ex.getMessage(), "Bookmarks", JOptionPane.WARNING_MESSAGE);
+        }
+    }
+
+    private void refreshBookmarksMenu() {
+        if (bookmarksMenu != null) {
+            ConnectionBookmarksMenu.populate(bookmarksMenu, ConnectionBookmarksMenu.defaultHandler(this));
+        }
+    }
+
+    /** The selected connection's URL in short {@code host:port} form, or {@code null} if none is selected. */
+    private String currentConnectionUrl() {
+        JInternalFrame frame = desktop.getSelectedFrame();
+        if (frame instanceof VMInternalFrame vmIF) {
+            String url = vmIF.getVMPanel().getUrl();
+            if (url != null && !url.isBlank()) {
+                return ArgumentParser.shortenUrl(url);
+            }
+        }
+        return null;
+    }
 
     private static void mainInit(final JConsoleOptions options) {
         // Always create Swing GUI on the Event Dispatching Thread

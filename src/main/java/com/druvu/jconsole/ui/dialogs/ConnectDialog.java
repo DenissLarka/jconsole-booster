@@ -181,8 +181,18 @@ public class ConnectDialog extends InternalDialog implements DocumentListener, F
 
         cancelButton = new JButton(cancelAction);
 
+        JButton bookmarkButton = new JButton(Messages.CONNECT_DIALOG_ADD_BOOKMARK);
+        bookmarkButton.setToolTipText(Messages.CONNECT_DIALOG_ADD_BOOKMARK_TOOLTIP);
+        bookmarkButton.addActionListener(e -> {
+            String txt = remoteTF.getText().trim();
+            if (!txt.isEmpty()) {
+                jConsole.addBookmark(ArgumentParser.shortenUrl(ArgumentParser.adaptUrl(txt)));
+            }
+        });
+
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.TRAILING));
         buttonPanel.setBorder(new EmptyBorder(12, 12, 2, 12));
+        buttonPanel.add(bookmarkButton);
         buttonPanel.add(connectButton);
         buttonPanel.add(cancelButton);
         bottomPanel.add(buttonPanel, NORTH);

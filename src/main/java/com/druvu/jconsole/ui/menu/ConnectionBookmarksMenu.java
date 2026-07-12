@@ -1,6 +1,5 @@
 package com.druvu.jconsole.ui.menu;
 
-import com.druvu.jconsole.launcher.ArgumentParser;
 import com.druvu.jconsole.launcher.JConsole;
 import com.druvu.jconsole.util.BoosterHome;
 import java.io.IOException;
@@ -15,9 +14,9 @@ import javax.swing.JMenuItem;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Builds the "Bookmarks" submenu added to the Connection menu. On click, each bookmark's URL is run through
- * {@link ArgumentParser#adaptUrl} (so {@code host:port} shorthand expands to JMXMP) and handed to
- * {@link JConsole#addUrl}.
+ * Builds the "Bookmarks" submenu added to the Connection menu. On click, each bookmark prefills the Connect dialog with
+ * its URL via {@link JConsole#promptConnect} — it does not connect immediately, because bookmarks store no credentials
+ * and a credentialed host needs the operator to enter a password first.
  *
  * <p>The {@code connections.txt} file is loaded from {@link BoosterHome#connectionsFile()}; if it does not exist on
  * launch, a documented default is copied into place from the bundled resource.
@@ -68,12 +67,13 @@ public final class ConnectionBookmarksMenu {
         }
     }
 
-    /** Click handler that adapts the URL and forwards it to {@link JConsole}. */
+    /**
+     * Click handler that prefills the Connect dialog with the bookmarked URL rather than connecting immediately.
+     * Bookmarks store no credentials (by design), so a one-click connect would fail on any host that needs a password;
+     * prefilling lets the operator enter credentials and connect.
+     */
     public static BookmarkClickHandler defaultHandler(JConsole jconsole) {
-        return url -> {
-            String adapted = ArgumentParser.adaptUrl(url);
-            jconsole.addUrl(adapted, null, null, false);
-        };
+        return jconsole::promptConnect;
     }
 
     private static List<BookmarkGroup> loadGroups() {

@@ -52,11 +52,7 @@ public class SampleMarkupStandardMBean extends StandardMBean {
         });
 
         OPERATION_DESCRIPTIONS.put("getConfig", "Server config {{returns:format=json}}");
-        OPERATION_DESCRIPTIONS.put("generatePdfReport", "Monthly report {{returns:mime=application/pdf}}");
-        OPERATION_DESCRIPTIONS.put("generateCsvExport", "Trades export {{returns:mime=text/csv}}");
-        OPERATION_DESCRIPTIONS.put("generateUnknownBlob", "Diagnostic dump {{returns:mime=application/octet-stream}}");
-        // generateNoHint intentionally has no description — exercises the
-        // "no hint → fall through to existing array viewer" path.
+        // byte[] download operations moved to SampleDownloads (its own bean).
     }
 
     public SampleMarkupStandardMBean(SampleMarkupMBean impl) throws NotCompliantMBeanException {

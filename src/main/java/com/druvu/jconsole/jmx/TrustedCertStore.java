@@ -3,10 +3,14 @@ package com.druvu.jconsole.jmx;
 import com.druvu.jconsole.util.BoosterHome;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -50,6 +54,41 @@ public final class TrustedCertStore {
         ensureLoaded();
         String fp = canon(fingerprint);
         return has(persisted, hostPort, fp) || has(session, hostPort, fp);
+    }
+
+    /**
+     * @return every fingerprint currently pinned for {@code hostPort} (persistent ∪ session), canonical hex. Empty if
+     *     the host is unknown. A non-empty result whose members all differ from a freshly presented fingerprint is the
+     *     "certificate changed" signal.
+     */
+    public Set<String> pinnedFingerprints(String hostPort) {
+        ensureLoaded();
+        Set<String> all = new HashSet<>();
+        Set<String> p = persisted.get(hostPort);
+        if (p != null) {
+            all.addAll(p);
+        }
+        Set<String> s = session.get(hostPort);
+        if (s != null) {
+            all.addAll(s);
+        }
+        return all;
+    }
+
+    /**
+     * Replace ALL pins for {@code hostPort} with a single new {@code fingerprint}: the persistent pin becomes the new
+     * one (old lines for this host removed from {@code trusted-certs.txt}, comments and other hosts preserved
+     * verbatim), and any session pins for the host are cleared. Used on the "certificate changed" path so a rotated
+     * cert does not leave the superseded fingerprint trusted, and the file does not accumulate one stale pin per server
+     * restart.
+     */
+    public void replacePersistent(String hostPort, String fingerprint) {
+        ensureLoaded();
+        Set<String> set = ConcurrentHashMap.newKeySet();
+        set.add(canon(fingerprint));
+        persisted.put(hostPort, set);
+        session.remove(hostPort);
+        rewriteReplacing(hostPort, hostPort + "\t" + fingerprint + "\t# updated " + LocalDate.now());
     }
 
     /** Remember for this JVM session only (not written to disk). */
@@ -99,7 +138,49 @@ public final class TrustedCertStore {
         loaded = true;
     }
 
-    private void append(String hostPort, String fingerprint) {
+    /**
+     * Rewrites {@code trusted-certs.txt}, dropping every pin line whose first token equals {@code hostPort} and
+     * appending {@code newLine}. Comments ({@code #…}), blank lines, and other hosts' lines are kept verbatim.
+     */
+    private synchronized void rewriteReplacing(String hostPort, String newLine) {
+        try {
+            List<String> out = new ArrayList<>();
+            if (Files.exists(file)) {
+                for (String raw : Files.readAllLines(file)) {
+                    String line = raw.trim();
+                    if (line.isEmpty() || line.startsWith("#")) {
+                        out.add(raw);
+                        continue;
+                    }
+                    String[] parts = line.split("\\s+");
+                    if (parts.length >= 1 && parts[0].equals(hostPort)) {
+                        continue; // superseded pin for this host — drop it
+                    }
+                    out.add(raw);
+                }
+            }
+            out.add(newLine);
+            Path parent = file.getParent();
+            if (parent != null) {
+                Files.createDirectories(parent);
+            }
+            // Write to a sibling temp file then move into place, so a crash mid-write can never truncate the trust
+            // file (which would silently revert every host to the quiet first-use prompt).
+            Path tmp = file.resolveSibling(file.getFileName() + ".tmp");
+            Files.write(tmp, out);
+            try {
+                Files.move(tmp, file, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            } catch (AtomicMoveNotSupportedException notAtomic) {
+                Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException("Could not rewrite trusted certificates file: " + file, e);
+        }
+    }
+
+    // synchronized on the same monitor as rewriteReplacing so an append can never interleave with a full-file
+    // rewrite (which reads-all-then-truncates) and be silently lost.
+    private synchronized void append(String hostPort, String fingerprint) {
         String line = hostPort + "\t" + fingerprint + "\t# trusted " + LocalDate.now() + System.lineSeparator();
         try {
             Path parent = file.getParent();

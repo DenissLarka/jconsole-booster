@@ -35,6 +35,7 @@ import com.druvu.jconsole.ui.dialogs.AboutDialog;
 import com.druvu.jconsole.ui.dialogs.CertTrustDialog;
 import com.druvu.jconsole.ui.dialogs.ConnectDialog;
 import com.druvu.jconsole.ui.dialogs.CreateMBeanDialog;
+import com.druvu.jconsole.ui.dialogs.PlaintextCredentialsDialog;
 import com.druvu.jconsole.ui.menu.BookmarkWriter;
 import com.druvu.jconsole.ui.menu.ConnectionBookmarksMenu;
 import com.druvu.jconsole.util.Messages;
@@ -545,10 +546,19 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 
     // Call on EDT
     public void addUrl(final String url, final String userName, final String password, final boolean tile) {
+        addUrl(url, userName, password, tile, false);
+    }
+
+    public void addUrl(
+            final String url,
+            final String userName,
+            final String password,
+            final boolean tile,
+            final boolean requireValidChain) {
         new Thread("JConsole.addUrl") {
             public void run() {
                 try {
-                    addProxyClient(ProxyClient.getProxyClient(url, userName, password), tile);
+                    addProxyClient(ProxyClient.getProxyClient(url, userName, password, requireValidChain), tile);
                 } catch (final MalformedURLException ex) {
                     failed(ex, url, userName, password);
                 } catch (final SecurityException ex) {
@@ -616,6 +626,16 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
         windowMenu.add(vmIF);
 
         return vmIF;
+    }
+
+    /**
+     * Opens the Connect dialog prefilled with {@code url} but does NOT connect — the operator supplies credentials and
+     * clicks Connect. Used by bookmarks: they never store a password (by design), so auto-connecting a credentialed
+     * host would fail with no way to authenticate; prefilling lets the user enter the password.
+     */
+    public void promptConnect(String url) {
+        String shortUrl = (url == null || url.isBlank()) ? "" : ArgumentParser.shortenUrl(ArgumentParser.adaptUrl(url));
+        showConnectDialog(shortUrl, null, null, null);
     }
 
     private void showConnectDialog(String url, String userName, String password, String msg) {
@@ -888,7 +908,8 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
             updateInterval = options.updateInterval();
 
             applyLookAndFeel(options.color());
-            JMXConnectionManager.setCertTrustPrompt(CertTrustDialog::prompt);
+            JMXConnectionManager.setCertTrustPrompt(CertTrustDialog.asPrompt());
+            JMXConnectionManager.setPlaintextCredentialAlert(PlaintextCredentialsDialog.asAlert());
             Runtime.getRuntime().addShutdownHook(new Thread(ProxyClient::disconnectAll, "jcb-connection-close"));
             mainInit(options);
         });

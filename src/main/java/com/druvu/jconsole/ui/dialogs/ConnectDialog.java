@@ -49,6 +49,7 @@ import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -68,6 +69,7 @@ public class ConnectDialog extends InternalDialog implements DocumentListener, F
 
     JConsole jConsole;
     JTextField userNameTF, passwordTF;
+    JCheckBox requireValidChainCB;
     JLabel remoteMessageLabel;
     JComboBox<String> remoteCombo;
     JTextField remoteTF;
@@ -175,6 +177,15 @@ public class ConnectDialog extends InternalDialog implements DocumentListener, F
 
         formPanel.add(userPwdPanel, CENTER);
 
+        requireValidChainCB = new JCheckBox("Require a CA-validated certificate (no trust-on-first-use)");
+        requireValidChainCB.setToolTipText("When checked, connect only if the server's TLS certificate chains to a "
+                + "trusted CA. Self-signed certificates are rejected instead of prompting — use this for servers "
+                + "behind a real PKI.");
+        JPanel optionsPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 0, 0));
+        optionsPanel.setBorder(new EmptyBorder(10, 0, 0, 0));
+        optionsPanel.add(requireValidChainCB);
+        formPanel.add(optionsPanel, SOUTH);
+
         String connectButtonToolTipText = Messages.CONNECT_DIALOG_CONNECT_BUTTON_TOOLTIP;
         connectButton = new JButton(connectAction);
         connectButton.setToolTipText(connectButtonToolTipText);
@@ -276,7 +287,7 @@ public class ConnectDialog extends InternalDialog implements DocumentListener, F
                 password = password.isEmpty() ? null : password;
                 try {
                     String url = ArgumentParser.adaptUrl(txt);
-                    jConsole.addUrl(url, userName, password, false);
+                    jConsole.addUrl(url, userName, password, false, requireValidChainCB.isSelected());
                     remoteCombo.setSelectedItem("");
                     userNameTF.setText("");
                     passwordTF.setText("");

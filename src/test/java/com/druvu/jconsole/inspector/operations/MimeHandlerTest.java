@@ -47,6 +47,11 @@ public class MimeHandlerTest {
         Assert.assertTrue(MimeHandler.isOnWhitelist("text/csv"));
         Assert.assertTrue(MimeHandler.isOnWhitelist("image/png"));
         Assert.assertTrue(MimeHandler.isOnWhitelist("APPLICATION/PDF")); // case-insensitive
+        // Office OOXML types are whitelisted so Excel/Word/PowerPoint payloads can be opened directly.
+        Assert.assertTrue(
+                MimeHandler.isOnWhitelist("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+        Assert.assertTrue(
+                MimeHandler.isOnWhitelist("application/vnd.openxmlformats-officedocument.wordprocessingml.document"));
     }
 
     @Test
@@ -70,6 +75,66 @@ public class MimeHandlerTest {
         Assert.assertEquals(MimeHandler.extensionFor("image/jpeg"), ".jpg");
         Assert.assertEquals(MimeHandler.extensionFor("image/gif"), ".gif");
         Assert.assertEquals(MimeHandler.extensionFor("image/svg+xml"), ".svg");
+        Assert.assertEquals(
+                MimeHandler.extensionFor("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"), ".xlsx");
+        Assert.assertEquals(
+                MimeHandler.extensionFor("application/vnd.openxmlformats-officedocument.wordprocessingml.document"),
+                ".docx");
+        Assert.assertEquals(MimeHandler.extensionFor("application/vnd.ms-excel"), ".xls");
+    }
+
+    @Test
+    public void filenameFromDescriptionExtractsOptionalName() {
+        Assert.assertEquals(
+                MimeHandler.filenameFromDescription("Trades {{returns:mime=text/csv,filename=trades-2026-07.csv}}"),
+                Optional.of("trades-2026-07.csv"));
+        // filename may come before mime — order-independent key=value parsing.
+        Assert.assertEquals(
+                MimeHandler.filenameFromDescription("X {{returns:filename=report.pdf,mime=application/pdf}}"),
+                Optional.of("report.pdf"));
+    }
+
+    @Test
+    public void filenameAbsentOrBlankReturnsEmpty() {
+        Assert.assertEquals(MimeHandler.filenameFromDescription("Trades {{returns:mime=text/csv}}"), Optional.empty());
+        Assert.assertEquals(
+                MimeHandler.filenameFromDescription("X {{returns:mime=text/csv,filename=}}"), Optional.empty());
+        Assert.assertEquals(MimeHandler.filenameFromDescription("plain"), Optional.empty());
+    }
+
+    @Test
+    public void resolveFilenameUsesServerNameWithMimeExtension() {
+        // Server base name is kept; the extension always comes from the MIME type (server ext is discarded).
+        Assert.assertEquals(
+                MimeHandler.resolveFilename("generateCsvExport", "text/csv", "trades-2026-07.csv"),
+                "trades-2026-07.csv");
+        Assert.assertEquals(
+                MimeHandler.resolveFilename(
+                        "gen", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "book"),
+                "book.xlsx");
+    }
+
+    @Test
+    public void resolveFilenameFallsBackToOperationName() {
+        Assert.assertEquals(
+                MimeHandler.resolveFilename("generatePdfReport", "application/pdf", null), "generatePdfReport.pdf");
+        Assert.assertEquals(MimeHandler.resolveFilename("gen", "text/csv", "   "), "gen.csv");
+    }
+
+    @Test
+    public void resolveFilenameDefeatsPathTraversal() {
+        // A malicious server name is reduced to its basename before use — no directory escape, no absolute path.
+        Assert.assertEquals(MimeHandler.resolveFilename("op", "text/csv", "../../../../etc/passwd"), "passwd.csv");
+        Assert.assertEquals(MimeHandler.resolveFilename("op", "text/csv", "/etc/shadow"), "shadow.csv");
+        Assert.assertEquals(
+                MimeHandler.resolveFilename("op", "application/pdf", "C:\\Windows\\System32\\evil"), "evil.pdf");
+    }
+
+    @Test
+    public void resolveFilenameNeverHonorsServerExtension() {
+        // Whitelisted MIME + a dangerous server extension must NOT yield an executable name (Open path safety).
+        Assert.assertEquals(MimeHandler.resolveFilename("op", "application/pdf", "invoice.exe"), "invoice.pdf");
+        Assert.assertEquals(MimeHandler.resolveFilename("op", "text/csv", "data.bat"), "data.csv");
     }
 
     @Test

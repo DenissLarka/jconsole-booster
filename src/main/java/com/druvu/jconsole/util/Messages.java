@@ -133,7 +133,7 @@ public final class Messages {
     public static final String HEAP = "Heap";
     public static final String HELP_ABOUT_DIALOG_ACCESSIBLE_DESCRIPTION =
             "Dialog containing information about JConsole and JDK versions";
-    public static final String HELP_ABOUT_DIALOG_JCONSOLE_VERSION = "JConsole version:<br>{0}";
+    public static final String HELP_ABOUT_DIALOG_JCONSOLE_VERSION = "JConsoleBooster version:<br>{0}";
     public static final String HELP_ABOUT_DIALOG_JAVA_VERSION = "Java VM version:<br>{0}";
     public static final String HELP_ABOUT_DIALOG_MASTHEAD_ACCESSIBLE_NAME = "Masthead Graphic";
     public static final String HELP_ABOUT_DIALOG_MASTHEAD_TITLE = "About JConsole";

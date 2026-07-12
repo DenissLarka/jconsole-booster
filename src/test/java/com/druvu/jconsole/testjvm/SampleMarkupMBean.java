@@ -19,14 +19,6 @@ public interface SampleMarkupMBean {
 
     String setVerbose(boolean verbose);
 
-    byte[] generatePdfReport();
-
-    byte[] generateCsvExport();
-
-    byte[] generateUnknownBlob();
-
-    byte[] generateNoHint();
-
     javax.management.openmbean.TabularData loadOrderBook();
 
     String placeOrder(String symbol, String side, long quantity, double price, String account);

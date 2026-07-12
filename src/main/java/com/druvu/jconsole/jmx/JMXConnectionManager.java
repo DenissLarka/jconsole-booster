@@ -46,11 +46,13 @@ import javax.management.remote.JMXServiceURL;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Encapsulates pure-JMX connection establishment logic extracted from {@link ProxyClient}. All methods are static; this
  * class is not instantiable.
  */
+@Slf4j
 public final class JMXConnectionManager {
 
     private static final String HOTSPOT_DIAGNOSTIC_MXBEAN_NAME = "com.sun.management:type=HotSpotDiagnostic";
@@ -63,6 +65,19 @@ public final class JMXConnectionManager {
     private static final CertTrustPrompt DENY = (hostPort, cert, fingerprint) -> CertTrustPrompt.Decision.CANCEL;
 
     private static volatile CertTrustPrompt promptProvider = DENY;
+
+    /**
+     * No-op default: a headless caller gets the exception; {@code JConsole} installs a dialog that explains the block.
+     */
+    private static volatile PlaintextCredentialAlert plaintextAlert = hostPort -> {};
+
+    /**
+     * Installs the UI shown when a connection is hard-refused for trying to send credentials over plaintext (see
+     * {@link PlaintextCredentialsRefusedException}). Call once at startup; {@code null} restores the no-op default.
+     */
+    public static void setPlaintextCredentialAlert(PlaintextCredentialAlert alert) {
+        plaintextAlert = (alert == null) ? hostPort -> {} : alert;
+    }
 
     /**
      * Installs the operator-facing prompt asked to approve a server certificate that does not validate against the
@@ -110,7 +125,17 @@ public final class JMXConnectionManager {
      * {@link #setCertTrustPrompt(CertTrustPrompt)}.
      */
     public static ConnectionResult connect(JMXServiceURL jmxUrl, String userName, String password) throws IOException {
-        return connect(jmxUrl, userName, password, promptProvider);
+        return connect(jmxUrl, userName, password, promptProvider, false);
+    }
+
+    /**
+     * Establishes a JMX connection using the installed trust prompt. When {@code requireValidChain} is {@code true}, a
+     * TLS server certificate that does not chain to a trusted CA is rejected outright rather than offered for
+     * trust-on-first-use.
+     */
+    public static ConnectionResult connect(
+            JMXServiceURL jmxUrl, String userName, String password, boolean requireValidChain) throws IOException {
+        return connect(jmxUrl, userName, password, promptProvider, requireValidChain);
     }
 
     /**
@@ -133,6 +158,21 @@ public final class JMXConnectionManager {
      */
     public static ConnectionResult connect(
             JMXServiceURL jmxUrl, String userName, String password, CertTrustPrompt trustPrompt) throws IOException {
+        return connect(jmxUrl, userName, password, trustPrompt, false);
+    }
+
+    /**
+     * As {@link #connect(JMXServiceURL, String, String, CertTrustPrompt)}, but with {@code requireValidChain}: when
+     * {@code true}, an untrusted (e.g. self-signed) TLS certificate is rejected instead of being offered for
+     * trust-on-first-use.
+     */
+    public static ConnectionResult connect(
+            JMXServiceURL jmxUrl,
+            String userName,
+            String password,
+            CertTrustPrompt trustPrompt,
+            boolean requireValidChain)
+            throws IOException {
         Map<String, Object> env = new HashMap<>();
         if (userName != null || password != null) {
             env.put(JMXConnector.CREDENTIALS, new String[] {userName, password});
@@ -140,11 +180,36 @@ public final class JMXConnectionManager {
         // Unrestricted so the selector below is free to pick either transport; the default
         // mandatory-TLS client policy would reject a plaintext server before it runs.
         env.put(ClientProfilePolicy.ENV_KEY, ClientProfilePolicy.unrestricted());
-        env.put("com.sun.jmx.remote.profile.selector", new MirrorServerProfiles());
-        env.put("jmx.remote.tls.socket.factory", tofuSocketFactory(hostPort(jmxUrl), trustPrompt));
-        JMXConnector jmxc = JMXConnectorFactory.connect(jmxUrl, env);
+        boolean credentialsPresent = userName != null || password != null;
+        env.put("com.sun.jmx.remote.profile.selector", new MirrorServerProfiles(credentialsPresent));
+        env.put("jmx.remote.tls.socket.factory", tofuSocketFactory(hostPort(jmxUrl), trustPrompt, requireValidChain));
+        JMXConnector jmxc;
+        try {
+            jmxc = JMXConnectorFactory.connect(jmxUrl, env);
+        } catch (IOException e) {
+            // The selector hard-refuses a credentialed connection to a server that offered no encryption, throwing
+            // before the password reaches the wire. jmxmp may wrap that exception, so scan the cause chain.
+            PlaintextCredentialsRefusedException refused = plaintextCredentialRefusal(e);
+            if (refused != null) {
+                plaintextAlert.refused(hostPort(jmxUrl));
+                throw refused;
+            }
+            throw e;
+        }
         MBeanServerConnection mbsc = jmxc.getMBeanServerConnection();
         return detectCapabilities(jmxc, mbsc);
+    }
+
+    /**
+     * Walks {@code t}'s cause chain for the plaintext-credential refusal, or {@code null} if it is a different failure.
+     */
+    private static PlaintextCredentialsRefusedException plaintextCredentialRefusal(Throwable t) {
+        for (Throwable c = t; c != null; c = c.getCause()) {
+            if (c instanceof PlaintextCredentialsRefusedException refused) {
+                return refused;
+            }
+        }
+        return null;
     }
 
     private static String hostPort(JMXServiceURL jmxUrl) {
@@ -156,12 +221,15 @@ public final class JMXConnectionManager {
      * this endpoint (default trust store &rarr; pinned fingerprint &rarr; operator prompt). Protocol/ciphers are set by
      * druvu-lib-jmxmp's {@code TLSClientHandler} (TLS 1.3 by default).
      */
-    private static SSLSocketFactory tofuSocketFactory(String hostPort, CertTrustPrompt trustPrompt) throws IOException {
+    private static SSLSocketFactory tofuSocketFactory(
+            String hostPort, CertTrustPrompt trustPrompt, boolean requireValidChain) throws IOException {
         try {
             SSLContext ctx = SSLContext.getInstance("TLS");
             ctx.init(
                     null,
-                    new TrustManager[] {new TofuTrustManager(hostPort, trustPrompt, TrustedCertStore.getDefault())},
+                    new TrustManager[] {
+                        new TofuTrustManager(hostPort, trustPrompt, TrustedCertStore.getDefault(), requireValidChain)
+                    },
                     null);
             return ctx.getSocketFactory();
         } catch (GeneralSecurityException e) {

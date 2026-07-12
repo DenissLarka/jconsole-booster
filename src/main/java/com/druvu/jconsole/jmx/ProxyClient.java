@@ -115,6 +115,7 @@ public class ProxyClient implements JConsoleContext, JmxDataAccess {
     private JMXConnector jmxc = null;
     private final String connectionName;
     private final String displayName;
+    private final boolean requireValidChain;
 
     private ClassLoadingMXBean classLoadingMBean = null;
     private CompilationMXBean compilationMBean = null;
@@ -131,10 +132,11 @@ public class ProxyClient implements JConsoleContext, JmxDataAccess {
 
     private static final String HOTSPOT_DIAGNOSTIC_MXBEAN_NAME = "com.sun.management:type=HotSpotDiagnostic";
 
-    private ProxyClient(String url, String userName, String password) throws IOException {
+    private ProxyClient(String url, String userName, String password, boolean requireValidChain) throws IOException {
         this.url = url;
         this.connectionName = getConnectionName(url, userName);
         this.displayName = connectionName;
+        this.requireValidChain = requireValidChain;
         setParameters(new JMXServiceURL(url), userName, password);
     }
 
@@ -178,7 +180,7 @@ public class ProxyClient implements JConsoleContext, JmxDataAccess {
     }
 
     private void tryConnect() throws IOException {
-        final ConnectionResult result = JMXConnectionManager.connect(jmxUrl, userName, password);
+        final ConnectionResult result = JMXConnectionManager.connect(jmxUrl, userName, password, requireValidChain);
         this.jmxc = result.connector();
         this.mbsc = result.connection();
         this.server = Snapshot.newSnapshot(mbsc);
@@ -195,12 +197,17 @@ public class ProxyClient implements JConsoleContext, JmxDataAccess {
         }
     }
 
-    /** Gets a proxy client for a given JMXServiceURL. */
-    public static ProxyClient getProxyClient(String url, String userName, String password) throws IOException {
-        final String key = getCacheKey(url, userName, password);
+    /**
+     * Gets a proxy client for a given JMXServiceURL. {@code requireValidChain} (reject non-CA-validated certificates
+     * instead of trust-on-first-use) is part of the cache identity, so a strict request never reuses a lenient cached
+     * client — the same url/user connected once leniently and once strictly yields two distinct clients.
+     */
+    public static ProxyClient getProxyClient(String url, String userName, String password, boolean requireValidChain)
+            throws IOException {
+        final String key = getCacheKey(url, userName, password, requireValidChain);
         ProxyClient proxyClient = cache.get(key);
         if (proxyClient == null) {
-            proxyClient = new ProxyClient(url, userName, password);
+            proxyClient = new ProxyClient(url, userName, password, requireValidChain);
             cache.put(key, proxyClient);
         }
         return proxyClient;
@@ -214,9 +221,9 @@ public class ProxyClient implements JConsoleContext, JmxDataAccess {
         }
     }
 
-    private static String getCacheKey(String url, String userName, String password) {
+    private static String getCacheKey(String url, String userName, String password, boolean requireValidChain) {
         return (url == null ? "" : url) + ":" + (userName == null ? "" : userName) + ":"
-                + (password == null ? "" : password);
+                + (password == null ? "" : password) + ":" + requireValidChain;
     }
 
     public String connectionName() {

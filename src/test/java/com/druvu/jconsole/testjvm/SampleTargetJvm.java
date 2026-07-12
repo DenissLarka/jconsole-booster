@@ -27,6 +27,7 @@ public final class SampleTargetJvm {
     public static final int DEFAULT_PORT = 7091;
     public static final String OBJECT_NAME = "com.druvu.testjvm:type=SampleControl";
     public static final String MARKUP_OBJECT_NAME = "com.druvu.testjvm:type=SampleMarkup";
+    public static final String DOWNLOADS_OBJECT_NAME = "com.druvu.testjvm:type=SampleDownloads";
 
     public static void main(String[] args) throws Exception {
         int port = args.length > 0 ? Integer.parseInt(args[0]) : DEFAULT_PORT;
@@ -38,6 +39,9 @@ public final class SampleTargetJvm {
 
         SampleMarkupStandardMBean markup = new SampleMarkupStandardMBean(new SampleMarkup());
         mbs.registerMBean(markup, new ObjectName(MARKUP_OBJECT_NAME));
+
+        SampleDownloadsStandardMBean downloads = new SampleDownloadsStandardMBean(new SampleDownloads());
+        mbs.registerMBean(downloads, new ObjectName(DOWNLOADS_OBJECT_NAME));
 
         // Integration-test target: exposes a secured JMXMP endpoint. Connect from JCB with
         // user/password admin/admin.
@@ -69,6 +73,7 @@ public final class SampleTargetJvm {
         System.out.println("  Connect:    localhost:" + port);
         System.out.println("  MBean:      " + OBJECT_NAME);
         System.out.println("              " + MARKUP_OBJECT_NAME);
+        System.out.println("              " + DOWNLOADS_OBJECT_NAME);
         System.out.println("Press Ctrl+C to stop.");
 
         startCpuChurn(control);

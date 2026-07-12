@@ -22,18 +22,38 @@ import java.util.Set;
  * {@code com.sun.jmx.remote.profile.selector} env key by {@link JMXConnectionManager}. It requires the client policy to
  * be {@link com.druvu.jmxmp.shared.ClientProfilePolicy#unrestricted()} — the default mandatory-TLS policy would reject
  * a plaintext server before this selector ever runs.
+ *
+ * <p><b>Hard security rule:</b> if this connection carries credentials and the server offers no encryption, the
+ * selector throws {@link PlaintextCredentialsRefusedException} — refusing the connection <em>before</em> the SASL
+ * profile would transmit the password in the clear. jmxmp runs the selector during the handshake, before any
+ * credential-bearing profile and on every reconnect, so this is the correct place to stop a TLS-strip / downgrade
+ * attack: a stolen credential is a worse outcome than a refused session.
  */
 final class MirrorServerProfiles implements SelectProfiles {
 
     private static final String TLS = "TLS";
     private static final String SASL_PLAIN = "SASL/PLAIN";
 
+    private final boolean credentialsPresent;
+
+    /** @param credentialsPresent whether this connection will authenticate (a username/password was supplied). */
+    MirrorServerProfiles(boolean credentialsPresent) {
+        this.credentialsPresent = credentialsPresent;
+    }
+
     @Override
     @SuppressWarnings({"rawtypes", "unchecked"}) // SelectProfiles is a raw-typed OpenDMK SPI; env is an in/out Map
-    public void selectProfiles(Map env, String serverProfiles) {
+    public void selectProfiles(Map env, String serverProfiles) throws PlaintextCredentialsRefusedException {
         Set<String> offered = tokenizeUpper(serverProfiles);
+        boolean tls = offered.contains(TLS);
+        // Never send credentials over an unencrypted transport. This runs before the SASL profile, so a refusal here
+        // means the password is never put on the wire.
+        if (credentialsPresent && !tls) {
+            throw new PlaintextCredentialsRefusedException(
+                    "Refusing to send credentials to a server that offered no encryption (plaintext)");
+        }
         StringBuilder chosen = new StringBuilder();
-        if (offered.contains(TLS)) {
+        if (tls) {
             chosen.append(TLS);
         }
         if (offered.contains(SASL_PLAIN)) {

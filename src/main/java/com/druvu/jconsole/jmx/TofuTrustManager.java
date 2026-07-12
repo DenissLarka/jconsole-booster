@@ -5,6 +5,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.List;
+import java.util.Set;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
@@ -29,11 +31,13 @@ final class TofuTrustManager implements X509TrustManager {
     private final String hostPort;
     private final CertTrustPrompt prompt;
     private final TrustedCertStore store;
+    private final boolean requireValidChain;
 
-    TofuTrustManager(String hostPort, CertTrustPrompt prompt, TrustedCertStore store) {
+    TofuTrustManager(String hostPort, CertTrustPrompt prompt, TrustedCertStore store, boolean requireValidChain) {
         this.hostPort = hostPort;
         this.prompt = prompt;
         this.store = store;
+        this.requireValidChain = requireValidChain;
     }
 
     @Override
@@ -50,16 +54,41 @@ final class TofuTrustManager implements X509TrustManager {
             DEFAULT.checkServerTrusted(chain, authType);
             return; // CA-signed / already trusted by the default trust store
         } catch (CertificateException notTrustedByDefault) {
-            // fall through to trust-on-first-use
+            if (requireValidChain) {
+                // Operator asked for strict PKI: no trust-on-first-use, reject anything not CA-validated.
+                throw new CertificateException(
+                        "Server certificate for " + hostPort
+                                + " does not chain to a trusted CA, and a CA-validated certificate was required",
+                        notTrustedByDefault);
+            }
+            // otherwise fall through to trust-on-first-use
         }
         String fingerprint = sha256(chain[0]);
         if (store.isTrusted(hostPort, fingerprint)) {
             return;
         }
-        CertTrustPrompt.Decision decision =
-                (prompt == null) ? CertTrustPrompt.Decision.CANCEL : prompt.confirm(hostPort, chain[0], fingerprint);
+        // A non-empty pin set here means every pinned fingerprint differs from the one just presented (an equal one
+        // would have returned above): the certificate has CHANGED — either a benign rotation (jmxmp's default
+        // ephemeral cert is regenerated on each restart) or a man-in-the-middle. Route it to the louder prompt.
+        Set<String> known = store.pinnedFingerprints(hostPort);
+        boolean changed = !known.isEmpty();
+        CertTrustPrompt.Decision decision;
+        if (prompt == null) {
+            decision = CertTrustPrompt.Decision.CANCEL;
+        } else if (changed) {
+            decision = prompt.confirmChanged(hostPort, chain[0], fingerprint, List.copyOf(known));
+        } else {
+            decision = prompt.confirm(hostPort, chain[0], fingerprint);
+        }
         switch (decision) {
-            case TRUST_REMEMBER -> store.rememberPersistent(hostPort, fingerprint);
+            case TRUST_REMEMBER -> {
+                // On the changed path, replace the superseded pin rather than accumulate a second trusted fingerprint.
+                if (changed) {
+                    store.replacePersistent(hostPort, fingerprint);
+                } else {
+                    store.rememberPersistent(hostPort, fingerprint);
+                }
+            }
             case TRUST_ONCE -> store.rememberForSession(hostPort, fingerprint);
             case CANCEL ->
                 throw new CertificateException(

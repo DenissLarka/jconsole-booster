@@ -45,6 +45,11 @@ public final class BoosterHome {
         return root().resolve("trusted-certs.txt");
     }
 
+    /** Per-plugin on/off switches ({@code id=on|off}, one per line, hand-editable; a missing file or id means on). */
+    public static Path pluginsFile() {
+        return root().resolve("plugins.txt");
+    }
+
     static Path computeRoot(String envValue, String userHome) {
         if (envValue != null && !envValue.isBlank()) {
             return Paths.get(envValue);

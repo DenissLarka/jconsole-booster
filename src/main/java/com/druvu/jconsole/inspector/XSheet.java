@@ -40,8 +40,12 @@ import com.druvu.jconsole.util.Resources;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Toolkit;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -59,10 +63,14 @@ import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
+import javax.swing.TransferHandler;
 import javax.swing.border.LineBorder;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.JTextComponent;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import org.slf4j.Logger;
@@ -667,13 +675,13 @@ public class XSheet extends JPanel implements ActionListener, NotificationListen
                     textArea.setRows(textArea.getLineCount());
                     JScrollPane scrollPane = new JScrollPane(textArea);
                     scrollPane.setPreferredSize(operationDialogSize(scrollPane.getPreferredSize()));
-                    message = scrollPane;
+                    message = withSelectionToolbar(scrollPane);
                 } else {
                     if (!(comp instanceof JScrollPane)) {
                         comp = new JScrollPane(comp);
                     }
                     comp.setPreferredSize(operationDialogSize(comp.getPreferredSize()));
-                    message = comp;
+                    message = withSelectionToolbar(comp);
                 }
             }
             new ThreadDialog(
@@ -688,6 +696,77 @@ public class XSheet extends JPanel implements ActionListener, NotificationListen
             Long received = (Long) e.getUserData();
             updateReceivedNotifications(emitter, received.longValue(), true);
         }
+    }
+
+    /**
+     * Wraps a result component in a panel with Select all / Copy buttons — long strings and big tables are painful to
+     * grab by mouse. The selectable target (text component or table) is resolved at click time because the open-type
+     * viewer swaps its table when the user drills into nested data. Returns the component unchanged if it contains
+     * nothing selectable.
+     */
+    private static Component withSelectionToolbar(Component content) {
+        if (findSelectableTarget(content) == null) {
+            return content;
+        }
+        JButton selectAllButton = new JButton(Messages.OPERATION_RETURN_VALUE_SELECT_ALL);
+        selectAllButton.addActionListener(e -> {
+            Component target = findSelectableTarget(content);
+            if (target instanceof JTable table) {
+                table.requestFocusInWindow();
+                table.selectAll();
+            } else if (target instanceof JTextComponent text) {
+                text.requestFocusInWindow();
+                text.selectAll();
+            }
+        });
+        JButton copyButton = new JButton(Messages.OPERATION_RETURN_VALUE_COPY);
+        copyButton.addActionListener(e -> {
+            // Copies the selection; with no selection, everything (a silent no-op would read as a broken button)
+            Component target = findSelectableTarget(content);
+            if (target instanceof JTable table) {
+                if (table.getSelectedRowCount() == 0) {
+                    table.selectAll();
+                }
+                // Same tab-separated format as the table's own Ctrl+C
+                TransferHandler.getCopyAction()
+                        .actionPerformed(new ActionEvent(table, ActionEvent.ACTION_PERFORMED, "copy"));
+            } else if (target instanceof JTextComponent text) {
+                String selected = text.getSelectedText();
+                String payload = selected != null ? selected : documentText(text);
+                Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(payload), null);
+            }
+        });
+        JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
+        toolbar.add(selectAllButton);
+        toolbar.add(copyButton);
+        JPanel panel = new JPanel(new BorderLayout(0, 5));
+        panel.add(toolbar, BorderLayout.NORTH);
+        panel.add(content, BorderLayout.CENTER);
+        return panel;
+    }
+
+    /** Document text, not {@code getText()} — for an HTML editor pane the latter would return markup. */
+    private static String documentText(JTextComponent text) {
+        try {
+            return text.getDocument().getText(0, text.getDocument().getLength());
+        } catch (BadLocationException e) {
+            return text.getText();
+        }
+    }
+
+    private static Component findSelectableTarget(Component c) {
+        if (c instanceof JTable || c instanceof JTextComponent) {
+            return c;
+        }
+        if (c instanceof Container container) {
+            for (Component child : container.getComponents()) {
+                Component found = findSelectableTarget(child);
+                if (found != null) {
+                    return found;
+                }
+            }
+        }
+        return null;
     }
 
     /** Action listener: handles actions in panel buttons */

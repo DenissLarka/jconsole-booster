@@ -27,7 +27,7 @@ package com.druvu.jconsole.launcher;
 
 import com.druvu.jconsole.jmx.JMXConnectionManager;
 import com.druvu.jconsole.jmx.ProxyClient;
-import com.druvu.jconsole.plugins.jtop.JTopPlugin;
+import com.druvu.jconsole.plugins.PluginRegistry;
 import com.druvu.jconsole.ui.components.OutputViewer;
 import com.druvu.jconsole.ui.core.VMInternalFrame;
 import com.druvu.jconsole.ui.core.VMPanel;
@@ -41,7 +41,6 @@ import com.druvu.jconsole.ui.menu.ConnectionBookmarksMenu;
 import com.druvu.jconsole.util.Messages;
 import com.druvu.jconsole.util.Resources;
 import com.druvu.jconsole.util.Utilities;
-import com.sun.tools.jconsole.JConsolePlugin;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -69,6 +68,7 @@ import javax.net.ssl.SSLHandshakeException;
 import javax.security.auth.login.FailedLoginException;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
@@ -220,6 +220,29 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
         exitMI.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, InputEvent.ALT_DOWN_MASK));
         exitMI.addActionListener(this);
         connectionMenu.add(exitMI);
+
+        JMenu pluginsMenu = new JMenu(Messages.PLUGINS_MENU_TITLE);
+        pluginsMenu.setMnemonic(Resources.getMnemonicInt(Messages.PLUGINS_MENU_TITLE));
+        JCheckBoxMenuItem defaultTabsMI = new JCheckBoxMenuItem(
+                Messages.PLUGINS_MENU_DEFAULT_TABS_TITLE, PluginRegistry.isEnabled(PluginRegistry.DEFAULT_TABS_ID));
+        defaultTabsMI.setToolTipText(Messages.PLUGINS_MENU_DEFAULT_TABS_TOOLTIP);
+        defaultTabsMI.addActionListener(e -> {
+            PluginRegistry.setEnabled(PluginRegistry.DEFAULT_TABS_ID, defaultTabsMI.isSelected());
+            showPluginsChangedDialog();
+        });
+        pluginsMenu.add(defaultTabsMI);
+        pluginsMenu.addSeparator();
+        for (PluginRegistry.PluginDescriptor descriptor : PluginRegistry.bundled()) {
+            JCheckBoxMenuItem pluginMI =
+                    new JCheckBoxMenuItem(descriptor.displayName(), PluginRegistry.isEnabled(descriptor.id()));
+            pluginMI.setToolTipText(Messages.PLUGINS_MENU_ITEM_TOOLTIP);
+            pluginMI.addActionListener(e -> {
+                PluginRegistry.setEnabled(descriptor.id(), pluginMI.isSelected());
+                showPluginsChangedDialog();
+            });
+            pluginsMenu.add(pluginMI);
+        }
+        menuBar.add(pluginsMenu);
 
         JMenu helpMenu = new JMenu(Messages.HELP_MENU_TITLE);
         helpMenu.setMnemonic(Resources.getMnemonicInt(Messages.HELP_MENU_TITLE));
@@ -818,6 +841,14 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
         }
     }
 
+    private void showPluginsChangedDialog() {
+        JOptionPane.showMessageDialog(
+                this,
+                Messages.PLUGINS_CHANGED_DIALOG_MESSAGE,
+                Messages.PLUGINS_CHANGED_DIALOG_TITLE,
+                JOptionPane.INFORMATION_MESSAGE);
+    }
+
     /** Prompts for a label + group and appends a bookmark for {@code url} (already short {@code host:port} form). */
     public void addBookmark(String url) {
         if (url == null || url.isBlank()) {
@@ -923,14 +954,6 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
         if (debug) {
             ex.printStackTrace();
         }
-    }
-
-    /**
-     * Returns a fresh list of bundled {@link JConsolePlugin} instances. To register an additional plugin, drop the
-     * source under {@code com.druvu.jconsole.plugins.<name>} and add a {@code new XxxPlugin()} entry below.
-     */
-    public static synchronized List<JConsolePlugin> getPlugins() {
-        return List.of(new JTopPlugin());
     }
 
     private static class FixedJRootPane extends JRootPane {

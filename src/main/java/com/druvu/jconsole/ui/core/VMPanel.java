@@ -30,6 +30,7 @@ import com.druvu.jconsole.jmx.api.JmxDataAccess;
 import com.druvu.jconsole.launcher.ArgumentParser;
 import com.druvu.jconsole.launcher.JConsole;
 import com.druvu.jconsole.plugins.ExceptionSafePlugin;
+import com.druvu.jconsole.plugins.PluginRegistry;
 import com.druvu.jconsole.ui.dialogs.SheetDialog;
 import com.druvu.jconsole.ui.tabs.ClassTab;
 import com.druvu.jconsole.ui.tabs.MBeansTab;
@@ -114,13 +115,16 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
         this.password = proxyClient.getPassword();
         this.url = proxyClient.getUrl();
 
+        // MBeans is always shown; the classic tabs come and go as one group via the Plugins menu
+        // (Overview aggregates the other tabs' plotters, so they are only coherent together).
+        boolean defaultTabsEnabled = PluginRegistry.isEnabled(PluginRegistry.DEFAULT_TABS_ID);
         for (TabInfo tabInfo : tabInfos) {
-            if (tabInfo.tabVisible) {
+            if (tabInfo.tabVisible && (defaultTabsEnabled || tabInfo.tabClass == MBeansTab.class)) {
                 addTab(tabInfo);
             }
         }
 
-        for (JConsolePlugin p : JConsole.getPlugins()) {
+        for (JConsolePlugin p : PluginRegistry.newEnabledInstances()) {
             p.setContext(proxyClient);
             updateCoordinator.addPlugin(new ExceptionSafePlugin(p));
         }

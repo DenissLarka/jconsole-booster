@@ -145,6 +145,14 @@ public final class Messages {
     public static final String HELP_MENU_FEEDBACK_TITLE = "Feedback";
     public static final String HELP_MENU_FEEDBACK_URL = "https://github.com/DenissLarka/jconsole-booster/issues/new";
     public static final String HELP_MENU_TITLE = "Help";
+    public static final String PLUGINS_MENU_TITLE = "Plugins";
+    public static final String PLUGINS_MENU_ITEM_TOOLTIP = "Takes effect for new connections";
+    public static final String PLUGINS_MENU_DEFAULT_TABS_TITLE = "Default tabs";
+    public static final String PLUGINS_MENU_DEFAULT_TABS_TOOLTIP =
+            "Overview, Memory, Threads, Classes, VM Summary — takes effect for new connections";
+    public static final String PLUGINS_CHANGED_DIALOG_TITLE = "Plugins";
+    public static final String PLUGINS_CHANGED_DIALOG_MESSAGE =
+            "Changes take effect for new connections.\nAlready-open connection windows keep their current tabs.";
     public static final String CONNECTION_MENU_OPEN_BOOKMARKS_FILE = "Open bookmarks file";
     public static final String CONNECTION_MENU_ADD_BOOKMARK = "Add current connection to bookmarks…";
     public static final String CONNECT_DIALOG_ADD_BOOKMARK = "Add to bookmarks";
@@ -220,6 +228,8 @@ public final class Messages {
     public static final String OPERATION = "Operation";
     public static final String OPERATION_INVOCATION = "Operation invocation";
     public static final String OPERATION_RETURN_VALUE = "Operation return value";
+    public static final String OPERATION_RETURN_VALUE_SELECT_ALL = "Select all";
+    public static final String OPERATION_RETURN_VALUE_COPY = "Copy";
     public static final String OPERATIONS = "Operations";
     public static final String OVERVIEW = "Overview";
     public static final String OVERVIEW_PANEL_PLOTTER_ACCESSIBLE_NAME = "Chart for {0}.";

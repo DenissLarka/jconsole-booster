@@ -37,6 +37,9 @@ public class ArgumentParser {
         int updateInterval = 4000;
         boolean noTile = false;
         boolean debug = false;
+        boolean console = false;
+        List<String> commands = new ArrayList<>();
+        String scriptUser = null;
         Color color = null;
 
         int argIndex = 0;
@@ -77,10 +80,21 @@ public class ArgumentParser {
                 return Optional.empty();
             } else if (arg.equals("-debug")) {
                 debug = true;
+            } else if (arg.equals("--console")) {
+                console = true;
+            } else if (arg.startsWith("-e=")) {
+                commands.add(arg.substring(3));
+            } else if (arg.startsWith("-u=")) {
+                scriptUser = arg.substring(3);
             } else {
                 usage();
                 return Optional.empty();
             }
+        }
+
+        // -e (script mode) implies console mode.
+        if (!commands.isEmpty()) {
+            console = true;
         }
 
         boolean hotspot = System.getProperty("jconsole.showUnsupported") != null;
@@ -100,7 +114,8 @@ public class ArgumentParser {
             urls.add(adaptUrl(arg));
         }
 
-        return Optional.of(new JConsoleOptions(noTile, hotspot, debug, updateInterval, color, urls));
+        return Optional.of(new JConsoleOptions(
+                noTile, hotspot, debug, updateInterval, color, urls, console, commands, scriptUser));
     }
 
     /**

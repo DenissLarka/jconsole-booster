@@ -5,4 +5,12 @@ import java.util.List;
 
 /** Immutable value class holding all parsed launch options. Produced by {@link ArgumentParser#parse(String[])}. */
 public record JConsoleOptions(
-        boolean noTile, boolean hotspot, boolean debug, int updateInterval, Color color, List<String> urls) {}
+        boolean noTile,
+        boolean hotspot,
+        boolean debug,
+        int updateInterval,
+        Color color,
+        List<String> urls,
+        boolean console,
+        List<String> commands,
+        String scriptUser) {}

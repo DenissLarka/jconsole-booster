@@ -235,7 +235,7 @@
 								     connect under the default unrestricted client policy. -->
 								<argument>-Djcb.jmxmp.tls.trustall=true</argument>
 								<argument>-m</argument>
-								<argument>com.druvu.jconsole/com.druvu.jconsole.launcher.JConsole</argument>
+								<argument>com.druvu.jconsole/com.druvu.jconsole.launcher.Main</argument>
 								<argument>-c=#8BC6E1FF</argument>
 								<argument>-debug</argument>
 							</arguments>

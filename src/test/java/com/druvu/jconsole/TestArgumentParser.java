@@ -111,4 +111,56 @@ public class TestArgumentParser {
         Assert.assertTrue(o.debug());
         Assert.assertEquals(o.urls().size(), 1);
     }
+
+    @Test
+    public void consoleFlagAloneParsesWithNoUrls() {
+        JConsoleOptions o = ArgumentParser.parse(new String[] {"--console"}).orElseThrow();
+        Assert.assertTrue(o.console());
+        Assert.assertTrue(o.urls().isEmpty());
+    }
+
+    @Test
+    public void consoleFlagWithUrlTargetCombines() {
+        JConsoleOptions o = ArgumentParser.parse(new String[] {"--console", "localhost:7091"})
+                .orElseThrow();
+        Assert.assertTrue(o.console());
+        Assert.assertEquals(o.urls().size(), 1);
+        Assert.assertEquals(o.urls().get(0), ArgumentParser.JMXMP_PREFIX + "localhost:7091");
+    }
+
+    @Test
+    public void consoleFlagDefaultsFalse() {
+        JConsoleOptions o = ArgumentParser.parse(new String[0]).orElseThrow();
+        Assert.assertFalse(o.console());
+    }
+
+    @Test
+    public void scriptCommandFlagImpliesConsole() {
+        JConsoleOptions o = ArgumentParser.parse(new String[] {"-e=beans", "localhost:7091"})
+                .orElseThrow();
+        Assert.assertTrue(o.console(), "-e should imply --console");
+        Assert.assertEquals(o.commands(), java.util.List.of("beans"));
+        Assert.assertEquals(o.urls().size(), 1);
+    }
+
+    @Test
+    public void multipleScriptCommandsCollectedInOrder() {
+        JConsoleOptions o = ArgumentParser.parse(new String[] {"-e=bean com.x:type=Y", "-e=call foo", "localhost:7091"})
+                .orElseThrow();
+        Assert.assertEquals(o.commands(), java.util.List.of("bean com.x:type=Y", "call foo"));
+    }
+
+    @Test
+    public void scriptUserFlagIsRecorded() {
+        JConsoleOptions o = ArgumentParser.parse(new String[] {"-u=admin", "-e=beans", "localhost:7091"})
+                .orElseThrow();
+        Assert.assertEquals(o.scriptUser(), "admin");
+    }
+
+    @Test
+    public void noScriptCommandsByDefault() {
+        JConsoleOptions o = ArgumentParser.parse(new String[0]).orElseThrow();
+        Assert.assertTrue(o.commands().isEmpty());
+        Assert.assertNull(o.scriptUser());
+    }
 }

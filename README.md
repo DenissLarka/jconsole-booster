@@ -276,6 +276,30 @@ Multiple targets open in tiled MDI panels (use `-notile` to disable). Bare proce
 | `-version`          | Print version and exit.                                            |
 | `-fullversion`      | Print full version (with build metadata) and exit.                 |
 | `-h`, `-help`, `-?` | Print usage and exit.                                              |
+| `--console`         | Interactive command-line mode (no GUI). See below.                 |
+| `-e=<cmd>`          | Run a console command non-interactively (repeatable); implies `--console`. |
+| `-u=<user>`         | Username for `-e` script-mode connect (password read from stdin).  |
+
+### Console mode
+
+`--console` drops into a headless text REPL instead of the GUI — connect over JMXMP with the **same** adaptive-TLS, trust-on-first-use and credential-over-plaintext protection as the GUI, browse MBeans, and invoke operations. Handy over SSH or on a bastion where no display is available (no existing CLI JMX tool speaks JMXMP + TLS).
+
+The drill-down is numbered: pick a bean, pick an operation, and you're prompted for each argument by name and type. Commands: `open [--strict] <target> [user]`, `beans [filter]`, `bean <n|objectName>`, `ops`, `call <n|opName> [args…]`, `invoke <objectName> <op> [args…]`, `close`, `version`, `help`, `quit`.
+
+```
+# interactive — connect, drill down, invoke
+jconsole-booster --console
+jcb> open localhost:7091 admin
+jcb> beans Cache
+jcb> bean com.example:type=Cache
+jcb Cache> call clear
+
+# one-shot / scriptable — exit 0 on success, 1 on failure
+echo mypassword | jconsole-booster -u=admin \
+    -e="invoke com.example:type=Cache clear" localhost:7091
+```
+
+For fully unattended use, pin the server certificate and pass `--strict` so no trust prompt blocks on stdin.
 
 ## JConsole Booster vs vanilla JConsole
 

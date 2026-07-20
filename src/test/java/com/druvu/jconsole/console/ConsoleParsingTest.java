@@ -32,6 +32,31 @@ public class ConsoleParsingTest {
         Assert.assertEquals(ConsoleMain.tokenize("a \"\" b"), List.of("a", "", "b"));
     }
 
+    // ----- beanFilter -----
+
+    @Test
+    public void bareWordFilterLowercased() {
+        Assert.assertEquals(ConsoleMain.beanFilter("Swissquote"), "swissquote");
+    }
+
+    @Test
+    public void filterPrefixStrippedCaseInsensitively() {
+        Assert.assertEquals(ConsoleMain.beanFilter("filter=Swissquote"), "swissquote");
+        Assert.assertEquals(ConsoleMain.beanFilter("FILTER=x"), "x");
+    }
+
+    @Test
+    public void bracketsStripped() {
+        Assert.assertEquals(ConsoleMain.beanFilter("[Swissquote]"), "swissquote");
+        Assert.assertEquals(ConsoleMain.beanFilter("filter=[x]"), "x");
+    }
+
+    @Test
+    public void blankFilterMeansUnfiltered() {
+        Assert.assertNull(ConsoleMain.beanFilter("filter="));
+        Assert.assertNull(ConsoleMain.beanFilter("[]"));
+    }
+
     // ----- resolveOp -----
 
     private static MBeanParameterInfo p(String type) {

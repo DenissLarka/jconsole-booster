@@ -324,6 +324,57 @@
 				</plugins>
 			</build>
 		</profile>
+
+		<!-- Opt-in single-jar build: `mvn -Puberjar package` emits target/dist/jconsole-booster.jar,
+		     a plain classpath (non-JPMS) executable jar: `java -jar` on any full JDK 25+, GUI and
+		     console mode alike. Not part of the default build; installer builds are unaffected.
+		     module-info.class is excluded on purpose (classpath delivery), so jmxmp connector
+		     discovery rides the META-INF/services entries; ServicesResourceTransformer is load-bearing. -->
+		<profile>
+			<id>uberjar</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-shade-plugin</artifactId>
+						<version>3.6.0</version>
+						<executions>
+							<execution>
+								<id>uberjar</id>
+								<phase>package</phase>
+								<goals>
+									<goal>shade</goal>
+								</goals>
+								<configuration>
+									<outputFile>${project.build.directory}/dist/${project.artifactId}.jar</outputFile>
+									<createDependencyReducedPom>false</createDependencyReducedPom>
+									<filters>
+										<filter>
+											<artifact>*:*</artifact>
+											<excludes>
+												<exclude>module-info.class</exclude>
+												<exclude>META-INF/versions/*/module-info.class</exclude>
+												<exclude>META-INF/*.SF</exclude>
+												<exclude>META-INF/*.DSA</exclude>
+												<exclude>META-INF/*.RSA</exclude>
+											</excludes>
+										</filter>
+									</filters>
+									<transformers>
+										<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+											<manifestEntries>
+												<Main-Class>com.druvu.jconsole.launcher.Main</Main-Class>
+											</manifestEntries>
+										</transformer>
+										<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+									</transformers>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
 	</profiles>
 
 </project>

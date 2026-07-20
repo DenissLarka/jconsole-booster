@@ -257,7 +257,7 @@ public final class ConsoleMain {
         if (notConnected()) {
             return;
         }
-        String filter = parts.length > 1 ? parts[1].toLowerCase() : null;
+        String filter = parts.length > 1 ? beanFilter(parts[1]) : null;
         Set<ObjectName> names = session.connection().queryNames(null, null);
         List<ObjectName> sorted = new ArrayList<>(names);
         sorted.sort(Comparator.comparing(ObjectName::getCanonicalName));
@@ -577,6 +577,23 @@ public final class ConsoleMain {
         return tokens;
     }
 
+    /**
+     * Normalizes the {@code beans} filter argument. The help's {@code beans [filter]} notation invites literal
+     * {@code beans filter=word} and {@code beans [word]} spellings — accept both, plus the bare word. The match itself
+     * is a case-insensitive substring over the canonical name, domain included. Returns {@code null} when nothing
+     * usable remains (blank = unfiltered). Package-visible + static for unit testing.
+     */
+    static String beanFilter(String raw) {
+        String f = raw;
+        if (f.regionMatches(true, 0, "filter=", 0, 7)) {
+            f = f.substring(7);
+        }
+        if (f.length() >= 2 && f.startsWith("[") && f.endsWith("]")) {
+            f = f.substring(1, f.length() - 1);
+        }
+        return f.isBlank() ? null : f.toLowerCase();
+    }
+
     /** Resolves an operation by list index or by name (+arity to disambiguate overloads). Static + testable. */
     static OpResolution resolveOp(List<MBeanOperationInfo> ops, String sel, int suppliedArgCount) {
         Integer idx = tryParseIndex(sel);
@@ -634,7 +651,8 @@ public final class ConsoleMain {
         io.println("  open [--strict] <target> [user]   connect (host:port or service:jmx: url;");
         io.println("                                    --strict rejects untrusted TLS certs)");
         io.println("  close                             close the current connection");
-        io.println("  beans [filter]                    list MBeans (filter = substring match), numbered");
+        io.println("  beans [filter]                    list MBeans, numbered (filter: case-insensitive");
+        io.println("                                    substring of the full name, package included)");
         io.println("  bean <n | objectName>             select a bean and list its operations");
         io.println("  ops                               re-list the current bean's operations");
         io.println("  call <n | opName> [args…]         invoke on the selected bean (prompts for args if omitted)");

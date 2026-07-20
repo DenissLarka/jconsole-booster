@@ -53,6 +53,18 @@ mvn exec:exec@start
 
 The application's main entry point is `com.druvu.jconsole.launcher.JConsole`. The launcher applies the Nimbus look-and-feel, parses CLI arguments via `ArgumentParser` (including the `-c=` color flag and `host:port` URL shorthand), and then runs the main JConsole UI on the EDT.
 
+### Single-jar build (no installer)
+
+An opt-in profile shades everything into one plain (non-JPMS) executable jar — handy to `scp` onto a server or bastion and use [console mode](#console-mode) where no installer or display is available:
+
+```bash
+mvn -Puberjar package
+java -jar target/dist/jconsole-booster.jar            # GUI
+java -jar target/dist/jconsole-booster.jar --console  # headless REPL
+```
+
+Requires a full JDK 25+ at runtime (the jar does not bundle one, unlike the installers).
+
 ## Quick start
 
 Launch JConsole Booster against a JVM you've prepared with JMXMP enabled (see the next section):

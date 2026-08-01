@@ -4,7 +4,7 @@
 
 [![License: GPLv2 + Classpath](https://img.shields.io/badge/license-GPLv2%20%2B%20Classpath-blue.svg)](LICENSE)
 [![Java](https://img.shields.io/badge/Java-25%2B-orange.svg)](https://openjdk.org/)
-[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](https://druvu.com/projects/jconsole-booster)
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](https://druvu.com/downloads/jconsole-booster.html)
 [![Release](https://img.shields.io/github/v/release/DenissLarka/jconsole-booster)](https://github.com/DenissLarka/jconsole-booster/releases)
 
 ![JConsole Booster connected to a JVM with a custom color theme](docs/images/hero.png)
@@ -28,17 +28,21 @@ The markup system is **fully opt-in**: servers that don't add `{{...}}` markup t
 
 ## Install
 
-### Download a signed installer (recommended)
+### Download an installer (recommended)
 
-Grab the installer for your platform from the [latest release](https://github.com/DenissLarka/jconsole-booster/releases/latest) or [druvu.com/downloads](https://druvu.com/downloads/). The Java runtime is bundled — nothing else to install.
+[![Download for Windows](https://img.shields.io/badge/Windows-.msix-0078D4?logo=windows&logoColor=white)](https://github.com/DenissLarka/jconsole-booster/releases/latest/download/JConsoleBooster.msix)
+[![Download for macOS](https://img.shields.io/badge/macOS-.dmg-000000?logo=apple&logoColor=white)](https://github.com/DenissLarka/jconsole-booster/releases/latest/download/JConsoleBooster.dmg)
+[![Download for Linux](https://img.shields.io/badge/Linux-.AppImage-FCC624?logo=linux&logoColor=black)](https://github.com/DenissLarka/jconsole-booster/releases/latest/download/JConsoleBooster.AppImage)
 
-| Platform | Installer | Availability |
-|----------|-----------|--------------|
-| macOS (Apple Silicon) | `JConsoleBooster.dmg` — signed with a Developer ID and **notarized by Apple** | Available now |
-| Windows 10 / 11 | `.msix` — signed | In progress |
-| Linux | `.AppImage` | In progress |
+All three also on the [latest release](https://github.com/DenissLarka/jconsole-booster/releases/latest) page and at [druvu.com/downloads](https://druvu.com/downloads/jconsole-booster.html). The Java runtime is bundled — nothing else to install.
 
-The macOS build opens without Gatekeeper prompts. Windows and Linux installers are being signed on their respective platforms and will be attached to the same release as they land.
+| Platform | Installer | Signing |
+|----------|-----------|---------|
+| Windows 10 / 11 (x64) | `JConsoleBooster.msix` | Signed |
+| macOS 12+ (Apple Silicon) | `JConsoleBooster.dmg` | Developer ID signed, **notarized by Apple** |
+| Linux x86_64 | `JConsoleBooster.AppImage` | Unsigned (no OS signing gate on Linux) — verify against the SHA-256 published in the release notes |
+
+The macOS build opens without Gatekeeper prompts. On Windows, SmartScreen may still prompt on first run until the certificate builds reputation — expected for an individually signed application. Each release's notes carry the SHA-256 of every installer (see [Verify the download](https://github.com/DenissLarka/jconsole-booster/releases/latest)).
 
 ### Build from source
 
@@ -87,7 +91,7 @@ jconsole-booster -c=#5B9BD5 localhost:7091
 
 ## Configuring your JVM
 
-JConsole Booster connects exclusively over **JMXMP** (JMX Messaging Protocol) — chosen deliberately for properties that matter in production:
+JConsole Booster speaks **JMXMP** (JMX Messaging Protocol) by default — the bare `host:port` shorthand expands to `service:jmx:jmxmp://…`, and full `service:jmx:` URLs are passed through unchanged. JMXMP is the default deliberately, for properties that matter in production:
 
 - **Single TCP port.** No RMI second-port dynamics; firewall rules are one line.
 - **Tunnel-friendly.** `ssh -L 7091:localhost:7091 prod-host` and you are done.
@@ -105,15 +109,17 @@ JMXConnectorServerFactory.newJMXConnectorServer(
 ).start();
 ```
 
-The `jmxremote_optional` artifact ships from GlassFish:
+For the server side, use [druvu-lib-jmxmp](https://github.com/DenissLarka/druvu-lib-jmxmp) — the maintained, modular JMXMP implementation developed alongside JConsole Booster (TLS by default, mandatory authentication, JPMS module; on Maven Central):
 
 ```xml
 <dependency>
-    <groupId>org.glassfish.main.external</groupId>
-    <artifactId>jmxremote_optional-repackaged</artifactId>
-    <version>5.0</version>
+    <groupId>com.druvu</groupId>
+    <artifactId>druvu-lib-jmxmp</artifactId>
+    <version>2.0.0</version>
 </dependency>
 ```
+
+It enforces authentication and encrypts by default, so the bare-bones snippet above gains a couple of lines — see [its README](https://github.com/DenissLarka/druvu-lib-jmxmp#readme) for the complete server setup. The snippet as shown runs against the classic unmaintained repackage (`org.glassfish.main.external:jmxremote_optional-repackaged:5.0`), which JConsole Booster also connects to — the wire protocol is the same.
 
 ## Markup reference
 
@@ -372,6 +378,10 @@ Add the repository and dependency to your consumer project's `pom.xml`:
   <version>1.1.0</version>
 </dependency>
 ```
+
+## Feedback
+
+If JMX is part of your day, I'd genuinely like to hear what still fights you — [open an issue](https://github.com/DenissLarka/jconsole-booster/issues/new). Bug reports, questions and ideas are all welcome; **Help → Feedback** inside the app lands in the same place.
 
 ## License
 

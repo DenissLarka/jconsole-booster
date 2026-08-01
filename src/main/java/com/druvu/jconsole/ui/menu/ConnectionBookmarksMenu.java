@@ -76,7 +76,27 @@ public final class ConnectionBookmarksMenu {
         return jconsole::promptConnect;
     }
 
-    private static List<BookmarkGroup> loadGroups() {
+    /**
+     * The group names currently defined in {@code connections.txt}, in file order, without duplicates.
+     *
+     * <p>Feeds the group picker in the "Add bookmark" dialog so an operator picks an existing group instead of retyping
+     * it. Empty when the file has no groups yet; the caller decides what to offer in that case.
+     */
+    public static List<String> groupNames() {
+        return groupNames(loadGroups());
+    }
+
+    /** Package-visible for tests: the name-extraction rule, independent of where the file lives. */
+    static List<String> groupNames(List<BookmarkGroup> groups) {
+        return groups.stream()
+                .map(BookmarkGroup::name)
+                .filter(name -> name != null && !name.isBlank())
+                .distinct()
+                .toList();
+    }
+
+    /** Package-visible: the parsed bookmarks file, shared with {@link BookmarkLabels}. */
+    static List<BookmarkGroup> loadGroups() {
         Path file = BoosterHome.connectionsFile();
         if (!Files.exists(file)) {
             try {

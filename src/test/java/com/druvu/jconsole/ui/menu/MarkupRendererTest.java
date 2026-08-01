@@ -42,4 +42,19 @@ public class MarkupRendererTest {
         String out = MarkupRenderer.render("[RED ALERT]");
         Assert.assertTrue(out.contains("<font color=\"#c83232\">ALERT</font>"));
     }
+
+    @Test
+    public void plainStripsMarkupWithoutEmittingHtml() {
+        Assert.assertEquals(MarkupRenderer.plain("plain"), "plain");
+        Assert.assertEquals(MarkupRenderer.plain("*hot*"), "hot");
+        Assert.assertEquals(MarkupRenderer.plain("[red ALERT]"), "ALERT");
+        Assert.assertEquals(MarkupRenderer.plain("[RED ALERT]"), "ALERT");
+        Assert.assertEquals(MarkupRenderer.plain("*prod*-[blue 1]"), "prod-1");
+    }
+
+    @Test
+    public void plainLeavesAnUnknownColorVerbatimAndHandlesNull() {
+        Assert.assertEquals(MarkupRenderer.plain("[fuchsia x]"), "[fuchsia x]");
+        Assert.assertEquals(MarkupRenderer.plain(null), "");
+    }
 }

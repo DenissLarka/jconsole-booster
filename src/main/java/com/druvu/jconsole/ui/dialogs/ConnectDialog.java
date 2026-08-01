@@ -32,27 +32,32 @@ import static java.awt.BorderLayout.SOUTH;
 import com.druvu.jconsole.launcher.ArgumentParser;
 import com.druvu.jconsole.launcher.JConsole;
 import com.druvu.jconsole.ui.components.LabeledComponent;
+import com.druvu.jconsole.ui.menu.BookmarkLabels;
 import com.druvu.jconsole.util.Messages;
 import com.druvu.jconsole.util.RecentConnections;
 import com.druvu.jconsole.util.Resources;
 import com.druvu.jconsole.util.Utilities;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.util.Map;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
@@ -73,6 +78,10 @@ public class ConnectDialog extends InternalDialog implements DocumentListener, F
     JLabel remoteMessageLabel;
     JComboBox<String> remoteCombo;
     JTextField remoteTF;
+
+    /** Canonical URL → bookmark label, reloaded on every {@link #refresh()} so newly added bookmarks show up. */
+    private Map<String, String> bookmarkLabels = Map.of();
+
     JButton connectButton, cancelButton;
 
     private static final String DEFAULT_STATUS = "Ready — enter a connection (host:port) and press Connect.";
@@ -120,11 +129,9 @@ public class ConnectDialog extends InternalDialog implements DocumentListener, F
         // editor is reused as remoteTF so all existing listeners keep working.
         remoteCombo = new JComboBox<>();
         remoteCombo.setEditable(true);
-        for (String recent : RecentConnections.load()) {
-            remoteCombo.addItem(recent);
-        }
-        remoteCombo.setSelectedItem("");
+        remoteCombo.setRenderer(new BookmarkLabelRenderer());
         remoteTF = (JTextField) remoteCombo.getEditor().getEditorComponent();
+        reloadRecentConnections();
         remoteTF.setColumns(30);
         remoteTF.addActionListener(connectAction);
         remoteTF.getDocument().addDocumentListener(this);
@@ -379,7 +386,47 @@ public class ConnectDialog extends InternalDialog implements DocumentListener, F
     // No-op: retained so callers in JConsole that invoke refresh() after showing the
     // dialog still compile. There is no local-VM table to refresh anymore.
     public void refresh() {
+        reloadRecentConnections();
         pack();
         setLocationRelativeTo(jConsole);
+    }
+
+    /**
+     * Reloads the history entries and their bookmark labels. The dialog instance is reused for the lifetime of the app,
+     * so without this a connection made after the first open — or a bookmark added since — would not appear until
+     * restart.
+     *
+     * <p>Preserves whatever is in the editor: {@code setConnectionParameters} runs before {@link #refresh()} and its
+     * prefilled URL must survive the model swap.
+     */
+    private void reloadRecentConnections() {
+        String current = remoteTF.getText();
+        bookmarkLabels = BookmarkLabels.byUrl();
+        remoteCombo.removeAllItems();
+        for (String recent : RecentConnections.load()) {
+            remoteCombo.addItem(recent);
+        }
+        remoteCombo.setSelectedItem(current == null ? "" : current);
+    }
+
+    /**
+     * Renders a history entry as {@code label — host:port} when its URL is bookmarked, and as the bare URL otherwise,
+     * so a list of look-alike hosts can be scanned by name.
+     *
+     * <p>Display only — the item's value stays the URL, so picking a row leaves a connectable URL in the editor and
+     * every listener reading {@code remoteTF} keeps working unchanged.
+     */
+    private final class BookmarkLabelRenderer extends DefaultListCellRenderer {
+
+        @Override
+        public Component getListCellRendererComponent(
+                JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+            Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+            if (value instanceof String url) {
+                String label = bookmarkLabels.get(BookmarkLabels.canonical(url));
+                setText(label == null ? url : label + " — " + url);
+            }
+            return c;
+        }
     }
 }

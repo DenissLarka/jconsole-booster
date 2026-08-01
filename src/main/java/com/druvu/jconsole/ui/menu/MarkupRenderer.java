@@ -1,5 +1,6 @@
 package com.druvu.jconsole.ui.menu;
 
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -26,6 +27,27 @@ public final class MarkupRenderer {
             "purple", "#8c46b4");
 
     private MarkupRenderer() {}
+
+    /**
+     * The same display name with its markup removed — {@code *bold*} and {@code [color text]} collapse to their inner
+     * text. For surfaces that must stay plain text (e.g. a combo row that also carries the URL), where emitting HTML
+     * would mean escaping user-authored labels.
+     *
+     * <p>Mirrors {@link #render}: an unrecognised colour is left exactly as written rather than silently eaten.
+     */
+    public static String plain(String displayName) {
+        if (displayName == null) {
+            return "";
+        }
+        Matcher m = COLOR.matcher(BOLD.matcher(displayName).replaceAll("$1"));
+        StringBuilder out = new StringBuilder();
+        while (m.find()) {
+            boolean known = COLORS.containsKey(m.group(1).toLowerCase(Locale.ROOT));
+            m.appendReplacement(out, Matcher.quoteReplacement(known ? m.group(2) : m.group(0)));
+        }
+        m.appendTail(out);
+        return out.toString();
+    }
 
     public static String render(String displayName) {
         String boldApplied = BOLD.matcher(displayName).replaceAll("<b>$1</b>");

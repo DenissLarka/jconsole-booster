@@ -8,15 +8,19 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
- * Append-only writer for the user's {@code connections.txt} bookmarks file, plus opening it in the system editor.
+ * Writer for the user's {@code connections.txt} bookmarks file, plus opening it in the system editor.
  *
- * <p><b>Append-only by design.</b> It never rewrites existing content, so hand-authored groups, display markup,
- * comments and ordering survive verbatim — editing / deleting / reordering stay the text editor's job (see
- * {@link #openInEditor()}). A bookmark stores only a label and a URL, <b>never credentials</b>. A new bookmark is
- * appended under a target group; a fresh {@code [group]} header is written only when the file does not already end
- * inside that group, so repeated adds to the same group do not duplicate the header.
+ * <p><b>Additive by design.</b> It only ever inserts one line: hand-authored groups, display markup, comments, ordering
+ * and the file's line separator all survive verbatim — editing / deleting / reordering stay the text editor's job (see
+ * {@link #openInEditor()}). A bookmark stores only a label and a URL, <b>never credentials</b>.
+ *
+ * <p>A new bookmark goes at the end of its target group's block, found case-insensitively anywhere in the file; a
+ * {@code [group]} header is written only when no such group exists, so a group can never be duplicated.
  *
  * @see ConnectionBookmarksLoader for the file grammar this stays compatible with.
  */
@@ -42,22 +46,46 @@ public final class BookmarkWriter {
         }
 
         String existing = Files.exists(file) ? Files.readString(file, StandardCharsets.UTF_8) : "";
-        StringBuilder out = new StringBuilder();
-        if (!existing.isEmpty() && !existing.endsWith("\n") && !existing.endsWith("\r")) {
-            out.append(System.lineSeparator()); // never glue onto an unterminated last line
-        }
-        if (!endsInGroup(existing, targetGroup)) {
-            out.append('[').append(targetGroup).append(']').append(System.lineSeparator());
-        }
-        out.append(safeLabel).append('@').append(safeUrl).append(System.lineSeparator());
+        String updated = withEntry(existing, targetGroup, safeLabel + "@" + safeUrl);
 
         Path parent = file.getParent();
         if (parent != null) {
             Files.createDirectories(parent);
         }
         Files.writeString(
-                file, out.toString(), StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+                file, updated, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         return file;
+    }
+
+    /**
+     * {@code content} with {@code entry} placed at the end of {@code group}'s block, or with a new group appended when
+     * the file has no such group. Package-visible for tests.
+     *
+     * <p>Group lookup is case-insensitive and scans the whole file, not just its tail — a bookmark added to a group
+     * that exists earlier in the file must land there instead of appending a second header for the same group. When the
+     * group is found no header is written, so the file's own spelling of the name is what survives.
+     *
+     * <p>Every other line is carried over verbatim, including the file's existing line separator, so comments, ordering
+     * and hand-authored markup are untouched.
+     */
+    static String withEntry(String content, String group, String entry) {
+        String nl = lineSeparatorOf(content);
+        List<String> lines = new ArrayList<>();
+        if (!content.isEmpty()) {
+            lines.addAll(Arrays.asList(content.split("\\R", -1)));
+            if (lines.getLast().isEmpty()) {
+                lines.removeLast(); // trailing newline — re-added by the join below
+            }
+        }
+
+        int header = indexOfGroupHeader(lines, group);
+        if (header < 0) {
+            lines.add("[" + group + "]");
+            lines.add(entry);
+        } else {
+            lines.add(endOfGroupBlock(lines, header), entry);
+        }
+        return String.join(nl, lines) + nl;
     }
 
     /** Opens the bookmarks file in the OS text editor, falling back to the default open action. */
@@ -90,16 +118,54 @@ public final class BookmarkWriter {
         }
     }
 
-    /** @return {@code true} if the last {@code [group]} header in {@code content} names {@code group}. */
-    private static boolean endsInGroup(String content, String group) {
-        String last = null;
-        for (String raw : content.split("\\R", -1)) {
-            String line = raw.strip();
-            if (line.startsWith("[") && line.endsWith("]") && line.length() > 2) {
-                last = line.substring(1, line.length() - 1).strip();
+    /** Index of the first {@code [group]} header naming {@code group} (case-insensitive), or {@code -1}. */
+    private static int indexOfGroupHeader(List<String> lines, String group) {
+        for (int i = 0; i < lines.size(); i++) {
+            String name = groupNameOf(lines.get(i));
+            if (name != null && name.equalsIgnoreCase(group)) {
+                return i;
             }
         }
-        return group.equals(last);
+        return -1;
+    }
+
+    /**
+     * Index just past the last content line of the group opened at {@code header} — where a new entry belongs. Trailing
+     * blank lines are left below the insertion point so the blank line separating groups stays put.
+     */
+    private static int endOfGroupBlock(List<String> lines, int header) {
+        int end = lines.size();
+        for (int i = header + 1; i < lines.size(); i++) {
+            if (groupNameOf(lines.get(i)) != null) {
+                end = i;
+                break;
+            }
+        }
+        while (end > header + 1 && lines.get(end - 1).isBlank()) {
+            end--;
+        }
+        return end;
+    }
+
+    /**
+     * The group name if {@code line} is a {@code [header]}, else {@code null}. Matches
+     * {@link ConnectionBookmarksLoader}'s rule, so a bookmark whose label starts with colour markup (e.g. {@code [red
+     * prod-1]@host:1}) is not mistaken for a header — it does not end with {@code ]}.
+     */
+    private static String groupNameOf(String line) {
+        String s = line.strip();
+        if (s.length() > 2 && s.startsWith("[") && s.endsWith("]")) {
+            return s.substring(1, s.length() - 1).strip();
+        }
+        return null;
+    }
+
+    /** The separator the file already uses, so rewriting does not flip every line ending on Windows. */
+    private static String lineSeparatorOf(String content) {
+        if (content.contains("\r\n")) {
+            return "\r\n";
+        }
+        return content.contains("\n") ? "\n" : System.lineSeparator();
     }
 
     private static String sanitizeGroup(String group) {

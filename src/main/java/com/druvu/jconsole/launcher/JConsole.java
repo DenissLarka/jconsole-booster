@@ -46,6 +46,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.Image;
 import java.awt.Insets;
@@ -56,6 +57,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
 import java.beans.PropertyVetoException;
 import java.io.IOException;
 import java.net.ConnectException;
@@ -64,12 +66,15 @@ import java.net.NoRouteToHostException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.imageio.ImageIO;
 import javax.net.ssl.SSLHandshakeException;
 import javax.security.auth.login.FailedLoginException;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComboBox;
 import javax.swing.JDesktopPane;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JMenu;
@@ -82,6 +87,8 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
 import javax.swing.plaf.BorderUIResource;
@@ -105,10 +112,58 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
         }
     }
 
-    /** The JCB app icon (256×256), or {@code null} if the bundled resource is missing. */
+    /** The JCB app icon (256×256), cropped to its glyph, or {@code null} if the bundled resource is missing. */
     private static Image appIcon() {
         var url = JConsole.class.getResource("/com/druvu/jconsole/resources/appicon.png");
-        return url == null ? null : new ImageIcon(url).getImage();
+        if (url == null) {
+            return null;
+        }
+        try {
+            return trimToGlyph(ImageIO.read(url));
+        } catch (IOException e) {
+            logger.warn("Could not read the app icon, using it untrimmed: {}", e.getMessage());
+            return new ImageIcon(url).getImage();
+        }
+    }
+
+    /**
+     * {@code source} cropped to its visible pixels and re-centred on a square canvas.
+     *
+     * <p>The artwork fills ~90% of its canvas; a taskbar icon is drawn at an exact small size with no frame around it,
+     * so that margin is simply lost size — the icon reads smaller than neighbouring apps that ship full-bleed art. The
+     * packaged MSIX assets are trimmed the same way by the msix plugin; this covers unpackaged runs, where the window
+     * icon set here is what the taskbar shows.
+     */
+    private static BufferedImage trimToGlyph(BufferedImage source) {
+        int minX = source.getWidth();
+        int minY = source.getHeight();
+        int maxX = -1;
+        int maxY = -1;
+        for (int y = 0; y < source.getHeight(); y++) {
+            for (int x = 0; x < source.getWidth(); x++) {
+                // A small floor ignores the near-invisible drop-shadow fringe, which would pad the crop back out.
+                if ((source.getRGB(x, y) >>> 24) > 8) {
+                    minX = Math.min(minX, x);
+                    maxX = Math.max(maxX, x);
+                    minY = Math.min(minY, y);
+                    maxY = Math.max(maxY, y);
+                }
+            }
+        }
+        if (maxX < 0) {
+            return source;
+        }
+        int width = maxX - minX + 1;
+        int height = maxY - minY + 1;
+        int side = Math.max(width, height);
+        BufferedImage square = new BufferedImage(side, side, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = square.createGraphics();
+        try {
+            g.drawImage(source.getSubimage(minX, minY, width, height), (side - width) / 2, (side - height) / 2, null);
+        } finally {
+            g.dispose();
+        }
+        return square;
     }
 
     /** {@code base} rendered at the common window/taskbar sizes, or an empty list if {@code base} is {@code null}. */
@@ -857,24 +912,96 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
             return;
         }
         JTextField labelField = new JTextField();
-        JTextField groupField = new JTextField(BookmarkWriter.DEFAULT_GROUP);
-        Object[] form = {"Bookmark for " + url, " ", "Label:", labelField, "Group:", groupField};
-        int result = JOptionPane.showConfirmDialog(
-                this, form, "Add bookmark", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-        if (result != JOptionPane.OK_OPTION) {
+        JComboBox<String> groupBox = bookmarkGroupBox();
+        Object[] form = {"Bookmark for " + url, " ", "Label:", labelField, "Group:", groupBox};
+
+        // Custom buttons so OK can be disabled until the form is valid: an empty label used to silently become the
+        // URL, producing entries like "localhost:60155@localhost:60155" that defeat the point of a bookmark.
+        JButton okButton = new JButton("OK");
+        JButton cancelButton = new JButton("Cancel");
+        JOptionPane pane = new JOptionPane(
+                form,
+                JOptionPane.PLAIN_MESSAGE,
+                JOptionPane.OK_CANCEL_OPTION,
+                null,
+                new Object[] {okButton, cancelButton},
+                okButton);
+        JDialog dialog = pane.createDialog(this, "Add bookmark");
+        okButton.addActionListener(e -> {
+            pane.setValue(okButton);
+            dialog.dispose();
+        });
+        cancelButton.addActionListener(e -> {
+            pane.setValue(cancelButton);
+            dialog.dispose();
+        });
+
+        Runnable validate = () -> okButton.setEnabled(
+                !labelField.getText().isBlank() && !selectedGroup(groupBox).isBlank());
+        onTextChange(labelField, validate);
+        onTextChange((JTextField) groupBox.getEditor().getEditorComponent(), validate);
+        groupBox.addActionListener(e -> validate.run());
+        validate.run();
+
+        dialog.getRootPane().setDefaultButton(okButton);
+        dialog.setVisible(true);
+        if (pane.getValue() != okButton) {
             return;
         }
         String label = labelField.getText().strip();
-        if (label.isEmpty()) {
-            label = url;
-        }
         try {
-            BookmarkWriter.appendBookmark(groupField.getText(), label, url);
+            BookmarkWriter.appendBookmark(selectedGroup(groupBox), label, url);
             refreshBookmarksMenu();
         } catch (IOException | RuntimeException ex) {
             JOptionPane.showMessageDialog(
                     this, "Could not add the bookmark:\n" + ex.getMessage(), "Bookmarks", JOptionPane.WARNING_MESSAGE);
         }
+    }
+
+    /**
+     * Editable combo listing the groups already in {@code connections.txt}, so a bookmark lands in an existing group
+     * without retyping it. Editable, so typing a name that is not in the list creates that group on save. Falls back to
+     * {@link BookmarkWriter#DEFAULT_GROUP} only when the file defines no groups at all.
+     */
+    private static JComboBox<String> bookmarkGroupBox() {
+        List<String> groups = ConnectionBookmarksMenu.groupNames();
+        if (groups.isEmpty()) {
+            groups = List.of(BookmarkWriter.DEFAULT_GROUP);
+        }
+        JComboBox<String> box = new JComboBox<>(groups.toArray(new String[0]));
+        box.setEditable(true);
+        box.setSelectedIndex(0);
+        return box;
+    }
+
+    /** Runs {@code action} whenever {@code field}'s text changes, to re-evaluate a dialog's validity. */
+    private static void onTextChange(JTextField field, Runnable action) {
+        field.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                action.run();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                action.run();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                action.run();
+            }
+        });
+    }
+
+    /**
+     * The group name from {@code box}, read from the editor rather than the selection: text typed for a brand-new group
+     * has not been committed to the model when the dialog's OK button is pressed.
+     */
+    private static String selectedGroup(JComboBox<String> box) {
+        Object edited = box.getEditor().getItem();
+        Object value = (edited == null) ? box.getSelectedItem() : edited;
+        return (value == null) ? "" : value.toString();
     }
 
     private void refreshBookmarksMenu() {

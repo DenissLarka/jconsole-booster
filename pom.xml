@@ -295,8 +295,8 @@
 	</build>
 
 	<profiles>
-		<!-- Activated by jconsole.ps1 when the user passes a connection target on the
-		     command line, e.g. ./jconsole.ps1 localhost:7091. The target is appended
+		<!-- Activated by Start-JConsole.ps1 when the user passes a connection target on the
+		     command line, e.g. ./Start-JConsole.ps1 localhost:7091. The target is appended
 		     to the start exec arguments, so the connection dialog comes up pre-filled. -->
 		<profile>
 			<id>jconsole-with-target</id>

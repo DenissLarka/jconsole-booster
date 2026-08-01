@@ -369,7 +369,7 @@ Add the repository and dependency to your consumer project's `pom.xml`:
 <dependency>
   <groupId>com.druvu</groupId>
   <artifactId>jconsole-booster</artifactId>
-  <version>1.0.2</version>
+  <version>1.1.0</version>
 </dependency>
 ```
 

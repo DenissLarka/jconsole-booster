@@ -1,21 +1,24 @@
 # JConsole Booster
 
-**A maintained, modern JConsole fork for JVM ops engineers who rely on JMX in production.**
-
 [![License: GPLv2 + Classpath](https://img.shields.io/badge/license-GPLv2%20%2B%20Classpath-blue.svg)](LICENSE)
 [![Java](https://img.shields.io/badge/Java-25%2B-orange.svg)](https://openjdk.org/)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](https://druvu.com/downloads/jconsole-booster.html)
 [![Release](https://img.shields.io/github/v/release/DenissLarka/jconsole-booster)](https://github.com/DenissLarka/jconsole-booster/releases)
 
-![JConsole Booster connected to a JVM with a custom color theme](docs/images/hero.png)
+**A maintained, modern JConsole fork for JVM ops engineers who rely on JMX in production.**
 
-## What is this?
+[![Download for Windows](https://img.shields.io/badge/Windows-.msix-0078D4?logo=windows&logoColor=white)](https://github.com/DenissLarka/jconsole-booster/releases/latest/download/JConsoleBooster.msix)
+[![Download for macOS](https://img.shields.io/badge/macOS-.dmg-000000?logo=apple&logoColor=white)](https://github.com/DenissLarka/jconsole-booster/releases/latest/download/JConsoleBooster.dmg)
+[![Download for Linux](https://img.shields.io/badge/Linux-.AppImage-FCC624?logo=linux&logoColor=black)](https://github.com/DenissLarka/jconsole-booster/releases/latest/download/JConsoleBooster.AppImage)
+[![All downloads](https://img.shields.io/badge/druvu.com-downloads-4147d5)](https://druvu.com/downloads/jconsole-booster.html)
+
+The Java runtime is bundled — nothing else to install.
+
+## What you get
 
 JConsole Booster is an OpenJDK 25 fork of the standard JConsole, modernised with a Nimbus look-and-feel, configurable color theming, and a markup system that turns plain `MBeanInfo` descriptions into rich form widgets — dropdowns, date pickers, file pickers, multi-line areas. Connection bookmarks, parameter persistence, and a MIME-aware return handler round out the upgrade.
 
 The markup system is **fully opt-in**: servers that don't add `{{...}}` markup to their descriptions behave exactly as they would under vanilla JConsole. Adding markup is safe — every other JMX client (JConsole, VisualVM, Mission Control) just shows the description as plain text.
-
-## Highlights
 
 - **Markup-driven Operations form.** Embed `{{combo:EUR,USD,GBP}}`, `{{date:dd.MM.yyyy}}`, `{{text:rows=10}}`, or `{{file:*.csv}}` in `MBeanParameterInfo.getDescription()` and the right widget renders automatically. Server-side opt-in; non-aware tooling shows the description verbatim.
 - **MIME-aware `byte[]` returns.** `{{returns:mime=application/pdf}}` on an operation makes the result open in your PDF viewer instead of showing as a hex blob. Whitelist of safe content types; everything else falls through to a save dialog with an explicit warning.
@@ -26,48 +29,7 @@ The markup system is **fully opt-in**: servers that don't add `{{...}}` markup t
 - **JMXMP transport.** Single TCP port, tunnel-friendly (perfect for SSH-forwarded production debugging), no RMI dynamic-port surprises through firewalls.
 - **OpenJDK 25 ready, JPMS module.** Runs on the latest JDK; ships as a proper module (`com.druvu.jconsole`).
 
-## Install
-
-### Download an installer (recommended)
-
-[![Download for Windows](https://img.shields.io/badge/Windows-.msix-0078D4?logo=windows&logoColor=white)](https://github.com/DenissLarka/jconsole-booster/releases/latest/download/JConsoleBooster.msix)
-[![Download for macOS](https://img.shields.io/badge/macOS-.dmg-000000?logo=apple&logoColor=white)](https://github.com/DenissLarka/jconsole-booster/releases/latest/download/JConsoleBooster.dmg)
-[![Download for Linux](https://img.shields.io/badge/Linux-.AppImage-FCC624?logo=linux&logoColor=black)](https://github.com/DenissLarka/jconsole-booster/releases/latest/download/JConsoleBooster.AppImage)
-
-All three also on the [latest release](https://github.com/DenissLarka/jconsole-booster/releases/latest) page and at [druvu.com/downloads](https://druvu.com/downloads/jconsole-booster.html). The Java runtime is bundled — nothing else to install.
-
-| Platform | Installer | Signing |
-|----------|-----------|---------|
-| Windows 10 / 11 (x64) | `JConsoleBooster.msix` | Signed |
-| macOS 12+ (Apple Silicon) | `JConsoleBooster.dmg` | Developer ID signed, **notarized by Apple** |
-| Linux x86_64 | `JConsoleBooster.AppImage` | Unsigned (no OS signing gate on Linux) — verify against the SHA-256 published in the release notes |
-
-The macOS build opens without Gatekeeper prompts. On Windows, SmartScreen may still prompt on first run until the certificate builds reputation — expected for an individually signed application. Each release's notes carry the SHA-256 of every installer (see [Verify the download](https://github.com/DenissLarka/jconsole-booster/releases/latest)).
-
-### Build from source
-
-Requires JDK 25+ and Maven 3.9+.
-
-```bash
-git clone https://github.com/DenissLarka/jconsole-booster.git
-cd jconsole-booster
-mvn clean package
-mvn exec:exec@start
-```
-
-The application's main entry point is `com.druvu.jconsole.launcher.JConsole`. The launcher applies the Nimbus look-and-feel, parses CLI arguments via `ArgumentParser` (including the `-c=` color flag and `host:port` URL shorthand), and then runs the main JConsole UI on the EDT.
-
-### Single-jar build (no installer)
-
-An opt-in profile shades everything into one plain (non-JPMS) executable jar — handy to `scp` onto a server or bastion and use [console mode](#console-mode) where no installer or display is available:
-
-```bash
-mvn -Puberjar package
-java -jar target/dist/jconsole-booster.jar            # GUI
-java -jar target/dist/jconsole-booster.jar --console  # headless REPL
-```
-
-Requires a full JDK 25+ at runtime (the jar does not bundle one, unlike the installers).
+![JConsole Booster connected to a JVM with a custom color theme](docs/images/hero.png)
 
 ## Quick start
 
@@ -139,6 +101,9 @@ JConsole Booster scans `MBeanParameterInfo.getDescription()` and `MBeanOperation
 `{{file}}` reads the picked file as bytes when the parameter type is `byte[]`, or as a UTF-8 string when the parameter type is `String`. The filter pattern is comma-separated globs.
 
 `{{combo}}` values cannot themselves contain commas (commas are the value separator).
+
+![Operations tab with markup widgets](docs/images/operations-markup.png)
+*An operation parameter described as `"Currency pair {{combo:EURUSD,USDCHF,GBPUSD}}"` renders as a dropdown — the markup itself is invisible, only the prose remains in the tooltip.*
 
 ### Operation result hints
 
@@ -240,6 +205,9 @@ Allowed colors: `red`, `blue`, `green`, `orange`, `gray`, `black`, `purple`. Unk
 
 URLs accept the same shorthand the rest of the app accepts: `host:port` is expanded to JMXMP, full `service:jmx:…` URLs are passed through unchanged. Malformed lines log a warning naming the line number rather than failing silently.
 
+![Connection bookmarks menu](docs/images/bookmarks-menu.png)
+*A `connections.txt` with grouping, bold items, and inline color tags rendered into the menu.*
+
 ## Files & paths
 
 JConsole Booster keeps its state in a single hidden vendor directory under your home:
@@ -254,19 +222,6 @@ JConsole Booster keeps its state in a single hidden vendor directory under your 
 Cross-platform without conditionals — `~` (i.e. `System.getProperty("user.home")`) resolves correctly on macOS, Windows, and Linux. The directory is created lazily on first need; deleting it resets that state without breaking the app.
 
 To relocate the directory (e.g. point it at a Dropbox / iCloud / OneDrive synced path), set the **`JCONSOLE_BOOSTER_HOME`** environment variable. If set, it overrides the default path entirely.
-
-## Screenshots
-
-### Markup-driven Operations form
-
-![Operations tab with markup widgets](docs/images/operations-markup.png)
-*An operation parameter described as `"Currency pair {{combo:EURUSD,USDCHF,GBPUSD}}"` renders as a dropdown — the markup itself is invisible, only the prose remains in the tooltip.*
-
-### Connection bookmarks menu
-
-![Connection bookmarks menu](docs/images/bookmarks-menu.png)
-*A `connections.txt` with grouping, bold items, and inline color tags rendered into the menu.*
-
 
 ## CLI reference
 
@@ -379,16 +334,37 @@ Add the repository and dependency to your consumer project's `pom.xml`:
 </dependency>
 ```
 
-## Feedback
+## Which direction next?
 
 If JMX is part of your day, I'd genuinely like to hear what still fights you — [open an issue](https://github.com/DenissLarka/jconsole-booster/issues/new). Bug reports, questions and ideas are all welcome; **Help → Feedback** inside the app lands in the same place.
+
+## Building from source
+
+Requires JDK 25+ and Maven 3.9+.
+
+```bash
+git clone https://github.com/DenissLarka/jconsole-booster.git
+cd jconsole-booster
+mvn clean package
+mvn exec:exec@start
+```
+
+### Single-jar build (no installer)
+
+An opt-in profile shades everything into one plain (non-JPMS) executable jar — handy to `scp` onto a server or bastion and use [console mode](#console-mode) where no installer or display is available:
+
+```bash
+mvn -Puberjar package
+java -jar target/dist/jconsole-booster.jar            # GUI
+java -jar target/dist/jconsole-booster.jar --console  # headless REPL
+```
+
+Requires a full JDK 25+ at runtime (the jar does not bundle one, unlike the installers).
 
 ## License
 
 JConsole Booster is licensed under the **GNU General Public License v2 with the Classpath Exception**, inherited from upstream OpenJDK JConsole. See [LICENSE](LICENSE) for the full text.
 
-## Part of the druvu.com toolkit
+---
 
-JConsole Booster is part of [druvu.com](https://druvu.com) — Java tooling for finance and the JVM. See [druvu.com](https://druvu.com) for the rest of the toolkit.
-
-Issues and pull requests are welcome at [github.com/DenissLarka/jconsole-booster](https://github.com/DenissLarka/jconsole-booster).
+JConsole Booster is a [druvu](https://druvu.com) product.

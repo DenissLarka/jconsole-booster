@@ -257,7 +257,7 @@ Multiple targets open in tiled MDI panels (use `-notile` to disable). Bare proce
 
 `--console` drops into a headless text REPL instead of the GUI — connect over JMXMP with the **same** adaptive-TLS, trust-on-first-use and credential-over-plaintext protection as the GUI, browse MBeans, and invoke operations. Handy over SSH or on a bastion where no display is available (no existing CLI JMX tool speaks JMXMP + TLS).
 
-The drill-down is numbered: pick a bean, pick an operation, and you're prompted for each argument by name and type. Commands: `open [--strict] <target> [user]`, `beans [filter]`, `bean <n|objectName>`, `ops`, `call <n|opName> [args…]`, `invoke <objectName> <op> [args…]`, `close`, `version`, `help`, `quit`.
+The drill-down is numbered: pick a bean, pick an operation, and you're prompted for each argument by name and type. Commands: `open [--strict] <target> [user]`, `beans [filter]`, `bean <n|objectName>`, `ops`, `call <n|opName> [args…]`, `invoke <objectName> <op> [args…]`, `threads [file]`, `close`, `version`, `help`, `quit`.
 
 ```
 # interactive — connect, drill down, invoke
@@ -271,6 +271,19 @@ jcb Cache> call clear
 echo mypassword | jconsole-booster -u=admin \
     -e="invoke com.example:type=Cache clear" localhost:7091
 ```
+
+**Thread dumps.** `threads` is the console counterpart of the GUI's Threads tab — it writes a full dump of the **target** JVM to a file on the **local** machine (the one running the console, not the one being dumped), so it works unchanged through an SSH tunnel from a bastion:
+
+```
+jcb> threads
+thread dump written to /home/ops/threaddump-prod--7091-20260824-134705.txt (19758 chars, via …)
+
+# unattended capture into a known path
+echo mypassword | jconsole-booster -u=admin --strict \
+    -e="threads /var/log/incident-4711.txt" prod-host:7091
+```
+
+With no argument the file lands in the current directory as `threaddump-<target>-<timestamp>.txt`. On HotSpot targets the content is genuine `jstack -l` output — deadlock analysis, native ids and lock sections included — because the dump is taken through the `Thread.print` diagnostic command; any thread-dump analyzer reads it as-is. On non-HotSpot targets it falls back to `ThreadMXBean.dumpAllThreads` and rebuilds the same jstack shape, with full stacks (no 8-frame truncation) and a deadlock summary.
 
 For fully unattended use, pin the server certificate and pass `--strict` so no trust prompt blocks on stdin.
 

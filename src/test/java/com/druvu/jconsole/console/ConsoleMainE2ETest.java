@@ -7,14 +7,19 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.StringReader;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 import java.net.ServerSocket;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
+import javax.management.StandardMBean;
 import javax.management.remote.JMXAuthenticator;
 import javax.management.remote.JMXConnectorServer;
 import javax.management.remote.JMXConnectorServerFactory;
@@ -123,6 +128,53 @@ public class ConsoleMainE2ETest {
         }
     }
 
+    @Test
+    public void threadsWritesADumpFileAndExitsZero() throws Exception {
+        int port = freePort();
+        JMXConnectorServer server = startSecuredTarget(port);
+        Path dump = Files.createTempDirectory("jcb-threads").resolve("dump.txt");
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            JConsoleOptions opts = ArgumentParser.parse(
+                            new String[] {"-u=admin", "-e=threads " + dump, "localhost:" + port})
+                    .orElseThrow();
+
+            int code = new ConsoleMain(io("admin\no\n", out)).runScript(opts);
+
+            String o = out.toString(StandardCharsets.UTF_8);
+            Assert.assertEquals(code, 0, o);
+            Assert.assertTrue(o.contains("thread dump written to"), o);
+            Assert.assertTrue(Files.exists(dump), o);
+            // The test target is a bare MBeanServer with no DiagnosticCommand → the portable route must carry it.
+            String text = Files.readString(dump, StandardCharsets.UTF_8);
+            Assert.assertTrue(o.contains("via ThreadMXBean.dumpAllThreads"), o);
+            Assert.assertTrue(text.contains("java.lang.Thread.State: "), text);
+            Assert.assertTrue(text.contains("\tat "), text);
+        } finally {
+            server.stop();
+            Files.deleteIfExists(dump);
+        }
+    }
+
+    @Test
+    public void threadsFailsWhenTheTargetHasNoThreadMBean() throws Exception {
+        int port = freePort();
+        JMXConnectorServer server = startSecuredTarget(port, false); // Echo only — no Threading
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            JConsoleOptions opts = ArgumentParser.parse(new String[] {"-u=admin", "-e=threads", "localhost:" + port})
+                    .orElseThrow();
+
+            int code = new ConsoleMain(io("admin\no\n", out)).runScript(opts);
+
+            String o = out.toString(StandardCharsets.UTF_8);
+            Assert.assertEquals(code, 1, o); // reported as a command failure, not a silent empty file
+            Assert.assertTrue(o.contains("no thread dump available"), o);
+        } finally {
+            server.stop();
+        }
+    }
+
     // ----- harness -----
 
     private static ConsoleIO io(String input, ByteArrayOutputStream out) {
@@ -130,10 +182,24 @@ public class ConsoleMainE2ETest {
                 new BufferedReader(new StringReader(input)), new PrintStream(out, true, StandardCharsets.UTF_8));
     }
 
-    /** A druvu-lib-jmxmp 2.0.0 secured target (TLS SASL/PLAIN, ephemeral self-signed cert) with an Echo MBean. */
     private static JMXConnectorServer startSecuredTarget(int port) throws Exception {
+        return startSecuredTarget(port, true);
+    }
+
+    /**
+     * A druvu-lib-jmxmp 2.0.0 secured target (TLS SASL/PLAIN, ephemeral self-signed cert) with an Echo MBean, and —
+     * when {@code withThreading} — this JVM's own {@code ThreadMXBean} republished as {@code java.lang:type=Threading}
+     * so the {@code threads} command has a portable source to read. There is no {@code DiagnosticCommand} here, which
+     * is exactly what makes this the fallback route's end-to-end test.
+     */
+    private static JMXConnectorServer startSecuredTarget(int port, boolean withThreading) throws Exception {
         MBeanServer mbs = MBeanServerFactory.newMBeanServer();
         mbs.registerMBean(new Echo(), new ObjectName(OBJ));
+        if (withThreading) {
+            mbs.registerMBean(
+                    new StandardMBean(ManagementFactory.getThreadMXBean(), ThreadMXBean.class, true),
+                    new ObjectName("java.lang:type=Threading"));
+        }
         JMXAuthenticator authenticator = credentials -> {
             if (!(credentials instanceof String[] c)
                     || c.length != 2

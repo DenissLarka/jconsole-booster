@@ -11,6 +11,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -34,6 +38,10 @@ import javax.management.remote.JMXServiceURL;
  * pick a bean → its operations → pick one → prompted args → {@code call} → rendered result. A one-shot {@code invoke
  * <objectName> <op> [args…]} is the self-contained form (handy for {@code -e} script mode). Attribute read/write,
  * domain browsing, bookmarks and notifications are out of v1.
+ *
+ * <p>{@code threads} is the one diagnostic that is NOT expressible through that generic drill-down: the jstack-grade
+ * source ({@code DiagnosticCommand.threadPrint}) takes a {@code String[]}, which {@code Utils.isEditableType} rejects,
+ * so {@code call}/{@code invoke} refuse it as not-callable. It gets a dedicated verb → {@link ThreadDump}.
  *
  * <p>With one or more {@code -e=<cmd>} flags the mode is non-interactive (see {@link #runScript}): auto-open the
  * target, run the commands in order, exit 0 on success / 1 on the first failure. The REPL is driven through a
@@ -177,6 +185,7 @@ public final class ConsoleMain {
             case "ops" -> cmdOps();
             case "call" -> cmdCall(parts);
             case "invoke" -> cmdInvoke(parts);
+            case "threads" -> cmdThreads(parts);
             case "exit", "quit" -> {
                 return false;
             }
@@ -391,6 +400,43 @@ public final class ConsoleMain {
         } else {
             io.println("=> " + rendered);
         }
+    }
+
+    // ----- diagnostics -----
+
+    /**
+     * Writes a full thread dump of the target to a local file — the console answer to the GUI's Threads tab. Local, not
+     * remote: {@code DiagnosticCommand.threadDumpToFile} would write on the target's filesystem, which is the wrong
+     * machine when you are on a bastion.
+     */
+    private void cmdThreads(String[] parts) throws IOException {
+        if (notConnected()) {
+            return;
+        }
+        if (parts.length > 2) {
+            fail("usage: threads [file]   (default: ./threaddump-<target>-<timestamp>.txt)");
+            return;
+        }
+        ThreadDump.Dump dump = ThreadDump.capture(session.connection());
+        if (dump == null) {
+            fail("no thread dump available — the target exposes neither com.sun.management:type=DiagnosticCommand"
+                    + " nor java.lang:type=Threading");
+            return;
+        }
+        Path file;
+        try {
+            file = (parts.length > 1)
+                    ? Path.of(parts[1])
+                    : Path.of(
+                            ThreadDump.defaultFileName(ArgumentParser.shortenUrl(session.url()), LocalDateTime.now()));
+            Files.writeString(file, dump.text(), StandardCharsets.UTF_8);
+        } catch (IOException | InvalidPathException | UnsupportedOperationException e) {
+            // A local file problem, NOT a lost connection — report it like any other command failure.
+            fail("could not write the thread dump: " + e.getMessage());
+            return;
+        }
+        io.println("thread dump written to " + file.toAbsolutePath() + " ("
+                + dump.text().length() + " chars, via " + dump.source() + ")");
     }
 
     // ----- helpers -----
@@ -657,6 +703,8 @@ public final class ConsoleMain {
         io.println("  ops                               re-list the current bean's operations");
         io.println("  call <n | opName> [args…]         invoke on the selected bean (prompts for args if omitted)");
         io.println("  invoke <objectName> <op> [args…]  one-shot invoke without selecting a bean first");
+        io.println("  threads [file]                    write a full thread dump of the target to a local file");
+        io.println("                                    (default: ./threaddump-<target>-<timestamp>.txt)");
         io.println("  exit | quit                       leave the console");
     }
 }

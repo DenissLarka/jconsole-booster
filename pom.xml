@@ -48,7 +48,7 @@
 		<java.version>25</java.version>
 		<launcher.name>JConsoleApp</launcher.name>
 		<druvu-lib-jmxmp.version>2.0.0</druvu-lib-jmxmp.version>
-		<lombok.version>1.18.46</lombok.version>
+		<lombok.version>1.18.48</lombok.version>
 		<slf4j.version>2.0.19</slf4j.version>
 		<target.port>7091</target.port>
 	</properties>

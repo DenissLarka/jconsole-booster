@@ -1,5 +1,6 @@
 # JConsole Booster
 
+[![CI](https://github.com/DenissLarka/jconsole-booster/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/DenissLarka/jconsole-booster/actions/workflows/ci.yml)
 [![License: GPLv2 + Classpath](https://img.shields.io/badge/license-GPLv2%20%2B%20Classpath-blue.svg)](LICENSE)
 [![Java](https://img.shields.io/badge/Java-25%2B-orange.svg)](https://openjdk.org/)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](https://druvu.com/downloads/jconsole-booster.html)

@@ -283,7 +283,7 @@ public class ProxyClient implements JmxDataAccess {
                 log.debug("Closing the connection to {} failed", url, e);
             }
         }
-        // Reset platform MBean references
+        // Reset platform MBean references: each one reads through the connection just closed
         synchronized (platformBeansLock) {
             classLoadingMBean = null;
             compilationMBean = null;
@@ -292,6 +292,8 @@ public class ProxyClient implements JmxDataAccess {
             runtimeMBean = null;
             threadMBean = null;
             sunOperatingSystemMXBean = null;
+            hotspotDiagnosticMXBean = null;
+            memoryPoolProxies = null;
             garbageCollectorMBeans = null;
         }
         // Set connection state to DISCONNECTED
@@ -420,7 +422,7 @@ public class ProxyClient implements JmxDataAccess {
 
     public Collection<MemoryPoolProxy> getMemoryPoolProxies() throws IOException {
         synchronized (platformBeansLock) {
-            // Built once per client: a pool that appears later is not shown.
+            // Built once per connection: a pool that appears later is not shown.
             if (memoryPoolProxies == null) {
                 List<MemoryPoolProxy> pools = new ArrayList<>();
                 for (ObjectName poolName : server.queryNames(MEMORY_POOLS, null)) {

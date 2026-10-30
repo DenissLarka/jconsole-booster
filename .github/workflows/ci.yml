@@ -1,12 +1,10 @@
-# Builds and verifies on every push to main and on every pull request.
-# This is the gate that catches breakage (e.g. Renovate dependency bumps) before it lands on main:
-# the publish workflow only runs on release, so without this a red build stays invisible until
-# release time and Renovate PRs carry no status check.
+# Builds and verifies on every push to main and on every pull request, so a red build (a Renovate bump, say) shows
+# before it lands on main.
 #
-# Temurin 25, matching maven-github-publish.yml, so CI verifies what a release publishes. Every
-# dependency (druvu-lib-jmxmp included) resolves from Maven Central, so no registry auth is wired in.
-# The Swing UI tests need a display: the build runs under xvfb (preinstalled on ubuntu-latest),
-# because without one those tests skip rather than run.
+# The build runs on Zulu 27 with JavaFX bundled. druvu-lib-fx lives on GitHub Packages, which this workflow's token
+# cannot read, so the kit is built from its release tag first (the tag must match the pom's druvu-lib-fx.version).
+# The formatter does not run on JDK 27 yet, so the format is checked in its own step on JDK 25. The UI tests need a
+# display: the build runs under xvfb.
 name: CI
 
 on:
@@ -23,12 +21,28 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Set up JDK 25
+      - name: Check out druvu-lib-fx at its release tag
+        uses: actions/checkout@v7
+        with:
+          repository: DenissLarka/druvu-lib-fx
+          ref: v2.0.0
+          path: druvu-lib-fx
+
+      - name: Set up JDK 25 and JDK 27 (Zulu, JavaFX bundled; 27 is the default)
         uses: actions/setup-java@v6
         with:
-          java-version: '25'
-          distribution: 'temurin'
+          java-version: |
+            25
+            27
+          distribution: 'zulu'
+          java-package: 'jdk+fx'
           cache: 'maven'
+
+      - name: Install druvu-lib-fx to the local repository
+        run: mvn -B -f druvu-lib-fx/pom.xml install -DskipTests
 
       - name: Build and verify
         run: xvfb-run -a mvn -B verify
+
+      - name: Check the format on JDK 25
+        run: JAVA_HOME="$JAVA_HOME_25_X64" mvn -B spotless:check

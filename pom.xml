@@ -21,6 +21,7 @@
 		<module>jconsole-booster-console</module>
 		<module>jconsole-booster-sample-target</module>
 		<module>jconsole-booster-swing</module>
+		<module>jconsole-booster-fx</module>
 		<module>jconsole-booster-scenarios</module>
 	</modules>
 
@@ -58,7 +59,9 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<!-- The modules without a UI target 25, so the console runs on any JDK 25+; the build and the JavaFX app need 27. -->
 		<java.version>25</java.version>
+		<build.java.version>27</build.java.version>
 
 		<druvu-lib-jmxmp.version>2.0.0</druvu-lib-jmxmp.version>
 		<druvu-lib-loader.version>1.1.2</druvu-lib-loader.version>
@@ -80,6 +83,8 @@
 		<palantir-java-format.version>2.90.0</palantir-java-format.version>
 		<spotbugs-maven-plugin.version>4.10.5.0</spotbugs-maven-plugin.version>
 		<maven-pmd-plugin.version>3.28.0</maven-pmd-plugin.version>
+		<!-- the ASM that reads Java 27 class files, for SpotBugs and PMD -->
+		<asm.version>9.11.1</asm.version>
 	</properties>
 
 	<dependencyManagement>
@@ -250,8 +255,8 @@
 								<reactorModuleConvergence/>
 								<dependencyConvergence/>
 								<requireJavaVersion>
-									<version>[${java.version},26)</version>
-									<message>JConsole Booster builds on JDK ${java.version}: the formatter does not run on newer JDKs.</message>
+									<version>[${build.java.version},${build.java.version}.999]</version>
+									<message>JConsole Booster builds on a JDK ${build.java.version} that bundles JavaFX (Azul Zulu FX); the modules without a UI still target Java ${java.version}.</message>
 								</requireJavaVersion>
 							</rules>
 						</configuration>
@@ -287,6 +292,13 @@
 				<groupId>com.github.spotbugs</groupId>
 				<artifactId>spotbugs-maven-plugin</artifactId>
 				<version>${spotbugs-maven-plugin.version}</version>
+				<dependencies>
+					<dependency>
+						<groupId>org.ow2.asm</groupId>
+						<artifactId>asm</artifactId>
+						<version>${asm.version}</version>
+					</dependency>
+				</dependencies>
 				<configuration>
 					<effort>Max</effort>
 					<threshold>Low</threshold>
@@ -307,6 +319,13 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-pmd-plugin</artifactId>
 				<version>${maven-pmd-plugin.version}</version>
+				<dependencies>
+					<dependency>
+						<groupId>org.ow2.asm</groupId>
+						<artifactId>asm</artifactId>
+						<version>${asm.version}</version>
+					</dependency>
+				</dependencies>
 				<configuration>
 					<printFailingErrors>true</printFailingErrors>
 					<failurePriority>3</failurePriority>
@@ -324,5 +343,19 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<profiles>
+		<!-- The formatter (Palantir) does not run on JDK 26+ yet: there the check is skipped, and the format is checked
+		     on JDK 25 instead (CI's format step; locally `mvn spotless:apply` under JDK 25). -->
+		<profile>
+			<id>format-check-off-on-new-jdk</id>
+			<activation>
+				<jdk>[26,)</jdk>
+			</activation>
+			<properties>
+				<spotless.check.skip>true</spotless.check.skip>
+			</properties>
+		</profile>
+	</profiles>
 
 </project>

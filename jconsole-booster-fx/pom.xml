@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.druvu</groupId>
+		<artifactId>jconsole-booster-parent</artifactId>
+		<version>1.2.0-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>jconsole-booster-fx</artifactId>
+	<packaging>pom</packaging>
+	<name>DRUVU.COM / JCONSOLE BOOSTER / FX</name>
+	<description>The JavaFX desktop app of JConsole Booster on druvu-lib-fx: its tab contract, its charts, one module per tab, and the app; Java 27.</description>
+
+	<modules>
+		<module>jconsole-booster-fx-tab-api</module>
+		<module>jconsole-booster-fx-charts</module>
+		<module>jconsole-booster-fx-tab-summary</module>
+		<module>jconsole-booster-fx-tab-mbeans</module>
+		<module>jconsole-booster</module>
+	</modules>
+
+	<properties>
+		<!-- JavaFX 27 and druvu-lib-fx need Java 27 -->
+		<fx.java.version>27</fx.java.version>
+		<druvu-lib-fx.version>2.0.0</druvu-lib-fx.version>
+	</properties>
+
+	<!-- druvu-lib-fx is published on GitHub Packages only; reading it needs a token in settings.xml (server id github) -->
+	<repositories>
+		<repository>
+			<id>github</id>
+			<name>GitHub Packages (druvu-lib-fx)</name>
+			<url>https://maven.pkg.github.com/DenissLarka/druvu-lib-fx/</url>
+		</repository>
+	</repositories>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>com.druvu</groupId>
+				<artifactId>druvu-lib-fx</artifactId>
+				<version>${druvu-lib-fx.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<configuration>
+						<release>${fx.java.version}</release>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+</project>

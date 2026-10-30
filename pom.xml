@@ -21,6 +21,7 @@
 		<module>jconsole-booster-console</module>
 		<module>jconsole-booster-sample-target</module>
 		<module>jconsole-booster-swing</module>
+		<module>jconsole-booster-scenarios</module>
 	</modules>
 
 	<licenses>
@@ -66,6 +67,7 @@
 		<slf4j.version>2.0.20</slf4j.version>
 		<testng.version>7.12.0</testng.version>
 		<assertj.version>3.27.7</assertj.version>
+		<archunit.version>1.5.1</archunit.version>
 
 		<!-- plugins -->
 		<maven-compiler-plugin.version>3.16.0</maven-compiler-plugin.version>
@@ -137,6 +139,17 @@
 				<groupId>org.assertj</groupId>
 				<artifactId>assertj-core</artifactId>
 				<version>${assertj.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.tngtech.archunit</groupId>
+				<artifactId>archunit</artifactId>
+				<version>${archunit.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>org.slf4j</groupId>
+						<artifactId>slf4j-api</artifactId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

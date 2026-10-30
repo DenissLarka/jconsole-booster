@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.druvu</groupId>
+		<artifactId>jconsole-booster-parent</artifactId>
+		<version>1.2.0-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>jconsole-booster-scenarios</artifactId>
+	<name>DRUVU.COM / JCONSOLE BOOSTER / SCENARIOS</name>
+	<description>The end-to-end tests of JConsole Booster over the sample target JVM, and the architecture test that keeps the modules in their layers; tests only, never published.</description>
+
+	<properties>
+		<maven.deploy.skip>true</maven.deploy.skip>
+		<maven.install.skip>true</maven.install.skip>
+		<jar.skipIfEmpty>true</jar.skipIfEmpty>
+	</properties>
+
+	<!-- Every module of the reactor, so the tests run them together and the architecture test sees all layers. -->
+	<dependencies>
+		<dependency>
+			<groupId>com.druvu</groupId>
+			<artifactId>jconsole-booster-core</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.druvu</groupId>
+			<artifactId>jconsole-booster-protocol-jmxmp</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.druvu</groupId>
+			<artifactId>jconsole-booster-console</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.druvu</groupId>
+			<artifactId>jconsole-booster-sample-target</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.druvu</groupId>
+			<artifactId>jconsole-booster-swing</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.tngtech.archunit</groupId>
+			<artifactId>archunit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+</project>

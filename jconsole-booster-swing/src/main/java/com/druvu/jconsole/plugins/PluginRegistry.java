@@ -8,8 +8,8 @@
 
 package com.druvu.jconsole.plugins;
 
+import com.druvu.jconsole.core.home.BoosterHome;
 import com.druvu.jconsole.plugins.jtop.JTopPlugin;
-import com.druvu.jconsole.util.BoosterHome;
 import com.sun.tools.jconsole.JConsolePlugin;
 import java.io.IOException;
 import java.nio.file.Files;

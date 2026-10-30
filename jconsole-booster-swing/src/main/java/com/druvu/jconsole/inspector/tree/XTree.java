@@ -25,12 +25,12 @@
 
 package com.druvu.jconsole.inspector.tree;
 
+import com.druvu.jconsole.core.mbeans.MBeanService;
+import com.druvu.jconsole.core.mbeans.XNodeInfo;
+import com.druvu.jconsole.core.text.Messages;
 import com.druvu.jconsole.inspector.Utils;
 import com.druvu.jconsole.inspector.XMBean;
-import com.druvu.jconsole.inspector.XNodeInfo;
-import com.druvu.jconsole.inspector.api.MBeanService;
 import com.druvu.jconsole.launcher.JConsole;
-import com.druvu.jconsole.util.Messages;
 import java.awt.Color;
 import java.io.IOException;
 import java.util.*;

@@ -25,8 +25,8 @@
 
 package com.druvu.jconsole.ui.core;
 
+import com.druvu.jconsole.core.text.Messages;
 import com.druvu.jconsole.ui.components.MaximizableInternalFrame;
-import com.druvu.jconsole.util.Messages;
 import com.druvu.jconsole.util.Utilities;
 import java.awt.*;
 import javax.swing.*;

@@ -25,10 +25,10 @@
 
 package com.druvu.jconsole.inspector.viewers;
 
+import com.druvu.jconsole.core.text.Messages;
+import com.druvu.jconsole.core.text.Resources;
 import com.druvu.jconsole.inspector.Utils;
 import com.druvu.jconsole.launcher.JConsole;
-import com.druvu.jconsole.util.Messages;
-import com.druvu.jconsole.util.Resources;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;

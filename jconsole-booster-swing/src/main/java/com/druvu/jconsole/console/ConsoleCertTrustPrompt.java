@@ -1,6 +1,6 @@
 package com.druvu.jconsole.console;
 
-import com.druvu.jconsole.jmx.CertTrustPrompt;
+import com.druvu.jconsole.core.trust.CertTrustPrompt;
 import java.io.IOException;
 import java.security.cert.X509Certificate;
 import java.util.List;

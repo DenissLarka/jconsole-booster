@@ -1,7 +1,7 @@
 package com.druvu.jconsole.inspector.operations.widgets;
 
+import com.druvu.jconsole.core.operations.ParameterHint;
 import com.druvu.jconsole.inspector.Utils;
-import com.druvu.jconsole.inspector.operations.ParameterHint;
 import com.druvu.jconsole.inspector.operations.XOperations;
 import java.util.List;
 import java.util.Map;

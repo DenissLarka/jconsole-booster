@@ -25,8 +25,8 @@
 
 package com.druvu.jconsole.inspector.tree;
 
+import com.druvu.jconsole.core.mbeans.XNodeInfo;
 import com.druvu.jconsole.inspector.XMBean;
-import com.druvu.jconsole.inspector.XNodeInfo;
 import java.awt.Component;
 import javax.swing.ImageIcon;
 import javax.swing.JTree;

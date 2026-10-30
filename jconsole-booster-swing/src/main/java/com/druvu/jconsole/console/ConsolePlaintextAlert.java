@@ -1,6 +1,6 @@
 package com.druvu.jconsole.console;
 
-import com.druvu.jconsole.jmx.PlaintextCredentialAlert;
+import com.druvu.jconsole.core.connect.PlaintextCredentialAlert;
 
 /**
  * Console implementation of {@link PlaintextCredentialAlert}: explains why a connection was hard-refused for trying to

@@ -24,8 +24,8 @@
  */
 package com.druvu.jconsole.plugins;
 
+import com.druvu.jconsole.core.text.Messages;
 import com.druvu.jconsole.launcher.JConsole;
-import com.druvu.jconsole.util.Messages;
 import com.sun.tools.jconsole.JConsolePlugin;
 import java.util.HashMap;
 import java.util.Map;

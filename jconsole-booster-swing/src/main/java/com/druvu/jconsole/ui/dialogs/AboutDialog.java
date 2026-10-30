@@ -29,11 +29,11 @@ import static java.awt.BorderLayout.CENTER;
 import static java.awt.BorderLayout.NORTH;
 import static java.awt.BorderLayout.SOUTH;
 
+import com.druvu.jconsole.core.text.Messages;
+import com.druvu.jconsole.core.text.Resources;
+import com.druvu.jconsole.core.text.Version;
 import com.druvu.jconsole.launcher.JConsole;
-import com.druvu.jconsole.util.Messages;
-import com.druvu.jconsole.util.Resources;
 import com.druvu.jconsole.util.Utilities;
-import com.druvu.jconsole.util.Version;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;

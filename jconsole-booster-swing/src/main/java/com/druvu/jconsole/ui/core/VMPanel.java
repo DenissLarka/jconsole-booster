@@ -25,6 +25,9 @@
 
 package com.druvu.jconsole.ui.core;
 
+import com.druvu.jconsole.core.bookmarks.RecentConnections;
+import com.druvu.jconsole.core.text.Messages;
+import com.druvu.jconsole.core.text.Resources;
 import com.druvu.jconsole.jmx.ProxyClient;
 import com.druvu.jconsole.jmx.api.JmxDataAccess;
 import com.druvu.jconsole.launcher.ArgumentParser;
@@ -38,9 +41,6 @@ import com.druvu.jconsole.ui.tabs.MemoryTab;
 import com.druvu.jconsole.ui.tabs.OverviewTab;
 import com.druvu.jconsole.ui.tabs.SummaryTab;
 import com.druvu.jconsole.ui.tabs.ThreadTab;
-import com.druvu.jconsole.util.Messages;
-import com.druvu.jconsole.util.RecentConnections;
-import com.druvu.jconsole.util.Resources;
 import com.druvu.jconsole.util.Utilities;
 import com.sun.tools.jconsole.JConsoleContext;
 import com.sun.tools.jconsole.JConsolePlugin;

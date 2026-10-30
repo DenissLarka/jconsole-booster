@@ -25,14 +25,14 @@
 
 package com.druvu.jconsole.ui.dialogs;
 
+import com.druvu.jconsole.core.text.Messages;
+import com.druvu.jconsole.core.text.Resources;
 import com.druvu.jconsole.jmx.ProxyClient;
 import com.druvu.jconsole.launcher.JConsole;
 import com.druvu.jconsole.ui.components.LabeledComponent;
 import com.druvu.jconsole.ui.components.VariableGridLayout;
 import com.druvu.jconsole.ui.core.VMInternalFrame;
 import com.druvu.jconsole.ui.core.VMPanel;
-import com.druvu.jconsole.util.Messages;
-import com.druvu.jconsole.util.Resources;
 import com.druvu.jconsole.util.Utilities;
 import java.awt.*;
 import java.awt.event.*;

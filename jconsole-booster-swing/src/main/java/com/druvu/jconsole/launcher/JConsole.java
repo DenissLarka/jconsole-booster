@@ -25,7 +25,9 @@
 
 package com.druvu.jconsole.launcher;
 
-import com.druvu.jconsole.jmx.JMXConnectionManager;
+import com.druvu.jconsole.core.connect.JMXConnectionManager;
+import com.druvu.jconsole.core.text.Messages;
+import com.druvu.jconsole.core.text.Resources;
 import com.druvu.jconsole.jmx.ProxyClient;
 import com.druvu.jconsole.plugins.PluginRegistry;
 import com.druvu.jconsole.ui.components.OutputViewer;
@@ -38,8 +40,6 @@ import com.druvu.jconsole.ui.dialogs.CreateMBeanDialog;
 import com.druvu.jconsole.ui.dialogs.PlaintextCredentialsDialog;
 import com.druvu.jconsole.ui.menu.BookmarkWriter;
 import com.druvu.jconsole.ui.menu.ConnectionBookmarksMenu;
-import com.druvu.jconsole.util.Messages;
-import com.druvu.jconsole.util.Resources;
 import com.druvu.jconsole.util.Utilities;
 import java.awt.BorderLayout;
 import java.awt.Color;

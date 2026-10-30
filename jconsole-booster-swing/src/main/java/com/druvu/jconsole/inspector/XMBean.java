@@ -25,7 +25,7 @@
 
 package com.druvu.jconsole.inspector;
 
-import com.druvu.jconsole.inspector.api.MBeanService;
+import com.druvu.jconsole.core.mbeans.MBeanService;
 import com.druvu.jconsole.launcher.JConsole;
 import java.io.IOException;
 import javax.management.*;

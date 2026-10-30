@@ -27,8 +27,8 @@ package com.druvu.jconsole.ui.dialogs;
 
 import static javax.swing.JLayeredPane.*;
 
+import com.druvu.jconsole.core.text.Messages;
 import com.druvu.jconsole.launcher.JConsole;
-import com.druvu.jconsole.util.Messages;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;

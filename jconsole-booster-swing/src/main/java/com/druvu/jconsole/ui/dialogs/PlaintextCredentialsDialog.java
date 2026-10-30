@@ -1,6 +1,6 @@
 package com.druvu.jconsole.ui.dialogs;
 
-import com.druvu.jconsole.jmx.PlaintextCredentialAlert;
+import com.druvu.jconsole.core.connect.PlaintextCredentialAlert;
 import javax.swing.JOptionPane;
 
 /**

@@ -1,6 +1,6 @@
 package com.druvu.jconsole.ui.menu;
 
-import com.druvu.jconsole.util.BoosterHome;
+import com.druvu.jconsole.core.home.BoosterHome;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;

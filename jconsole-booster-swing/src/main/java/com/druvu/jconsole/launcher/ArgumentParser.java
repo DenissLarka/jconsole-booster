@@ -1,8 +1,8 @@
 package com.druvu.jconsole.launcher;
 
-import com.druvu.jconsole.util.Messages;
-import com.druvu.jconsole.util.Resources;
-import com.druvu.jconsole.util.Version;
+import com.druvu.jconsole.core.text.Messages;
+import com.druvu.jconsole.core.text.Resources;
+import com.druvu.jconsole.core.text.Version;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;

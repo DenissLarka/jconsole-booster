@@ -25,6 +25,9 @@
 
 package com.druvu.jconsole.ui.tabs;
 
+import com.druvu.jconsole.core.text.Formatter;
+import com.druvu.jconsole.core.text.Messages;
+import com.druvu.jconsole.core.text.Resources;
 import com.druvu.jconsole.jmx.api.JmxDataAccess;
 import com.druvu.jconsole.launcher.JConsole;
 import com.druvu.jconsole.ui.components.HTMLPane;
@@ -35,9 +38,6 @@ import com.druvu.jconsole.ui.core.VMPanel;
 import com.druvu.jconsole.ui.graphics.OverviewPanel;
 import com.druvu.jconsole.ui.graphics.Plotter;
 import com.druvu.jconsole.ui.graphics.PlotterPanel;
-import com.druvu.jconsole.util.Formatter;
-import com.druvu.jconsole.util.Messages;
-import com.druvu.jconsole.util.Resources;
 import com.druvu.jconsole.util.Utilities;
 import java.awt.*;
 import java.awt.event.*;

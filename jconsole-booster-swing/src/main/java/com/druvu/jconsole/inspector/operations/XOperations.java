@@ -25,12 +25,13 @@
 
 package com.druvu.jconsole.inspector.operations;
 
+import com.druvu.jconsole.core.operations.OperationStateStore;
+import com.druvu.jconsole.core.text.Messages;
 import com.druvu.jconsole.inspector.ThreadDialog;
 import com.druvu.jconsole.inspector.Utils;
 import com.druvu.jconsole.inspector.XMBean;
 import com.druvu.jconsole.launcher.JConsole;
 import com.druvu.jconsole.ui.tabs.MBeansTab;
-import com.druvu.jconsole.util.Messages;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.GridBagConstraints;

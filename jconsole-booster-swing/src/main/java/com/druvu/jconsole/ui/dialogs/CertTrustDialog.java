@@ -1,6 +1,6 @@
 package com.druvu.jconsole.ui.dialogs;
 
-import com.druvu.jconsole.jmx.CertTrustPrompt;
+import com.druvu.jconsole.core.trust.CertTrustPrompt;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;

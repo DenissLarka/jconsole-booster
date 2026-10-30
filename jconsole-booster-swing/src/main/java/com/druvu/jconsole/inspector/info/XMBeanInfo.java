@@ -29,9 +29,9 @@ import static com.druvu.jconsole.inspector.table.XTable.NAME_COLUMN;
 import static com.druvu.jconsole.inspector.table.XTable.VALUE_COLUMN;
 import static com.druvu.jconsole.util.Utilities.*;
 
+import com.druvu.jconsole.core.text.Messages;
 import com.druvu.jconsole.inspector.Utils;
 import com.druvu.jconsole.inspector.XMBean;
-import com.druvu.jconsole.util.Messages;
 import com.druvu.jconsole.util.Utilities;
 import java.awt.BorderLayout;
 import java.awt.Color;

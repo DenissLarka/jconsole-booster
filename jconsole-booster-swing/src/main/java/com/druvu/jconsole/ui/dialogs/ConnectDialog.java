@@ -29,13 +29,13 @@ import static java.awt.BorderLayout.CENTER;
 import static java.awt.BorderLayout.NORTH;
 import static java.awt.BorderLayout.SOUTH;
 
+import com.druvu.jconsole.core.bookmarks.RecentConnections;
+import com.druvu.jconsole.core.text.Messages;
+import com.druvu.jconsole.core.text.Resources;
 import com.druvu.jconsole.launcher.ArgumentParser;
 import com.druvu.jconsole.launcher.JConsole;
 import com.druvu.jconsole.ui.components.LabeledComponent;
 import com.druvu.jconsole.ui.menu.BookmarkLabels;
-import com.druvu.jconsole.util.Messages;
-import com.druvu.jconsole.util.RecentConnections;
-import com.druvu.jconsole.util.Resources;
 import com.druvu.jconsole.util.Utilities;
 import java.awt.BorderLayout;
 import java.awt.Color;

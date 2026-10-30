@@ -35,11 +35,12 @@ import static java.lang.management.ManagementFactory.RUNTIME_MXBEAN_NAME;
 import static java.lang.management.ManagementFactory.THREAD_MXBEAN_NAME;
 import static java.lang.management.ManagementFactory.newPlatformMXBeanProxy;
 
-import com.druvu.jconsole.jmx.JMXConnectionManager.ConnectionResult;
+import com.druvu.jconsole.core.connect.JMXConnectionManager;
+import com.druvu.jconsole.core.connect.JMXConnectionManager.ConnectionResult;
+import com.druvu.jconsole.core.text.Messages;
+import com.druvu.jconsole.core.text.Resources;
 import com.druvu.jconsole.jmx.api.JmxDataAccess;
 import com.druvu.jconsole.launcher.JConsole;
-import com.druvu.jconsole.util.Messages;
-import com.druvu.jconsole.util.Resources;
 import com.sun.management.HotSpotDiagnosticMXBean;
 import com.sun.tools.jconsole.JConsoleContext;
 import java.beans.PropertyChangeEvent;

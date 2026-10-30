@@ -1,5 +1,6 @@
 package com.druvu.jconsole.inspector.operations;
 
+import com.druvu.jconsole.core.operations.ParameterHint;
 import java.awt.Component;
 import java.awt.Desktop;
 import java.awt.Dimension;

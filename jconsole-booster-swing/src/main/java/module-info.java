@@ -40,6 +40,7 @@ import javax.management.remote.JMXConnectorServerProvider;
  * @since 9
  */
 module com.druvu.jconsole {
+    requires com.druvu.jconsole.core;
     requires jdk.management;
     requires transitive java.desktop;
     requires transitive java.management;

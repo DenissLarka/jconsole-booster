@@ -1,5 +1,6 @@
 package com.druvu.jconsole.ui.menu;
 
+import com.druvu.jconsole.core.bookmarks.ConnectionBookmarksLoader;
 import java.io.StringReader;
 import java.util.List;
 import org.testng.Assert;

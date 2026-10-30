@@ -25,7 +25,10 @@
 
 package com.druvu.jconsole.inspector;
 
-import com.druvu.jconsole.inspector.XNodeInfo.Type;
+import com.druvu.jconsole.core.mbeans.XNodeInfo;
+import com.druvu.jconsole.core.mbeans.XNodeInfo.Type;
+import com.druvu.jconsole.core.text.Messages;
+import com.druvu.jconsole.core.text.Resources;
 import com.druvu.jconsole.inspector.attributes.XMBeanAttributes;
 import com.druvu.jconsole.inspector.info.XMBeanInfo;
 import com.druvu.jconsole.inspector.notifications.XMBeanNotifications;
@@ -35,8 +38,6 @@ import com.druvu.jconsole.inspector.operations.XOperations;
 import com.druvu.jconsole.inspector.viewers.XDataViewer;
 import com.druvu.jconsole.launcher.JConsole;
 import com.druvu.jconsole.ui.tabs.MBeansTab;
-import com.druvu.jconsole.util.Messages;
-import com.druvu.jconsole.util.Resources;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;

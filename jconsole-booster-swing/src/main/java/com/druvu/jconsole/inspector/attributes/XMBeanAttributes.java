@@ -25,6 +25,7 @@
 
 package com.druvu.jconsole.inspector.attributes;
 
+import com.druvu.jconsole.core.text.Messages;
 import com.druvu.jconsole.inspector.ThreadDialog;
 import com.druvu.jconsole.inspector.Utils;
 import com.druvu.jconsole.inspector.XMBean;
@@ -34,7 +35,6 @@ import com.druvu.jconsole.inspector.table.XTextFieldEditor;
 import com.druvu.jconsole.inspector.viewers.XDataViewer;
 import com.druvu.jconsole.launcher.JConsole;
 import com.druvu.jconsole.ui.tabs.MBeansTab;
-import com.druvu.jconsole.util.Messages;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.EventQueue;

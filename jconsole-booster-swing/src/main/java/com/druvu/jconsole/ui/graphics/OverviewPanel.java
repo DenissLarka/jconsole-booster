@@ -27,8 +27,8 @@ package com.druvu.jconsole.ui.graphics;
 
 import static javax.swing.SwingConstants.*;
 
-import com.druvu.jconsole.util.Messages;
-import com.druvu.jconsole.util.Resources;
+import com.druvu.jconsole.core.text.Messages;
+import com.druvu.jconsole.core.text.Resources;
 import com.druvu.jconsole.util.Utilities;
 import java.awt.*;
 import javax.swing.*;

@@ -25,9 +25,9 @@
 
 package com.druvu.jconsole.ui.graphics;
 
-import com.druvu.jconsole.util.Formatter;
-import com.druvu.jconsole.util.Messages;
-import com.druvu.jconsole.util.Resources;
+import com.druvu.jconsole.core.text.Formatter;
+import com.druvu.jconsole.core.text.Messages;
+import com.druvu.jconsole.core.text.Resources;
 import com.sun.tools.jconsole.JConsoleContext;
 import java.awt.AWTEvent;
 import java.awt.BasicStroke;

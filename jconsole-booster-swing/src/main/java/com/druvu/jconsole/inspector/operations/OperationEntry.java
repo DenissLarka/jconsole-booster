@@ -25,6 +25,8 @@
 
 package com.druvu.jconsole.inspector.operations;
 
+import com.druvu.jconsole.core.operations.OperationStateStore;
+import com.druvu.jconsole.core.operations.ParameterHint;
 import com.druvu.jconsole.inspector.Utils;
 import com.druvu.jconsole.inspector.operations.widgets.FileWidget;
 import com.druvu.jconsole.inspector.operations.widgets.ParamWidget;

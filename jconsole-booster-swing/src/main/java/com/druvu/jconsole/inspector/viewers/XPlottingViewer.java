@@ -25,12 +25,12 @@
 
 package com.druvu.jconsole.inspector.viewers;
 
+import com.druvu.jconsole.core.text.Messages;
 import com.druvu.jconsole.inspector.XMBean;
 import com.druvu.jconsole.inspector.attributes.XMBeanAttributes;
 import com.druvu.jconsole.ui.graphics.Plotter;
 import com.druvu.jconsole.ui.graphics.PlotterPanel;
 import com.druvu.jconsole.ui.tabs.MBeansTab;
-import com.druvu.jconsole.util.Messages;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;

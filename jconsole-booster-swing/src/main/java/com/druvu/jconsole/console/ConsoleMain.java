@@ -1,12 +1,12 @@
 package com.druvu.jconsole.console;
 
+import com.druvu.jconsole.core.bookmarks.RecentConnections;
+import com.druvu.jconsole.core.connect.JMXConnectionManager;
+import com.druvu.jconsole.core.connect.JMXConnectionManager.ConnectionResult;
+import com.druvu.jconsole.core.text.Version;
 import com.druvu.jconsole.inspector.Utils;
-import com.druvu.jconsole.jmx.JMXConnectionManager;
-import com.druvu.jconsole.jmx.JMXConnectionManager.ConnectionResult;
 import com.druvu.jconsole.launcher.ArgumentParser;
 import com.druvu.jconsole.launcher.JConsoleOptions;
-import com.druvu.jconsole.util.RecentConnections;
-import com.druvu.jconsole.util.Version;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;

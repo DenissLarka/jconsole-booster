@@ -313,8 +313,12 @@ public final class MBeanValues {
             }
         } else if (type.equals(Character.class.getName())) {
             result = value.charAt(0);
-        } else if (Number.class.isAssignableFrom(classForName(type))) {
+        } else if (type.equals(Number.class.getName())) {
+            // the declared type leaves the kind open: the text decides, a suffix (L, F, D) included
             result = createNumberFromStringValue(value);
+        } else if (Number.class.isAssignableFrom(classForName(type))) {
+            // a concrete number type through its own String constructor, so a Long parameter gets a Long
+            result = newStringConstructor(type, value);
         } else if (value == null || value.equals("null")) {
             // hack for null value
             result = null;

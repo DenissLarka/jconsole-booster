@@ -35,7 +35,7 @@ public final class BookmarkWriter {
     }
 
     /** Package-visible for tests: append to an explicit file. */
-    static Path appendBookmark(Path file, String group, String label, String url) throws IOException {
+    public static Path appendBookmark(Path file, String group, String label, String url) throws IOException {
         String targetGroup = sanitizeGroup((group == null || group.isBlank()) ? DEFAULT_GROUP : group);
         String safeLabel = sanitizeLabel(label);
         String safeUrl = (url == null) ? "" : url.strip();

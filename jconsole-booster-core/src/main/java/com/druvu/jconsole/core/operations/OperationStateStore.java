@@ -42,7 +42,7 @@ public final class OperationStateStore {
     }
 
     /** Test seam: pin the store to an explicit directory. */
-    OperationStateStore(Path stateDir) {
+    public OperationStateStore(Path stateDir) {
         this.stateDir = stateDir;
     }
 

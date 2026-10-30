@@ -47,6 +47,9 @@ import javax.management.ObjectName;
  */
 public interface JmxDataAccess {
 
+    /** The connection as the user knows it: {@code user@url}, or the url alone. */
+    String getDisplayName();
+
     // Connection state
 
     ConnectionState getConnectionState();

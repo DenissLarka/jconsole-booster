@@ -42,6 +42,12 @@ public class TestTabUpdate {
 
     /** Counts the calls a Tab makes through the {@link JmxDataAccess} interface. */
     private static final class CountingDataAccess implements JmxDataAccess {
+
+        @Override
+        public String getDisplayName() {
+            return "test connection";
+        }
+
         boolean platformMxBeansAvailable = true;
         final AtomicInteger hasPlatformCalls = new AtomicInteger();
 

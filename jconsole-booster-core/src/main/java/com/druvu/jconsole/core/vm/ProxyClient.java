@@ -229,6 +229,7 @@ public class ProxyClient implements JmxDataAccess {
         return connectionName;
     }
 
+    @Override
     public String getDisplayName() {
         return displayName;
     }

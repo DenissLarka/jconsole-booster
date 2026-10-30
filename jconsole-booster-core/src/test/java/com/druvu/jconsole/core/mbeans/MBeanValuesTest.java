@@ -1,10 +1,15 @@
 package com.druvu.jconsole.core.mbeans;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.math.BigDecimal;
 import org.testng.annotations.Test;
 
-/** {@link MBeanValues#arrayToString}: every array kind on one line, anything else as itself, null included. */
+/**
+ * {@link MBeanValues}: arrays on one line; text made into the declared type, a concrete number type included, and the
+ * kind left to the text only for {@code Number}.
+ */
 public class MBeanValuesTest {
 
     @Test
@@ -21,5 +26,31 @@ public class MBeanValuesTest {
         assertThat(MBeanValues.arrayToString("test")).isEqualTo("test");
         assertThat(MBeanValues.arrayToString(123)).isEqualTo("123");
         assertThat(MBeanValues.arrayToString(null)).isEqualTo("null");
+    }
+
+    @Test
+    public void aConcreteNumberTypeGetsItsOwnType() throws ReflectiveOperationException {
+        assertThat(MBeanValues.createObjectFromString("java.lang.Long", "7")).isEqualTo(7L);
+        assertThat(MBeanValues.createObjectFromString("java.lang.Short", "7")).isEqualTo((short) 7);
+        assertThat(MBeanValues.createObjectFromString("java.lang.Double", "1.5"))
+                .isEqualTo(1.5d);
+        assertThat(MBeanValues.createObjectFromString("java.math.BigDecimal", "1.50"))
+                .isEqualTo(new BigDecimal("1.50"));
+        assertThat(MBeanValues.createObjectFromString("long", "7")).isEqualTo(7L);
+    }
+
+    @Test
+    public void aPlainNumberTakesItsKindFromTheText() throws ReflectiveOperationException {
+        assertThat(MBeanValues.createObjectFromString("java.lang.Number", "7")).isEqualTo(7);
+        assertThat(MBeanValues.createObjectFromString("java.lang.Number", "7L")).isEqualTo(7L);
+        assertThat(MBeanValues.createObjectFromString("java.lang.Number", "1.5"))
+                .isEqualTo(1.5d);
+    }
+
+    @Test
+    public void textThatIsNoNumberIsRefusedWithTheReason() {
+        assertThatThrownBy(() -> MBeanValues.createObjectFromString("java.lang.Long", "seven"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("seven");
     }
 }

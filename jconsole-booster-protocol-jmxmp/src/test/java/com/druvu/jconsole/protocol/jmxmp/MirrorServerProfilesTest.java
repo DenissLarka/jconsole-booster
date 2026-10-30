@@ -12,14 +12,14 @@ public class MirrorServerProfilesTest {
     // --- transport auto-negotiation (no credentials → plaintext allowed) ---
 
     @Test
-    public void selectorRequestsTlsSaslWhenServerOffersIt() throws Exception {
+    public void selectorRequestsTlsSaslWhenServerOffersIt() throws PlaintextCredentialsRefusedException {
         Map<String, Object> env = new HashMap<>();
         new MirrorServerProfiles(false).selectProfiles(env, "TLS SASL/PLAIN");
         Assert.assertEquals(env.get("jmx.remote.profiles"), "TLS SASL/PLAIN");
     }
 
     @Test
-    public void selectorRequestsNoProfilesForPlaintextServer() throws Exception {
+    public void selectorRequestsNoProfilesForPlaintextServer() throws PlaintextCredentialsRefusedException {
         Map<String, Object> env = new HashMap<>();
         env.put("jmx.remote.profiles", "stale");
         new MirrorServerProfiles(false).selectProfiles(env, "");
@@ -27,7 +27,7 @@ public class MirrorServerProfilesTest {
     }
 
     @Test
-    public void selectorIgnoresProfilesThisBuildDoesNotSpeak() throws Exception {
+    public void selectorIgnoresProfilesThisBuildDoesNotSpeak() throws PlaintextCredentialsRefusedException {
         Map<String, Object> env = new HashMap<>();
         new MirrorServerProfiles(false).selectProfiles(env, "SASL/CRAM-MD5 TLS SASL/PLAIN");
         Assert.assertEquals(env.get("jmx.remote.profiles"), "TLS SASL/PLAIN");
@@ -36,20 +36,20 @@ public class MirrorServerProfilesTest {
     // --- never send credentials over plaintext (hard block) ---
 
     @Test(expectedExceptions = PlaintextCredentialsRefusedException.class)
-    public void credentialedPlaintextIsRefusedBeforeSasl() throws Exception {
+    public void credentialedPlaintextIsRefusedBeforeSasl() throws PlaintextCredentialsRefusedException {
         // Credentials present + server offers no encryption → the selector throws (before any SASL/PLAIN send).
         new MirrorServerProfiles(true).selectProfiles(new HashMap<>(), "");
     }
 
     @Test
-    public void credentialedTlsIsAllowed() throws Exception {
+    public void credentialedTlsIsAllowed() throws PlaintextCredentialsRefusedException {
         Map<String, Object> env = new HashMap<>();
         new MirrorServerProfiles(true).selectProfiles(env, "TLS SASL/PLAIN");
         Assert.assertEquals(env.get("jmx.remote.profiles"), "TLS SASL/PLAIN", "encrypted → credentials may flow");
     }
 
     @Test
-    public void anonymousPlaintextIsAllowed() throws Exception {
+    public void anonymousPlaintextIsAllowed() throws PlaintextCredentialsRefusedException {
         // No credentials → a legacy plaintext server is fine (only session-hijack risk, no secret to leak).
         Map<String, Object> env = new HashMap<>();
         new MirrorServerProfiles(false).selectProfiles(env, "");

@@ -29,7 +29,7 @@ import org.testng.annotations.Test;
 public class JmxmpConnectTest {
 
     @Test
-    public void autoNegotiatesTlsAndPromptsOnceForSelfSignedCert() throws Exception {
+    public void autoNegotiatesTlsAndPromptsOnceForSelfSignedCert() throws IOException {
         int port = freePort();
         JMXConnectorServer server = startSecuredTarget(port);
         try {
@@ -52,7 +52,7 @@ public class JmxmpConnectTest {
     }
 
     @Test
-    public void changedCertificateRoutesToConfirmChanged() throws Exception {
+    public void changedCertificateRoutesToConfirmChanged() throws IOException {
         int port = freePort();
         JMXConnectorServer server = startSecuredTarget(port);
         try {
@@ -90,7 +90,7 @@ public class JmxmpConnectTest {
     }
 
     @Test
-    public void requireValidChainRejectsSelfSignedWithoutPrompting() throws Exception {
+    public void requireValidChainRejectsSelfSignedWithoutPrompting() throws IOException {
         int port = freePort();
         JMXConnectorServer server = startSecuredTarget(port);
         try {
@@ -113,7 +113,7 @@ public class JmxmpConnectTest {
     }
 
     @Test(expectedExceptions = IOException.class)
-    public void declinedCertificateFailsTheConnection() throws Exception {
+    public void declinedCertificateFailsTheConnection() throws IOException {
         int port = freePort();
         JMXConnectorServer server = startSecuredTarget(port);
         try {
@@ -128,7 +128,7 @@ public class JmxmpConnectTest {
     /**
      * A druvu-lib-jmxmp 2.0.0 secured target: profile defaults to TLS SASL/PLAIN with an ephemeral self-signed cert.
      */
-    private static JMXConnectorServer startSecuredTarget(int port) throws Exception {
+    private static JMXConnectorServer startSecuredTarget(int port) throws IOException {
         MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
         JMXAuthenticator authenticator = credentials -> {
             if (!(credentials instanceof String[] c)

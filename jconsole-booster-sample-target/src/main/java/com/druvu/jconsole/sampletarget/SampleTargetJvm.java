@@ -34,47 +34,20 @@ public final class SampleTargetJvm {
     public static final String MARKUP_OBJECT_NAME = "com.druvu.testjvm:type=SampleMarkup";
     public static final String DOWNLOADS_OBJECT_NAME = "com.druvu.testjvm:type=SampleDownloads";
 
+    // 0.0.0.0 is the wildcard bind address, every interface, so a JConsole Booster on another box can connect too;
+    // it names no host, which is what the rule guards against.
+    @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
     public static void main(String[] args) throws JMException, IOException, InterruptedException {
         int port = args.length > 0 ? Integer.parseInt(args[0]) : DEFAULT_PORT;
 
         MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-
         SampleControl control = new SampleControl();
-        mbs.registerMBean(control, new ObjectName(OBJECT_NAME));
-
-        SampleMarkupStandardMBean markup = new SampleMarkupStandardMBean(new SampleMarkup());
-        mbs.registerMBean(markup, new ObjectName(MARKUP_OBJECT_NAME));
-
-        SampleDownloadsStandardMBean downloads = new SampleDownloadsStandardMBean(new SampleDownloads());
-        mbs.registerMBean(downloads, new ObjectName(DOWNLOADS_OBJECT_NAME));
-
-        // Integration-test target: exposes a secured JMXMP endpoint. Connect from JCB with
-        // user/password admin/admin.
-        //
-        // druvu-lib-jmxmp 2.0.0 makes this zero-config: with no "jmx.remote.profiles" the server
-        // defaults to "TLS SASL/PLAIN", and with no "jmx.remote.tls.socket.factory" it generates an
-        // ephemeral self-signed certificate on the fly. So a minimal secure target is just a
-        // JMXAuthenticator — no keystore, no SSLContext.
-        JMXAuthenticator authenticator = credentials -> {
-            if (!(credentials instanceof String[] c)
-                    || c.length != 2
-                    || !"admin".equals(c[0])
-                    || !"admin".equals(c[1])) {
-                throw new SecurityException("Invalid credentials (expected admin/admin)");
-            }
-            return new Subject(true, Set.of(new JMXPrincipal(c[0])), Set.of(), Set.of());
-        };
-
-        Map<String, Object> env = new HashMap<>();
-        env.put(JMXConnectorServer.AUTHENTICATOR, authenticator);
-
-        JMXServiceURL url = new JMXServiceURL("service:jmx:jmxmp://0.0.0.0:" + port);
-        JMXConnectorServer connector = JMXConnectorServerFactory.newJMXConnectorServer(url, env, mbs);
-        connector.start();
+        registerMBeans(mbs, control);
+        JMXConnectorServer connector = startSecuredEndpoint(mbs, "0.0.0.0", port);
 
         System.out.println("Sample target JVM ready.");
         System.out.println("  PID:        " + ProcessHandle.current().pid());
-        System.out.println("  JMX URL:    " + url);
+        System.out.println("  JMX URL:    " + connector.getAddress());
         System.out.println("  Connect:    localhost:" + port);
         System.out.println("  MBean:      " + OBJECT_NAME);
         System.out.println("              " + MARKUP_OBJECT_NAME);
@@ -96,6 +69,40 @@ public final class SampleTargetJvm {
                         "sample-shutdown"));
 
         Thread.currentThread().join();
+    }
+
+    /** Registers the three sample MBeans on {@code mbs}: the control panel, the markup showcase and the downloads. */
+    public static void registerMBeans(MBeanServer mbs, SampleControl control) throws JMException {
+        mbs.registerMBean(control, new ObjectName(OBJECT_NAME));
+        mbs.registerMBean(new SampleMarkupStandardMBean(new SampleMarkup()), new ObjectName(MARKUP_OBJECT_NAME));
+        mbs.registerMBean(
+                new SampleDownloadsStandardMBean(new SampleDownloads()), new ObjectName(DOWNLOADS_OBJECT_NAME));
+    }
+
+    /**
+     * Starts the secured JMXMP endpoint over {@code mbs} on {@code host:port}; connect as admin/admin.
+     *
+     * <p>druvu-lib-jmxmp makes this zero-config: with no {@code jmx.remote.profiles} the server defaults to {@code TLS
+     * SASL/PLAIN}, and with no {@code jmx.remote.tls.socket.factory} it generates an ephemeral self-signed certificate
+     * on the fly. So a minimal secure target is just a {@link JMXAuthenticator}: no keystore, no {@code SSLContext}.
+     */
+    public static JMXConnectorServer startSecuredEndpoint(MBeanServer mbs, String host, int port) throws IOException {
+        JMXAuthenticator authenticator = credentials -> {
+            if (!(credentials instanceof String[] c)
+                    || c.length != 2
+                    || !"admin".equals(c[0])
+                    || !"admin".equals(c[1])) {
+                throw new SecurityException("Invalid credentials (expected admin/admin)");
+            }
+            return new Subject(true, Set.of(new JMXPrincipal(c[0])), Set.of(), Set.of());
+        };
+        Map<String, Object> env = new HashMap<>();
+        env.put(JMXConnectorServer.AUTHENTICATOR, authenticator);
+
+        JMXServiceURL url = new JMXServiceURL("service:jmx:jmxmp://" + host + ":" + port);
+        JMXConnectorServer connector = JMXConnectorServerFactory.newJMXConnectorServer(url, env, mbs);
+        connector.start();
+        return connector;
     }
 
     private static void startCpuChurn(SampleControl control) {

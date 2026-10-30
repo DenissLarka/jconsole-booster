@@ -67,6 +67,14 @@ public final class ConsoleMain {
     }
 
     /**
+     * The plain jar's entry: console mode whatever the flags say, so {@code java -jar jconsole-booster.jar host:port}
+     * opens the REPL on a box without a display.
+     */
+    public static void main(String[] args) {
+        ArgumentParser.parse(args).ifPresent(ConsoleMain::run);
+    }
+
+    /**
      * Production entry: forces headless, wires stdin/stdout, installs the console prompts, runs interactive or script.
      */
     public static void run(JConsoleOptions options) {

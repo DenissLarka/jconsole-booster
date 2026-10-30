@@ -25,6 +25,12 @@
 			<artifactId>jconsole-booster-core</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<!-- the console flag hands over to the console mode -->
+		<dependency>
+			<groupId>com.druvu</groupId>
+			<artifactId>jconsole-booster-console</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.beryx</groupId>
@@ -37,12 +43,6 @@
 			<artifactId>jconsole-booster-protocol-jmxmp</artifactId>
 			<version>${project.version}</version>
 			<scope>runtime</scope>
-		</dependency>
-		<!-- the server side serves only the in-process targets of the tests -->
-		<dependency>
-			<groupId>com.druvu</groupId>
-			<artifactId>druvu-lib-jmxmp-server</artifactId>
-			<scope>test</scope>
 		</dependency>
 
 		<dependency>
@@ -136,53 +136,6 @@
 			</build>
 		</profile>
 
-		<!-- `mvn -Puberjar package`: one plain (non-JPMS) executable jar for `java -jar` on a full JDK 25+, GUI and
-		     console mode alike. module-info is left out (classpath delivery), so the JMXMP connector is found
-		     through META-INF/services: the ServicesResourceTransformer is load-bearing. -->
-		<profile>
-			<id>uberjar</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-shade-plugin</artifactId>
-						<executions>
-							<execution>
-								<id>uberjar</id>
-								<phase>package</phase>
-								<goals>
-									<goal>shade</goal>
-								</goals>
-								<configuration>
-									<outputFile>${project.build.directory}/dist/jconsole-booster.jar</outputFile>
-									<createDependencyReducedPom>false</createDependencyReducedPom>
-									<filters>
-										<filter>
-											<artifact>*:*</artifact>
-											<excludes>
-												<exclude>module-info.class</exclude>
-												<exclude>META-INF/versions/*/module-info.class</exclude>
-												<exclude>META-INF/*.SF</exclude>
-												<exclude>META-INF/*.DSA</exclude>
-												<exclude>META-INF/*.RSA</exclude>
-											</excludes>
-										</filter>
-									</filters>
-									<transformers>
-										<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-											<manifestEntries>
-												<Main-Class>com.druvu.jconsole.launcher.Main</Main-Class>
-											</manifestEntries>
-										</transformer>
-										<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-									</transformers>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
 	</profiles>
 
 </project>

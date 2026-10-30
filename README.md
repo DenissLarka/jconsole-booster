@@ -365,15 +365,14 @@ mvn -pl jconsole-booster-swing -am compile exec:exec@start
 
 ### Single-jar build (no installer)
 
-An opt-in profile shades everything into one plain (non-JPMS) executable jar — handy to `scp` onto a server or bastion and use [console mode](#console-mode) where no installer or display is available:
+An opt-in profile shades [console mode](#console-mode) into one plain (non-JPMS) executable jar — handy to `scp` onto a server or bastion where no installer or display is available:
 
 ```bash
 mvn -Puberjar package
-java -jar jconsole-booster-swing/target/dist/jconsole-booster.jar            # GUI
-java -jar jconsole-booster-swing/target/dist/jconsole-booster.jar --console  # headless REPL
+java -jar jconsole-booster-console/target/dist/jconsole-booster.jar localhost:7091   # headless REPL
 ```
 
-Requires a full JDK 25+ at runtime (the jar does not bundle one, unlike the installers).
+Requires a full JDK 25+ at runtime (the jar does not bundle one, unlike the installers). The GUI comes with the installers.
 
 ## License
 

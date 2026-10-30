@@ -18,6 +18,7 @@
 	<modules>
 		<module>jconsole-booster-core</module>
 		<module>jconsole-booster-protocol-jmxmp</module>
+		<module>jconsole-booster-console</module>
 		<module>jconsole-booster-sample-target</module>
 		<module>jconsole-booster-swing</module>
 	</modules>

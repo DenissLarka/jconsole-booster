@@ -1,5 +1,9 @@
 package com.druvu.jconsole.console;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import javax.management.openmbean.ArrayType;
+import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeDataSupport;
 import javax.management.openmbean.CompositeType;
 import javax.management.openmbean.OpenType;
@@ -68,5 +72,30 @@ public class ConsoleRendererTest {
         // sorted by the index name "name": alpha must come before beta
         Assert.assertTrue(out.indexOf("alpha") < out.indexOf("beta"), out);
         Assert.assertFalse(out.contains("<"), "must be plain text, no HTML: " + out);
+    }
+
+    @Test
+    public void arrayOfCompositesRendersElementByElement() throws Exception {
+        CompositeType t = rowType();
+
+        String out = ConsoleRenderer.render(new CompositeData[] {row(t, "alpha", 1), row(t, "beta", 2)});
+
+        assertThat(out)
+                .isEqualTo(String.join(
+                        "\n", "[0]", "  count = 1", "  name = alpha", "[1]", "  count = 2", "  name = beta"));
+    }
+
+    @Test
+    public void compositeFieldHoldingCompositesOpensANestedBlock() throws Exception {
+        CompositeType rowType = rowType();
+        CompositeType holderType = new CompositeType(
+                "Holder", "holds rows", new String[] {"rows"}, new String[] {"the rows"}, new OpenType<?>[] {
+                    new ArrayType<CompositeData>(1, rowType)
+                });
+        CompositeDataSupport holder = new CompositeDataSupport(
+                holderType, new String[] {"rows"}, new Object[] {new CompositeData[] {row(rowType, "alpha", 1)}});
+
+        assertThat(ConsoleRenderer.render(holder))
+                .isEqualTo(String.join("\n", "rows = ", "  [0]", "    count = 1", "    name = alpha"));
     }
 }

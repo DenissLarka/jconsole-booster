@@ -1,5 +1,7 @@
 package com.druvu.jconsole.console;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.druvu.jconsole.core.launch.ArgumentParser;
 import com.druvu.jconsole.core.launch.JConsoleOptions;
 import java.io.BufferedReader;
@@ -123,6 +125,26 @@ public class ConsoleMainE2ETest {
             int code = new ConsoleMain(io("admin\no\n", out)).runScript(opts);
 
             Assert.assertEquals(code, 1, out.toString(StandardCharsets.UTF_8)); // command failure → exit 1
+        } finally {
+            server.stop();
+        }
+    }
+
+    @Test
+    public void wrongPasswordIsAConnectFailureWithExitOne() throws Exception {
+        int port = freePort();
+        JMXConnectorServer server = startSecuredTarget(port);
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            JConsoleOptions opts = ArgumentParser.parse(new String[] {"-u=admin", "-e=beans", "localhost:" + port})
+                    .orElseThrow();
+
+            // JMX reports refused credentials as a SecurityException, not an IOException
+            int code = new ConsoleMain(io("wrong\no\n", out)).runScript(opts);
+
+            String o = out.toString(StandardCharsets.UTF_8);
+            assertThat(code).as(o).isEqualTo(1);
+            assertThat(o).contains("connect failed");
         } finally {
             server.stop();
         }

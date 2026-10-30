@@ -243,9 +243,10 @@ public final class ConsoleMain {
             RecentConnections.record(url); // GUI records MRU in VMPanel's listener; console does its own
             io.println("connected to " + ArgumentParser.shortenUrl(url)
                     + (result.hasPlatformMXBeans() ? " (platform MXBeans present)" : ""));
-        } catch (IOException e) {
-            // Includes an operator-declined certificate and the plaintext-credential hard refusal (whose
-            // alert has already explained the block). Report as a connect failure; session stays null.
+        } catch (IOException | SecurityException e) {
+            // Includes an operator-declined certificate, the plaintext-credential hard refusal (whose alert has
+            // already explained the block) and refused credentials (JMX reports those as a SecurityException).
+            // Report as a connect failure; session stays null.
             fail("connect failed: " + e.getMessage());
         }
     }

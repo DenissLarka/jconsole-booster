@@ -12,9 +12,12 @@ import java.io.PrintStream;
  */
 final class ConsoleIO {
 
+    private static final char BYTE_ORDER_MARK = '﻿';
+
     private final BufferedReader in;
     private final PrintStream out;
     private final boolean useSystemConsole;
+    private boolean firstLine = true;
 
     /** Test/piped constructor: passwords are read from {@code in} (no {@link System#console()} — deterministic). */
     ConsoleIO(BufferedReader in, PrintStream out) {
@@ -28,7 +31,16 @@ final class ConsoleIO {
     }
 
     String readLine() throws IOException {
-        return in.readLine();
+        String line = in.readLine();
+        // Windows PowerShell 5.1 starts the text it pipes to a program with a byte-order mark; it is part of no
+        // command and no password.
+        if (firstLine) {
+            firstLine = false;
+            if (line != null && !line.isEmpty() && line.charAt(0) == BYTE_ORDER_MARK) {
+                return line.substring(1);
+            }
+        }
+        return line;
     }
 
     void print(String s) {
@@ -48,17 +60,21 @@ final class ConsoleIO {
     }
 
     /**
-     * Reads a password. Uses {@link Console#readPassword} (no echo) when a real console is attached; otherwise falls
-     * back to a plain line read from {@code in} — required for piped or scripted (test) stdin, where no console exists.
+     * Reads a password. Uses {@link Console#readPassword} (no echo) when a terminal is attached; otherwise reads a
+     * plain line from {@code in} — piped or scripted stdin, and the tests. A piped password loses its trailing
+     * whitespace, so a password that ends in a space has to be typed at a terminal.
      */
     String readPassword(String prompt) throws IOException {
         Console console = useSystemConsole ? System.console() : null;
-        if (console != null) {
+        // Only a terminal can hide the typing; anything else is read as a line.
+        if (console != null && console.isTerminal()) {
             char[] pw = console.readPassword("%s", prompt);
             return pw == null ? null : new String(pw);
         }
         out.print(prompt);
         out.flush();
-        return in.readLine();
+        String line = readLine();
+        // cmd's `echo secret | ...` sends "secret " with the space before the pipe.
+        return line == null ? null : line.stripTrailing();
     }
 }

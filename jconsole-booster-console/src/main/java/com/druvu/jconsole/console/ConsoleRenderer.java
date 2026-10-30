@@ -2,6 +2,7 @@ package com.druvu.jconsole.console;
 
 import com.druvu.jconsole.core.mbeans.MBeanValues;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import javax.management.openmbean.CompositeData;
@@ -16,6 +17,7 @@ import javax.management.openmbean.TabularType;
  * <ul>
  *   <li>scalars → {@code String.valueOf}
  *   <li>{@code byte[]} → a {@code <n> bytes} length preview (never dumped; file-save is a future item)
+ *   <li>arrays of composites or tables → numbered elements, each rendered in full
  *   <li>other arrays/collections → {@link MBeanValues#arrayToString} (Swing-free, null-safe)
  *   <li>{@link CompositeData} → an indented {@code key = value} block
  *   <li>{@link TabularData} → numbered rows, each a composite, rows sorted by the TabularType index names
@@ -57,6 +59,10 @@ final class ConsoleRenderer {
             appendTabular(sb, td, depth);
             return;
         }
+        if (value instanceof Object[] elements && holdsOpenData(elements)) {
+            appendNumbered(sb, Arrays.asList(elements), depth);
+            return;
+        }
         if (value.getClass().isArray()) {
             sb.append(MBeanValues.arrayToString(value));
             return;
@@ -75,12 +81,42 @@ final class ConsoleRenderer {
             first = false;
             sb.append(indent).append(key).append(" = ");
             Object v = cd.get(key);
-            if (v instanceof CompositeData || v instanceof TabularData) {
+            if (isNested(v)) {
                 sb.append('\n');
-                append(sb, v, depth + 1);
-            } else {
-                append(sb, v, depth + 1);
             }
+            append(sb, v, depth + 1);
+        }
+    }
+
+    /** A value that prints as a block of its own lines: a composite, a table, an array of either. */
+    private static boolean isNested(Object value) {
+        return value instanceof CompositeData
+                || value instanceof TabularData
+                || (value instanceof Object[] elements && holdsOpenData(elements));
+    }
+
+    /**
+     * An array that holds composites or tables ({@code dumpAllThreads}, a thread's {@code stackTrace}) prints element
+     * by element; on one line it would be an unreadable {@code deepToString}.
+     */
+    private static boolean holdsOpenData(Object[] elements) {
+        for (Object element : elements) {
+            if (element instanceof CompositeData || element instanceof TabularData) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Each item under its index, {@code [0]}, {@code [1]}, …, one level deeper. */
+    private static void appendNumbered(StringBuilder sb, List<?> items, int depth) {
+        String indent = INDENT.repeat(depth);
+        for (int i = 0; i < items.size(); i++) {
+            if (i > 0) {
+                sb.append('\n');
+            }
+            sb.append(indent).append('[').append(i).append("]\n");
+            append(sb, items.get(i), depth + 1);
         }
     }
 
@@ -89,18 +125,11 @@ final class ConsoleRenderer {
         @SuppressWarnings("unchecked")
         List<CompositeData> rows = new ArrayList<>((java.util.Collection<CompositeData>) td.values());
         rows.sort(indexComparator(type));
-        String indent = INDENT.repeat(depth);
         if (rows.isEmpty()) {
-            sb.append(indent).append("(empty)");
+            sb.append(INDENT.repeat(depth)).append("(empty)");
             return;
         }
-        for (int i = 0; i < rows.size(); i++) {
-            if (i > 0) {
-                sb.append('\n');
-            }
-            sb.append(indent).append('[').append(i).append("]\n");
-            append(sb, rows.get(i), depth + 1);
-        }
+        appendNumbered(sb, rows, depth);
     }
 
     /**

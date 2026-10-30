@@ -78,7 +78,7 @@ public final class MBeanValues {
                 primitives.add(p);
                 primitiveMap.put(p.getName(), p);
                 primitiveToWrapper.put(p.getName(), c);
-            } catch (Exception e) {
+            } catch (ReflectiveOperationException e) {
                 throw new AssertionError(e);
             }
         }
@@ -254,18 +254,18 @@ public final class MBeanValues {
         }
     }
 
-    /** Try to create a Java object using a one-string-param constructor. */
-    public static Object newStringConstructor(String type, String param) throws Exception {
+    /**
+     * Try to create a Java object using a one-string-param constructor.
+     *
+     * @throws IllegalArgumentException the constructor refused the text; the message is the constructor's own
+     */
+    public static Object newStringConstructor(String type, String param) throws ReflectiveOperationException {
         Constructor<?> c = classForName(type).getConstructor(String.class);
         try {
             return c.newInstance(param);
         } catch (InvocationTargetException e) {
-            Throwable t = e.getCause();
-            if (t instanceof Exception) {
-                throw (Exception) t;
-            } else {
-                throw e;
-            }
+            Throwable refusal = e.getCause();
+            throw new IllegalArgumentException(refusal.getMessage(), refusal);
         }
     }
 
@@ -283,18 +283,18 @@ public final class MBeanValues {
         }
         try {
             return Integer.valueOf(value);
-        } catch (NumberFormatException e) {
-            // OK: Ignore exception...
+        } catch (NumberFormatException ignored) {
+            // not an int: try a long
         }
         try {
             return Long.valueOf(value);
-        } catch (NumberFormatException e1) {
-            // OK: Ignore exception...
+        } catch (NumberFormatException ignored) {
+            // not a long: try a double
         }
         try {
             return Double.valueOf(value);
-        } catch (NumberFormatException e2) {
-            // OK: Ignore exception...
+        } catch (NumberFormatException ignored) {
+            // not a number at all: refused below
         }
         throw new NumberFormatException("Cannot convert string value '" + value + "' into a numerical value");
     }
@@ -303,7 +303,7 @@ public final class MBeanValues {
      * This method attempts to create an object of the given "type" using the "value" parameter. e.g. calling
      * createObjectFromString("java.lang.Integer", "10") will return an Integer object initialized to 10.
      */
-    public static Object createObjectFromString(String type, String value) throws Exception {
+    public static Object createObjectFromString(String type, String value) throws ReflectiveOperationException {
         Object result;
         if (primitiveToWrapper.containsKey(type)) {
             if (type.equals(Character.TYPE.getName())) {

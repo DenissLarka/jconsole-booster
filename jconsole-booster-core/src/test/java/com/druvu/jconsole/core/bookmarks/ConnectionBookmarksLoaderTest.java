@@ -1,5 +1,6 @@
 package com.druvu.jconsole.core.bookmarks;
 
+import java.io.IOException;
 import java.io.StringReader;
 import java.util.List;
 import org.testng.Assert;
@@ -8,7 +9,7 @@ import org.testng.annotations.Test;
 public class ConnectionBookmarksLoaderTest {
 
     @Test
-    public void parsesGroupsItemsAndSeparator() throws Exception {
+    public void parsesGroupsItemsAndSeparator() throws IOException {
         String src = """
                 # JConsole Booster bookmarks
 
@@ -39,13 +40,13 @@ public class ConnectionBookmarksLoaderTest {
     }
 
     @Test
-    public void emptyInputProducesNoGroups() throws Exception {
+    public void emptyInputProducesNoGroups() throws IOException {
         List<BookmarkGroup> groups = ConnectionBookmarksLoader.parse(new StringReader(""));
         Assert.assertEquals(groups, List.of());
     }
 
     @Test
-    public void commentsAndBlanksAreIgnored() throws Exception {
+    public void commentsAndBlanksAreIgnored() throws IOException {
         String src = """
                 # comment
                 #another
@@ -60,7 +61,7 @@ public class ConnectionBookmarksLoaderTest {
     }
 
     @Test
-    public void malformedLinesAreSkippedNotFatal() throws Exception {
+    public void malformedLinesAreSkippedNotFatal() throws IOException {
         String src = """
                 [G]
                 no-at-sign
@@ -75,7 +76,7 @@ public class ConnectionBookmarksLoaderTest {
     }
 
     @Test
-    public void entryBeforeAnyGroupIsSkipped() throws Exception {
+    public void entryBeforeAnyGroupIsSkipped() throws IOException {
         String src = """
                 orphan@host:1
                 [G]
@@ -88,7 +89,7 @@ public class ConnectionBookmarksLoaderTest {
     }
 
     @Test
-    public void separatorBeforeAnyGroupIsSkipped() throws Exception {
+    public void separatorBeforeAnyGroupIsSkipped() throws IOException {
         String src = """
                 ---
                 [G]
@@ -100,7 +101,7 @@ public class ConnectionBookmarksLoaderTest {
     }
 
     @Test
-    public void displayNameWithMarkupIsPreservedVerbatim() throws Exception {
+    public void displayNameWithMarkupIsPreservedVerbatim() throws IOException {
         // The loader does not interpret markup — that is MarkupRenderer's job.
         // The raw display name (markup intact) must round-trip from file to record.
         String src = """

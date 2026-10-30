@@ -53,6 +53,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Locale;
+import java.util.TimeZone;
 import javax.accessibility.Accessible;
 import javax.accessibility.AccessibleContext;
 import javax.accessibility.AccessibleRole;
@@ -552,7 +553,7 @@ public class Plotter extends JComponent implements Accessible, ActionListener, P
             // No data yet, so draw current time
             t1 = System.currentTimeMillis();
         }
-        long tz = Formatter.timeDF.getTimeZone().getOffset(t1);
+        long tz = TimeZone.getDefault().getOffset(t1);
         long tickInterval = calculateTickInterval(w, 40, viewRangeMS);
         if (tickInterval > 3 * HOUR) {
             tickInterval = calculateTickInterval(w, 80, viewRangeMS);

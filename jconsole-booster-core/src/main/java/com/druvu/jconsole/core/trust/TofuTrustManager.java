@@ -152,7 +152,7 @@ public final class TofuTrustManager implements X509TrustManager {
                 }
             }
             throw new IllegalStateException("No X509TrustManager in the default trust manager set");
-        } catch (Exception e) {
+        } catch (GeneralSecurityException e) {
             throw new IllegalStateException("Cannot initialise the default trust manager", e);
         }
     }

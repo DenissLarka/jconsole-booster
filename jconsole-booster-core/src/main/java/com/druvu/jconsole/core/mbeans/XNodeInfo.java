@@ -35,7 +35,7 @@ package com.druvu.jconsole.core.mbeans;
  */
 public class XNodeInfo {
 
-    public static enum Type {
+    public enum Type {
         MBEAN,
         NONMBEAN,
         ATTRIBUTES,
@@ -44,7 +44,7 @@ public class XNodeInfo {
         ATTRIBUTE,
         OPERATION,
         NOTIFICATION
-    };
+    }
 
     public XNodeInfo(Type type, Object data, String label, String tooltip) {
         this.type = type;

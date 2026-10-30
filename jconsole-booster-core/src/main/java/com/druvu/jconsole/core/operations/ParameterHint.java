@@ -1,6 +1,7 @@
 package com.druvu.jconsole.core.operations;
 
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -36,7 +37,7 @@ public record ParameterHint(String tag, String options, String prose) {
         if (!m.find()) {
             return Optional.empty();
         }
-        String tag = m.group(1).toLowerCase();
+        String tag = m.group(1).toLowerCase(Locale.ROOT);
         String options = m.group(2);
         if (options == null) {
             options = "";

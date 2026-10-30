@@ -25,16 +25,6 @@
 
 package com.druvu.jconsole.core.vm;
 
-import static java.lang.management.ManagementFactory.CLASS_LOADING_MXBEAN_NAME;
-import static java.lang.management.ManagementFactory.COMPILATION_MXBEAN_NAME;
-import static java.lang.management.ManagementFactory.GARBAGE_COLLECTOR_MXBEAN_DOMAIN_TYPE;
-import static java.lang.management.ManagementFactory.MEMORY_MXBEAN_NAME;
-import static java.lang.management.ManagementFactory.MEMORY_POOL_MXBEAN_DOMAIN_TYPE;
-import static java.lang.management.ManagementFactory.OPERATING_SYSTEM_MXBEAN_NAME;
-import static java.lang.management.ManagementFactory.RUNTIME_MXBEAN_NAME;
-import static java.lang.management.ManagementFactory.THREAD_MXBEAN_NAME;
-import static java.lang.management.ManagementFactory.newPlatformMXBeanProxy;
-
 import com.druvu.jconsole.core.connect.JMXConnectionManager;
 import com.druvu.jconsole.core.connect.JMXConnectionManager.ConnectionResult;
 import com.druvu.jconsole.core.text.Messages;
@@ -44,6 +34,7 @@ import java.io.IOException;
 import java.lang.management.ClassLoadingMXBean;
 import java.lang.management.CompilationMXBean;
 import java.lang.management.GarbageCollectorMXBean;
+import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.OperatingSystemMXBean;
 import java.lang.management.RuntimeMXBean;
@@ -90,26 +81,30 @@ public class ProxyClient implements JmxDataAccess {
     // Called on the thread that changes the state; a user interface hands the change to its own thread.
     private final List<ConnectionStateListener> stateListeners = new CopyOnWriteArrayList<>();
 
-    private static Map<String, ProxyClient> cache = Collections.synchronizedMap(new HashMap<String, ProxyClient>());
+    private static final Map<String, ProxyClient> cache = Collections.synchronizedMap(new HashMap<>());
+
+    // connect() runs on a worker thread while the tabs read from theirs: what it sets is volatile, and the platform
+    // MXBean proxies, created on first use, are guarded by platformBeansLock.
+    private final Object platformBeansLock = new Object();
 
     private volatile boolean isDead = true;
-    private String hostName = null;
-    private int port = 0;
-    private String userName = null;
-    private String password = null;
-    private boolean hasPlatformMXBeans = false;
-    private boolean hasHotSpotDiagnosticMXBean = false;
-    private boolean hasCompilationMXBean = false;
-    private boolean supportsLockUsage = false;
+    private final String hostName;
+    private final int port;
+    private final String userName;
+    private final String password;
+    private volatile boolean hasPlatformMXBeans;
+    private volatile boolean hasHotSpotDiagnosticMXBean;
+    private volatile boolean hasCompilationMXBean;
+    private volatile boolean supportsLockUsage;
 
     // REVISIT: VMPanel and other places relying using getUrl().
 
     private final String url;
 
-    private JMXServiceURL jmxUrl = null;
-    private MBeanServerConnection mbsc = null;
-    private SnapshotMBeanServerConnection server = null;
-    private JMXConnector jmxc = null;
+    private final JMXServiceURL jmxUrl;
+    private volatile MBeanServerConnection mbsc;
+    private volatile SnapshotMBeanServerConnection server;
+    private volatile JMXConnector jmxc;
     private final String connectionName;
     private final String displayName;
     private final boolean requireValidChain;
@@ -128,17 +123,24 @@ public class ProxyClient implements JmxDataAccess {
     private List<GarbageCollectorMXBean> garbageCollectorMBeans = null;
 
     private static final String HOTSPOT_DIAGNOSTIC_MXBEAN_NAME = "com.sun.management:type=HotSpotDiagnostic";
+    private static final ObjectName MEMORY_POOLS = pattern(ManagementFactory.MEMORY_POOL_MXBEAN_DOMAIN_TYPE + ",*");
+    private static final ObjectName GARBAGE_COLLECTORS =
+            pattern(ManagementFactory.GARBAGE_COLLECTOR_MXBEAN_DOMAIN_TYPE + ",*");
+
+    private static ObjectName pattern(String name) {
+        try {
+            return new ObjectName(name);
+        } catch (MalformedObjectNameException e) {
+            throw new IllegalStateException("A platform MXBean name is not an ObjectName: " + name, e);
+        }
+    }
 
     private ProxyClient(String url, String userName, String password, boolean requireValidChain) throws IOException {
         this.url = url;
         this.connectionName = getConnectionName(url, userName);
         this.displayName = connectionName;
         this.requireValidChain = requireValidChain;
-        setParameters(new JMXServiceURL(url), userName, password);
-    }
-
-    private void setParameters(JMXServiceURL url, String userName, String password) {
-        this.jmxUrl = url;
+        this.jmxUrl = new JMXServiceURL(url);
         this.hostName = jmxUrl.getHost();
         this.port = jmxUrl.getPort();
         this.userName = userName;
@@ -278,18 +280,20 @@ public class ProxyClient implements JmxDataAccess {
             try {
                 jmxc.close();
             } catch (IOException e) {
-                // Ignore ???
+                log.debug("Closing the connection to {} failed", url, e);
             }
         }
         // Reset platform MBean references
-        classLoadingMBean = null;
-        compilationMBean = null;
-        memoryMBean = null;
-        operatingSystemMBean = null;
-        runtimeMBean = null;
-        threadMBean = null;
-        sunOperatingSystemMXBean = null;
-        garbageCollectorMBeans = null;
+        synchronized (platformBeansLock) {
+            classLoadingMBean = null;
+            compilationMBean = null;
+            memoryMBean = null;
+            operatingSystemMBean = null;
+            runtimeMBean = null;
+            threadMBean = null;
+            sunOperatingSystemMXBean = null;
+            garbageCollectorMBeans = null;
+        }
         // Set connection state to DISCONNECTED
         if (!isDead) {
             isDead = true;
@@ -334,7 +338,7 @@ public class ProxyClient implements JmxDataAccess {
                 name = new ObjectName(domain + ":*");
             } catch (MalformedObjectNameException e) {
                 // should not reach here
-                assert (false);
+                assert false;
             }
         }
         Set<ObjectName> mbeans = server.queryNames(name, null);
@@ -347,12 +351,9 @@ public class ProxyClient implements JmxDataAccess {
                 try {
                     MBeanInfo info = server.getMBeanInfo(o);
                     result.put(o, info);
-                } catch (IntrospectionException e) {
-                    // TODO: should log the error
-                } catch (InstanceNotFoundException e) {
-                    // TODO: should log the error
-                } catch (ReflectionException e) {
-                    // TODO: should log the error
+                } catch (IntrospectionException | InstanceNotFoundException | ReflectionException e) {
+                    // the MBean left between the query and this read, or cannot describe itself: list the others
+                    log.debug("No MBeanInfo for {}", o, e);
                 }
             }
         }
@@ -364,11 +365,9 @@ public class ProxyClient implements JmxDataAccess {
         AttributeList list = null;
         try {
             list = server.getAttributes(name, attributes);
-        } catch (InstanceNotFoundException e) {
-            // TODO: A MBean may have been unregistered.
-            // need to set up listener to listen for MBeanServerNotification.
-        } catch (ReflectionException e) {
-            // TODO: should log the error
+        } catch (InstanceNotFoundException | ReflectionException e) {
+            // the MBean was unregistered, or refused the read: the caller treats null as "nothing to show"
+            log.debug("Reading attributes of {} failed", name, e);
         }
         return list;
     }
@@ -378,12 +377,8 @@ public class ProxyClient implements JmxDataAccess {
             throws InvalidAttributeValueException, MBeanException, IOException {
         try {
             server.setAttribute(name, attribute);
-        } catch (InstanceNotFoundException e) {
-            // TODO: A MBean may have been unregistered.
-        } catch (AttributeNotFoundException e) {
-            assert (false);
-        } catch (ReflectionException e) {
-            // TODO: should log the error
+        } catch (InstanceNotFoundException | AttributeNotFoundException | ReflectionException e) {
+            log.warn("Setting {} on {} failed: {}", attribute.getName(), name, e.toString());
         }
     }
 
@@ -397,137 +392,135 @@ public class ProxyClient implements JmxDataAccess {
         Object result = null;
         try {
             result = server.invoke(name, operationName, params, signature);
-        } catch (InstanceNotFoundException e) {
-            // TODO: A MBean may have been unregistered.
-        } catch (ReflectionException e) {
-            // TODO: should log the error
+        } catch (InstanceNotFoundException | ReflectionException e) {
+            log.warn("Invoking {} on {} failed: {}", operationName, name, e.toString());
         }
         return result;
     }
 
-    public synchronized ClassLoadingMXBean getClassLoadingMXBean() throws IOException {
-        if (hasPlatformMXBeans && classLoadingMBean == null) {
-            classLoadingMBean = newPlatformMXBeanProxy(server, CLASS_LOADING_MXBEAN_NAME, ClassLoadingMXBean.class);
+    public ClassLoadingMXBean getClassLoadingMXBean() throws IOException {
+        synchronized (platformBeansLock) {
+            if (hasPlatformMXBeans && classLoadingMBean == null) {
+                classLoadingMBean = ManagementFactory.newPlatformMXBeanProxy(
+                        server, ManagementFactory.CLASS_LOADING_MXBEAN_NAME, ClassLoadingMXBean.class);
+            }
+            return classLoadingMBean;
         }
-        return classLoadingMBean;
     }
 
-    public synchronized CompilationMXBean getCompilationMXBean() throws IOException {
-        if (hasCompilationMXBean && compilationMBean == null) {
-            compilationMBean = newPlatformMXBeanProxy(server, COMPILATION_MXBEAN_NAME, CompilationMXBean.class);
+    public CompilationMXBean getCompilationMXBean() throws IOException {
+        synchronized (platformBeansLock) {
+            if (hasCompilationMXBean && compilationMBean == null) {
+                compilationMBean = ManagementFactory.newPlatformMXBeanProxy(
+                        server, ManagementFactory.COMPILATION_MXBEAN_NAME, CompilationMXBean.class);
+            }
+            return compilationMBean;
         }
-        return compilationMBean;
     }
 
     public Collection<MemoryPoolProxy> getMemoryPoolProxies() throws IOException {
+        synchronized (platformBeansLock) {
+            // Built once per client: a pool that appears later is not shown.
+            if (memoryPoolProxies == null) {
+                List<MemoryPoolProxy> pools = new ArrayList<>();
+                for (ObjectName poolName : server.queryNames(MEMORY_POOLS, null)) {
+                    pools.add(new MemoryPoolProxy(this, poolName));
+                }
+                memoryPoolProxies = List.copyOf(pools);
+            }
+            return memoryPoolProxies;
+        }
+    }
 
-        // TODO: How to deal with changes to the list??
-        if (memoryPoolProxies == null) {
-            ObjectName poolName = null;
+    public Collection<GarbageCollectorMXBean> getGarbageCollectorMXBeans() throws IOException {
+        synchronized (platformBeansLock) {
+            // Built once per connection: a collector that appears later is not shown.
+            if (garbageCollectorMBeans == null) {
+                List<GarbageCollectorMXBean> collectors = new ArrayList<>();
+                for (ObjectName collector : server.queryNames(GARBAGE_COLLECTORS, null)) {
+                    String name = ManagementFactory.GARBAGE_COLLECTOR_MXBEAN_DOMAIN_TYPE + ",name="
+                            + collector.getKeyProperty("name");
+                    collectors.add(
+                            ManagementFactory.newPlatformMXBeanProxy(server, name, GarbageCollectorMXBean.class));
+                }
+                garbageCollectorMBeans = List.copyOf(collectors);
+            }
+            return garbageCollectorMBeans;
+        }
+    }
+
+    public MemoryMXBean getMemoryMXBean() throws IOException {
+        synchronized (platformBeansLock) {
+            if (hasPlatformMXBeans && memoryMBean == null) {
+                memoryMBean = ManagementFactory.newPlatformMXBeanProxy(
+                        server, ManagementFactory.MEMORY_MXBEAN_NAME, MemoryMXBean.class);
+            }
+            return memoryMBean;
+        }
+    }
+
+    public RuntimeMXBean getRuntimeMXBean() throws IOException {
+        synchronized (platformBeansLock) {
+            if (hasPlatformMXBeans && runtimeMBean == null) {
+                runtimeMBean = ManagementFactory.newPlatformMXBeanProxy(
+                        server, ManagementFactory.RUNTIME_MXBEAN_NAME, RuntimeMXBean.class);
+            }
+            return runtimeMBean;
+        }
+    }
+
+    public ThreadMXBean getThreadMXBean() throws IOException {
+        synchronized (platformBeansLock) {
+            if (hasPlatformMXBeans && threadMBean == null) {
+                threadMBean = ManagementFactory.newPlatformMXBeanProxy(
+                        server, ManagementFactory.THREAD_MXBEAN_NAME, ThreadMXBean.class);
+            }
+            return threadMBean;
+        }
+    }
+
+    public OperatingSystemMXBean getOperatingSystemMXBean() throws IOException {
+        synchronized (platformBeansLock) {
+            if (hasPlatformMXBeans && operatingSystemMBean == null) {
+                operatingSystemMBean = ManagementFactory.newPlatformMXBeanProxy(
+                        server, ManagementFactory.OPERATING_SYSTEM_MXBEAN_NAME, OperatingSystemMXBean.class);
+            }
+            return operatingSystemMBean;
+        }
+    }
+
+    public com.sun.management.OperatingSystemMXBean getSunOperatingSystemMXBean() throws IOException {
+        synchronized (platformBeansLock) {
             try {
-                poolName = new ObjectName(MEMORY_POOL_MXBEAN_DOMAIN_TYPE + ",*");
+                ObjectName on = new ObjectName(ManagementFactory.OPERATING_SYSTEM_MXBEAN_NAME);
+                if (sunOperatingSystemMXBean == null
+                        && server.isInstanceOf(on, "com.sun.management.OperatingSystemMXBean")) {
+                    sunOperatingSystemMXBean = ManagementFactory.newPlatformMXBeanProxy(
+                            server,
+                            ManagementFactory.OPERATING_SYSTEM_MXBEAN_NAME,
+                            com.sun.management.OperatingSystemMXBean.class);
+                }
+            } catch (InstanceNotFoundException e) {
+                return null;
             } catch (MalformedObjectNameException e) {
-                // should not reach here
-                assert (false);
+                return null; // should never reach here
             }
-            Set<ObjectName> mbeans = server.queryNames(poolName, null);
-            if (mbeans != null) {
-                memoryPoolProxies = new ArrayList<>();
-                Iterator<ObjectName> iterator = mbeans.iterator();
-                while (iterator.hasNext()) {
-                    ObjectName objName = iterator.next();
-                    MemoryPoolProxy p = new MemoryPoolProxy(this, objName);
-                    memoryPoolProxies.add(p);
-                }
+            return sunOperatingSystemMXBean;
+        }
+    }
+
+    public HotSpotDiagnosticMXBean getHotSpotDiagnosticMXBean() throws IOException {
+        synchronized (platformBeansLock) {
+            if (hasHotSpotDiagnosticMXBean && hotspotDiagnosticMXBean == null) {
+                hotspotDiagnosticMXBean = ManagementFactory.newPlatformMXBeanProxy(
+                        server, HOTSPOT_DIAGNOSTIC_MXBEAN_NAME, HotSpotDiagnosticMXBean.class);
             }
+            return hotspotDiagnosticMXBean;
         }
-        return memoryPoolProxies;
-    }
-
-    public synchronized Collection<GarbageCollectorMXBean> getGarbageCollectorMXBeans() throws IOException {
-
-        // TODO: How to deal with changes to the list??
-        if (garbageCollectorMBeans == null) {
-            ObjectName gcName = null;
-            try {
-                gcName = new ObjectName(GARBAGE_COLLECTOR_MXBEAN_DOMAIN_TYPE + ",*");
-            } catch (MalformedObjectNameException e) {
-                // should not reach here
-                assert (false);
-            }
-            Set<ObjectName> mbeans = server.queryNames(gcName, null);
-            if (mbeans != null) {
-                garbageCollectorMBeans = new ArrayList<>();
-                Iterator<ObjectName> iterator = mbeans.iterator();
-                while (iterator.hasNext()) {
-                    ObjectName on = iterator.next();
-                    String name = GARBAGE_COLLECTOR_MXBEAN_DOMAIN_TYPE + ",name=" + on.getKeyProperty("name");
-
-                    GarbageCollectorMXBean mBean = newPlatformMXBeanProxy(server, name, GarbageCollectorMXBean.class);
-                    garbageCollectorMBeans.add(mBean);
-                }
-            }
-        }
-        return garbageCollectorMBeans;
-    }
-
-    public synchronized MemoryMXBean getMemoryMXBean() throws IOException {
-        if (hasPlatformMXBeans && memoryMBean == null) {
-            memoryMBean = newPlatformMXBeanProxy(server, MEMORY_MXBEAN_NAME, MemoryMXBean.class);
-        }
-        return memoryMBean;
-    }
-
-    public synchronized RuntimeMXBean getRuntimeMXBean() throws IOException {
-        if (hasPlatformMXBeans && runtimeMBean == null) {
-            runtimeMBean = newPlatformMXBeanProxy(server, RUNTIME_MXBEAN_NAME, RuntimeMXBean.class);
-        }
-        return runtimeMBean;
-    }
-
-    public synchronized ThreadMXBean getThreadMXBean() throws IOException {
-        if (hasPlatformMXBeans && threadMBean == null) {
-            threadMBean = newPlatformMXBeanProxy(server, THREAD_MXBEAN_NAME, ThreadMXBean.class);
-        }
-        return threadMBean;
-    }
-
-    public synchronized OperatingSystemMXBean getOperatingSystemMXBean() throws IOException {
-        if (hasPlatformMXBeans && operatingSystemMBean == null) {
-            operatingSystemMBean =
-                    newPlatformMXBeanProxy(server, OPERATING_SYSTEM_MXBEAN_NAME, OperatingSystemMXBean.class);
-        }
-        return operatingSystemMBean;
-    }
-
-    public synchronized com.sun.management.OperatingSystemMXBean getSunOperatingSystemMXBean() throws IOException {
-
-        try {
-            ObjectName on = new ObjectName(OPERATING_SYSTEM_MXBEAN_NAME);
-            if (sunOperatingSystemMXBean == null) {
-                if (server.isInstanceOf(on, "com.sun.management.OperatingSystemMXBean")) {
-                    sunOperatingSystemMXBean = newPlatformMXBeanProxy(
-                            server, OPERATING_SYSTEM_MXBEAN_NAME, com.sun.management.OperatingSystemMXBean.class);
-                }
-            }
-        } catch (InstanceNotFoundException e) {
-            return null;
-        } catch (MalformedObjectNameException e) {
-            return null; // should never reach here
-        }
-        return sunOperatingSystemMXBean;
-    }
-
-    public synchronized HotSpotDiagnosticMXBean getHotSpotDiagnosticMXBean() throws IOException {
-        if (hasHotSpotDiagnosticMXBean && hotspotDiagnosticMXBean == null) {
-            hotspotDiagnosticMXBean =
-                    newPlatformMXBeanProxy(server, HOTSPOT_DIAGNOSTIC_MXBEAN_NAME, HotSpotDiagnosticMXBean.class);
-        }
-        return hotspotDiagnosticMXBean;
     }
 
     public <T> T getMXBean(ObjectName objName, Class<T> interfaceClass) throws IOException {
-        return newPlatformMXBeanProxy(server, objName.toString(), interfaceClass);
+        return ManagementFactory.newPlatformMXBeanProxy(server, objName.toString(), interfaceClass);
     }
 
     // Return thread IDs of deadlocked threads or null if any.
@@ -543,7 +536,7 @@ public class ProxyClient implements JmxDataAccess {
         }
     }
 
-    public synchronized void markAsDead() {
+    public void markAsDead() {
         disconnect();
     }
 
@@ -606,7 +599,7 @@ public class ProxyClient implements JmxDataAccess {
 
     public interface SnapshotMBeanServerConnection extends MBeanServerConnection {
         /** Flush all cached values of attributes. */
-        public void flush();
+        void flush();
     }
 
     public static class Snapshot {
@@ -622,11 +615,8 @@ public class ProxyClient implements JmxDataAccess {
     static class SnapshotInvocationHandler implements InvocationHandler {
 
         private final MBeanServerConnection conn;
-        private Map<ObjectName, NameValueMap> cachedValues = new HashMap<>();
+        private Map<ObjectName, Map<String, Object>> cachedValues = new HashMap<>();
         private Map<ObjectName, Set<String>> cachedNames = new HashMap<>();
-
-        @SuppressWarnings("serial")
-        private static final class NameValueMap extends HashMap<String, Object> {}
 
         SnapshotInvocationHandler(MBeanServerConnection conn) {
             this.conn = conn;
@@ -657,7 +647,7 @@ public class ProxyClient implements JmxDataAccess {
         private Object getAttribute(ObjectName objName, String attrName)
                 throws MBeanException, InstanceNotFoundException, AttributeNotFoundException, ReflectionException,
                         IOException {
-            final NameValueMap values = getCachedAttributes(objName, Collections.singleton(attrName));
+            final Map<String, Object> values = getCachedAttributes(objName, Collections.singleton(attrName));
             Object value = values.get(attrName);
             if (value != null || values.containsKey(attrName)) {
                 return value;
@@ -670,7 +660,7 @@ public class ProxyClient implements JmxDataAccess {
 
         private AttributeList getAttributes(ObjectName objName, String[] attrNames)
                 throws InstanceNotFoundException, ReflectionException, IOException {
-            final NameValueMap values = getCachedAttributes(objName, new TreeSet<>(Arrays.asList(attrNames)));
+            final Map<String, Object> values = getCachedAttributes(objName, new TreeSet<>(Arrays.asList(attrNames)));
             final AttributeList list = new AttributeList();
             for (String attrName : attrNames) {
                 final Object value = values.get(attrName);
@@ -681,9 +671,9 @@ public class ProxyClient implements JmxDataAccess {
             return list;
         }
 
-        private synchronized NameValueMap getCachedAttributes(ObjectName objName, Set<String> attrNames)
+        private synchronized Map<String, Object> getCachedAttributes(ObjectName objName, Set<String> attrNames)
                 throws InstanceNotFoundException, ReflectionException, IOException {
-            NameValueMap values = cachedValues.get(objName);
+            Map<String, Object> values = cachedValues.get(objName);
             if (values != null && values.keySet().containsAll(attrNames)) {
                 return values;
             }
@@ -692,7 +682,7 @@ public class ProxyClient implements JmxDataAccess {
             if (oldNames != null) {
                 attrNames.addAll(oldNames);
             }
-            values = new NameValueMap();
+            values = new HashMap<>();
             final AttributeList attrs = conn.getAttributes(objName, attrNames.toArray(new String[attrNames.size()]));
             for (Attribute attr : attrs.asList()) {
                 values.put(attr.getName(), attr.getValue());

@@ -26,6 +26,9 @@
 package com.druvu.jconsole.core.text;
 
 import java.text.*;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class Formatter {
@@ -36,9 +39,12 @@ public class Formatter {
 
     public static final String cr = System.getProperty("line.separator");
 
-    public static final DateFormat timeDF = new SimpleDateFormat("HH:mm");
-    private static final DateFormat timeWithSecondsDF = new SimpleDateFormat("HH:mm:ss");
-    private static final DateFormat dateDF = new SimpleDateFormat("yyyy-MM-dd");
+    private static final DateTimeFormatter CLOCK_TIME =
+            DateTimeFormatter.ofPattern("HH:mm").withZone(ZoneId.systemDefault());
+    private static final DateTimeFormatter TIME_WITH_SECONDS =
+            DateTimeFormatter.ofPattern("HH:mm:ss").withZone(ZoneId.systemDefault());
+    private static final DateTimeFormatter DATE =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.systemDefault());
     private static final String decimalZero = new DecimalFormatSymbols().getDecimalSeparator() + "0";
 
     public static String formatTime(long t) {
@@ -71,15 +77,19 @@ public class Formatter {
     }
 
     public static String formatClockTime(long time) {
-        return timeDF.format(time);
+        return CLOCK_TIME.format(instant(time));
     }
 
     public static String formatDate(long time) {
-        return dateDF.format(time);
+        return DATE.format(instant(time));
     }
 
     public static String formatDateTime(long time) {
-        return dateDF.format(time) + " " + timeWithSecondsDF.format(time);
+        return DATE.format(instant(time)) + " " + TIME_WITH_SECONDS.format(instant(time));
+    }
+
+    private static Instant instant(long epochMillis) {
+        return Instant.ofEpochMilli(epochMillis);
     }
 
     public static DateFormat getDateTimeFormat(String dtfStr) {

@@ -20,10 +20,19 @@ public final class RecentConnections {
 
     public static final int MAX = 10;
 
+    // Load and record run under one lock, so two connects never interleave a read and a write of the file.
+    private static final Object FILE_LOCK = new Object();
+
     private RecentConnections() {}
 
     /** Returns the stored URLs, most-recent-first (empty list if none / unreadable). */
-    public static synchronized List<String> load() {
+    public static List<String> load() {
+        synchronized (FILE_LOCK) {
+            return readFile();
+        }
+    }
+
+    private static List<String> readFile() {
         Path file = BoosterHome.recentConnectionsFile();
         if (!Files.exists(file)) {
             return new ArrayList<>();
@@ -46,12 +55,17 @@ public final class RecentConnections {
     }
 
     /** Records a successful connection URL: moves it to the front, de-dupes, trims to {@link #MAX}, persists. */
-    public static synchronized void record(String url) {
+    public static void record(String url) {
         if (url == null || url.isBlank()) {
             return;
         }
-        String u = url.strip();
-        List<String> list = load();
+        synchronized (FILE_LOCK) {
+            writeFirst(url.strip());
+        }
+    }
+
+    private static void writeFirst(String u) {
+        List<String> list = readFile();
         list.remove(u);
         list.add(0, u);
         if (list.size() > MAX) {

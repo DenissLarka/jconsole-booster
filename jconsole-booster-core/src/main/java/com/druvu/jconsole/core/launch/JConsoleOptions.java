@@ -17,4 +17,10 @@ public record JConsoleOptions(
         List<String> urls,
         boolean console,
         List<String> commands,
-        String scriptUser) {}
+        String scriptUser) {
+
+    public JConsoleOptions {
+        urls = List.copyOf(urls);
+        commands = List.copyOf(commands);
+    }
+}

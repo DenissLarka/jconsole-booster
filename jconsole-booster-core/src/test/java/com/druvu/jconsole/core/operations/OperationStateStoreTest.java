@@ -1,7 +1,10 @@
 package com.druvu.jconsole.core.operations;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Comparator;
+import java.util.stream.Stream;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -17,21 +20,18 @@ public class OperationStateStoreTest {
     private static final String PARAM = "symbol";
 
     @BeforeMethod
-    public void setUp() throws Exception {
+    public void setUp() throws IOException {
         tempDir = Files.createTempDirectory("operation-state-test-");
         store = new OperationStateStore(tempDir);
     }
 
     @AfterMethod
-    public void tearDown() throws Exception {
+    public void tearDown() throws IOException {
         if (tempDir != null && Files.exists(tempDir)) {
-            try (var stream = Files.walk(tempDir)) {
-                stream.sorted((a, b) -> b.compareTo(a)).forEach(p -> {
-                    try {
-                        Files.deleteIfExists(p);
-                    } catch (Exception ignored) {
-                    }
-                });
+            try (Stream<Path> paths = Files.walk(tempDir)) {
+                for (Path path : paths.sorted(Comparator.reverseOrder()).toList()) {
+                    Files.delete(path);
+                }
             }
         }
     }

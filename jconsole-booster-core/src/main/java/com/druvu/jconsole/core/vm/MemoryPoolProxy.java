@@ -34,13 +34,16 @@ import java.lang.management.MemoryUsage;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
+import lombok.extern.slf4j.Slf4j;
 
-public class MemoryPoolProxy {
-    private String poolName;
-    private ProxyClient client;
-    private MemoryPoolMXBean pool;
-    private Map<ObjectName, Long> gcMBeans;
+@Slf4j
+public final class MemoryPoolProxy {
+    private final String poolName;
+    private final ProxyClient client;
+    private final MemoryPoolMXBean pool;
+    private final Map<ObjectName, Long> gcMBeans;
     private GcInfo lastGcInfo;
 
     public MemoryPoolProxy(ProxyClient client, ObjectName poolName) throws java.io.IOException {
@@ -57,19 +60,20 @@ public class MemoryPoolProxy {
                 if (client.isRegistered(mbeanName)) {
                     gcMBeans.put(mbeanName, 0L);
                 }
-            } catch (Exception e) {
-                assert false;
+            } catch (MalformedObjectNameException e) {
+                // the platform registers its managers under this very name, so such a manager has no MBean to read
+                log.debug("Memory manager {} has no valid MBean name", name, e);
             }
         }
     }
 
     public boolean isCollectedMemoryPool() {
-        return (gcMBeans.size() != 0);
+        return !gcMBeans.isEmpty();
     }
 
     public MemoryPoolStat getStat() throws java.io.IOException {
-        long usageThreshold = (pool.isUsageThresholdSupported() ? pool.getUsageThreshold() : -1);
-        long collectThreshold = (pool.isCollectionUsageThresholdSupported() ? pool.getCollectionUsageThreshold() : -1);
+        long usageThreshold = pool.isUsageThresholdSupported() ? pool.getUsageThreshold() : -1;
+        long collectThreshold = pool.isCollectionUsageThresholdSupported() ? pool.getCollectionUsageThreshold() : -1;
         long lastGcStartTime = 0;
         long lastGcEndTime = 0;
         MemoryUsage beforeGcUsage = null;
@@ -85,7 +89,7 @@ public class MemoryPoolProxy {
 
         Set<Map.Entry<ObjectName, Long>> set = gcMBeans.entrySet();
         for (Map.Entry<ObjectName, Long> e : set) {
-            GarbageCollectorMXBean gc = client.getMXBean(e.getKey(), com.sun.management.GarbageCollectorMXBean.class);
+            GarbageCollectorMXBean gc = client.getMXBean(e.getKey(), GarbageCollectorMXBean.class);
             Long gcCount = e.getValue();
             Long newCount = gc.getCollectionCount();
             if (newCount > gcCount) {
@@ -97,8 +101,8 @@ public class MemoryPoolProxy {
                     lastGcEndTime = lastGcInfo.getEndTime();
                     beforeGcUsage = lastGcInfo.getMemoryUsageBeforeGc().get(poolName);
                     afterGcUsage = lastGcInfo.getMemoryUsageAfterGc().get(poolName);
-                    assert (beforeGcUsage != null);
-                    assert (afterGcUsage != null);
+                    assert beforeGcUsage != null;
+                    assert afterGcUsage != null;
                 }
             }
         }

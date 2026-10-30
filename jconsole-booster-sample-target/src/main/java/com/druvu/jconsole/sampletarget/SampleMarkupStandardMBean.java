@@ -1,4 +1,4 @@
-package com.druvu.jconsole.testjvm;
+package com.druvu.jconsole.sampletarget;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,6 +11,9 @@ import javax.management.StandardMBean;
  * Wraps {@link SampleMarkup} so that JMX introspection picks up markup-bearing descriptions for parameters and
  * operations. Without this wrapper a plain Standard MBean would surface descriptions like {@code "p1"}, {@code "p2"},
  * which strips out our {@code {{combo:…}}}-style hints.
+ *
+ * @author Deniss Larka <br>
+ *     on 25 Apr 2026
  */
 public class SampleMarkupStandardMBean extends StandardMBean {
 

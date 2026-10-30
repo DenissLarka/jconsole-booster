@@ -1,9 +1,11 @@
-package com.druvu.jconsole.testjvm;
+package com.druvu.jconsole.sampletarget;
 
 /**
- * Demonstrates the Phase 2.A1 markup vocabulary in JMX parameter descriptions. Exposed via
- * {@link SampleMarkupStandardMBean} so descriptions actually reach the wire (a plain interface-based Standard MBean
- * would lose them).
+ * Demonstrates the markup vocabulary in JMX parameter descriptions. Exposed via {@link SampleMarkupStandardMBean} so
+ * descriptions actually reach the wire (a plain interface-based Standard MBean would lose them).
+ *
+ * @author Deniss Larka <br>
+ *     on 25 Apr 2026
  */
 public interface SampleMarkupMBean {
 

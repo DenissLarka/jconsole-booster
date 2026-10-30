@@ -17,7 +17,6 @@
 
 	<properties>
 		<maven.deploy.skip>true</maven.deploy.skip>
-		<target.port>7091</target.port>
 	</properties>
 
 	<dependencies>
@@ -35,7 +34,7 @@
 			<groupId>com.druvu</groupId>
 			<artifactId>druvu-lib-jmxmp-client</artifactId>
 		</dependency>
-		<!-- the server side serves only the sample target JVM of the tests -->
+		<!-- the server side serves only the in-process targets of the tests -->
 		<dependency>
 			<groupId>com.druvu</groupId>
 			<artifactId>druvu-lib-jmxmp-server</artifactId>
@@ -97,27 +96,6 @@
 								<argument>com.druvu.jconsole/com.druvu.jconsole.launcher.Main</argument>
 								<argument>-c=#8BC6E1FF</argument>
 								<argument>-debug</argument>
-							</arguments>
-						</configuration>
-					</execution>
-
-					<!-- The sample target JVM (Start-TestJvm.ps1): a secured JMXMP endpoint, admin/admin, with a
-					     self-signed certificate generated at start. -->
-					<execution>
-						<id>start-target</id>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-						<configuration>
-							<skip>false</skip>
-							<executable>java</executable>
-							<classpathScope>test</classpathScope>
-							<arguments>
-								<argument>-Xmx256m</argument>
-								<argument>-cp</argument>
-								<classpath/>
-								<argument>com.druvu.jconsole.testjvm.SampleTargetJvm</argument>
-								<argument>${target.port}</argument>
 							</arguments>
 						</configuration>
 					</execution>

@@ -1,8 +1,15 @@
-package com.druvu.jconsole.testjvm;
+package com.druvu.jconsole.sampletarget;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Random;
 
+/**
+ * The payloads of {@link SampleDownloadsMBean}: a one-page PDF, a CSV export, an unknown blob and a payload without a
+ * hint.
+ *
+ * @author Deniss Larka <br>
+ *     on 12 Jul 2026
+ */
 public class SampleDownloads implements SampleDownloadsMBean {
 
     @Override

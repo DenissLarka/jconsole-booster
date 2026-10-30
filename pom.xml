@@ -16,6 +16,7 @@
 	<url>https://github.com/DenissLarka/jconsole-booster</url>
 
 	<modules>
+		<module>jconsole-booster-sample-target</module>
 		<module>jconsole-booster-swing</module>
 	</modules>
 

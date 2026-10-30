@@ -1,4 +1,4 @@
-package com.druvu.jconsole.testjvm;
+package com.druvu.jconsole.sampletarget;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,6 +6,13 @@ import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ * The sample target's control MBean: counts requests, derives a status from the error count, and creates load on
+ * demand, so the monitoring tabs have something to show.
+ *
+ * @author Deniss Larka <br>
+ *     on 25 Apr 2026
+ */
 public class SampleControl implements SampleControlMBean {
 
     private final AtomicLong requestCount = new AtomicLong();

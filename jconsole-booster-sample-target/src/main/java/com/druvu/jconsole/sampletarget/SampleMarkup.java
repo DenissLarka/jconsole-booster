@@ -1,4 +1,4 @@
-package com.druvu.jconsole.testjvm;
+package com.druvu.jconsole.sampletarget;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
@@ -15,6 +15,13 @@ import javax.management.openmbean.TabularData;
 import javax.management.openmbean.TabularDataSupport;
 import javax.management.openmbean.TabularType;
 
+/**
+ * Implements {@link SampleMarkupMBean}: the operations behind the markup-bearing descriptions, and an order book as
+ * {@code TabularData} for the table viewers.
+ *
+ * @author Deniss Larka <br>
+ *     on 25 Apr 2026
+ */
 public class SampleMarkup implements SampleMarkupMBean {
 
     private static final TabularType ORDER_BOOK_TYPE = buildOrderBookType();

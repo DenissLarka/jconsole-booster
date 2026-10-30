@@ -1,9 +1,12 @@
-package com.druvu.jconsole.testjvm;
+package com.druvu.jconsole.sampletarget;
 
 /**
  * Operations that return {@code byte[]} payloads, exercising JCB's download handling (the {@code {{returns:mime=…}}}
  * hint routed through {@code MimeHandler}). Kept on its own bean so the download UX has a dedicated, uncluttered
  * target; exposed via {@link SampleDownloadsStandardMBean} so the descriptions reach the wire.
+ *
+ * @author Deniss Larka <br>
+ *     on 12 Jul 2026
  */
 public interface SampleDownloadsMBean {
 

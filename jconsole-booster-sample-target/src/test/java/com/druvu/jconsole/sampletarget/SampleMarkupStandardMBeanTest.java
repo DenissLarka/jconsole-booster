@@ -1,4 +1,4 @@
-package com.druvu.jconsole.testjvm;
+package com.druvu.jconsole.sampletarget;
 
 import javax.management.MBeanInfo;
 import javax.management.MBeanOperationInfo;
@@ -6,6 +6,7 @@ import javax.management.MBeanParameterInfo;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+/** Checks that the markup in {@link SampleMarkupMBean}'s descriptions reaches the {@code MBeanInfo}. */
 public class SampleMarkupStandardMBeanTest {
 
     @Test

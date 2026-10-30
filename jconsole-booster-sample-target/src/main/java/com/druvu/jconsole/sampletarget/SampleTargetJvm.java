@@ -1,4 +1,4 @@
-package com.druvu.jconsole.testjvm;
+package com.druvu.jconsole.sampletarget;
 
 import java.lang.management.ManagementFactory;
 import java.util.HashMap;
@@ -19,8 +19,11 @@ import javax.security.auth.Subject;
  * Sample target JVM. Starts a JMXMP connector and a custom MBean, then drives synthetic load (CPU, allocations, named
  * threads) so JConsole has something interesting to display.
  *
- * <p>Usage: {@code java ... com.druvu.jconsole.testjvm.SampleTargetJvm [port]} (default port 7091). Connect with
- * {@code mvn exec:exec@start} and target {@code localhost:7091}.
+ * <p>Usage: {@code java ... com.druvu.jconsole.sampletarget.SampleTargetJvm [port]} (default port 7091), or
+ * {@code ./Start-TestJvm.ps1}. Connect with {@code ./Start-JConsole.ps1 localhost:7091}.
+ *
+ * @author Deniss Larka <br>
+ *     on 25 Apr 2026
  */
 public final class SampleTargetJvm {
 

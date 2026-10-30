@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.druvu</groupId>
+		<artifactId>jconsole-booster-parent</artifactId>
+		<version>1.2.0-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>jconsole-booster-sample-target</artifactId>
+
+	<name>DRUVU.COM / JCONSOLE BOOSTER / SAMPLE TARGET</name>
+	<description>A sample target JVM for JConsole Booster: a secured JMXMP endpoint (admin/admin, a self-signed certificate) with MBeans that exercise the markup widgets, downloads and the table viewers; for runs from source and tests, never published.</description>
+
+	<properties>
+		<maven.deploy.skip>true</maven.deploy.skip>
+		<maven.install.skip>true</maven.install.skip>
+		<target.port>7091</target.port>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.druvu</groupId>
+			<artifactId>druvu-lib-jmxmp-server</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<!-- TestNG logs through SLF4J; the parent excludes its own copy so one version serves the build -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<executions>
+					<!-- Start-TestJvm.ps1 -->
+					<execution>
+						<id>start-target</id>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<skip>false</skip>
+							<executable>java</executable>
+							<arguments>
+								<argument>-Xmx256m</argument>
+								<argument>-cp</argument>
+								<classpath/>
+								<argument>com.druvu.jconsole.sampletarget.SampleTargetJvm</argument>
+								<argument>${target.port}</argument>
+							</arguments>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>

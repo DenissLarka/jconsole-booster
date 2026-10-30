@@ -1,4 +1,4 @@
-package com.druvu.jconsole.testjvm;
+package com.druvu.jconsole.sampletarget;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,6 +10,9 @@ import javax.management.StandardMBean;
  * Wraps {@link SampleDownloads} so the {@code {{returns:mime=…}}} operation descriptions actually reach JMX
  * introspection — a plain interface-based Standard MBean would surface {@code "generatePdfReport"} instead of the
  * markup, and JCB would never route the byte[] result through {@code MimeHandler}.
+ *
+ * @author Deniss Larka <br>
+ *     on 12 Jul 2026
  */
 public class SampleDownloadsStandardMBean extends StandardMBean {
 

@@ -43,7 +43,7 @@ final class ConsoleSession {
     void close() {
         try {
             result.connector().close();
-        } catch (IOException ignore) {
+        } catch (IOException ignored) {
             // best-effort close on the way out
         }
     }

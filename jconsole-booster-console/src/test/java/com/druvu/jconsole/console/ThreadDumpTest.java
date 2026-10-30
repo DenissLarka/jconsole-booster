@@ -7,6 +7,7 @@ import java.lang.management.ThreadInfo;
 import java.time.LocalDateTime;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import javax.management.JMException;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.management.openmbean.CompositeData;
@@ -23,7 +24,7 @@ public class ThreadDumpTest {
     private static final LocalDateTime STAMP = LocalDateTime.of(2026, 8, 24, 13, 30, 0);
 
     @Test
-    public void formatsThreadsInJstackShape() throws Exception {
+    public void formatsThreadsInJstackShape() throws JMException {
         String text = ThreadDump.format(localThreads(), null, STAMP);
 
         assertThat(text).startsWith("2026-08-24 13:30:00\n");
@@ -38,7 +39,7 @@ public class ThreadDumpTest {
     }
 
     @Test
-    public void keepsStackFramesBeyondTheThreadInfoToStringCap() throws Exception {
+    public void keepsStackFramesBeyondTheThreadInfoToStringCap() throws JMException, InterruptedException {
         // ThreadInfo.toString() truncates at 8 frames; a real dump must not. deepStack() guarantees more than that.
         CompositeData[] rows = deepStack(16);
 
@@ -50,14 +51,14 @@ public class ThreadDumpTest {
     }
 
     @Test
-    public void reportsDeadlockedIdsWhenPresent() throws Exception {
+    public void reportsDeadlockedIdsWhenPresent() throws JMException {
         String text = ThreadDump.format(localThreads(), new long[] {41L, 42L}, STAMP);
 
         assertThat(text).contains("Found 2 deadlocked thread(s), by id: 41 42");
     }
 
     @Test
-    public void omitsTheDeadlockSectionWhenThereIsNone() throws Exception {
+    public void omitsTheDeadlockSectionWhenThereIsNone() throws JMException {
         assertThat(ThreadDump.format(localThreads(), null, STAMP)).doesNotContain("deadlocked");
         assertThat(ThreadDump.format(localThreads(), new long[0], STAMP)).doesNotContain("deadlocked");
     }
@@ -84,7 +85,7 @@ public class ThreadDumpTest {
     // ----- fixtures -----
 
     /** This JVM's threads as real {@code CompositeData}, exactly as a remote {@code dumpAllThreads} would deliver. */
-    private static CompositeData[] localThreads() throws Exception {
+    private static CompositeData[] localThreads() throws JMException {
         MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
         return (CompositeData[]) mbs.invoke(
                 ObjectName.getInstance("java.lang:type=Threading"),
@@ -94,7 +95,7 @@ public class ThreadDumpTest {
     }
 
     /** One thread parked at the bottom of a {@code depth}-deep recursion, captured as a single dump row. */
-    private static CompositeData[] deepStack(int depth) throws Exception {
+    private static CompositeData[] deepStack(int depth) throws JMException, InterruptedException {
         CountDownLatch parked = new CountDownLatch(1);
         CountDownLatch release = new CountDownLatch(1);
         Thread t = new Thread(() -> recurse(depth, parked, release), "deep-stack-fixture");
@@ -116,7 +117,7 @@ public class ThreadDumpTest {
         }
         parked.countDown();
         try {
-            release.await(10, TimeUnit.SECONDS);
+            release.await();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
@@ -127,7 +128,7 @@ public class ThreadDumpTest {
      * asking the MBean server for the same thread — the platform server does the conversion, so the fixture stays
      * faithful to the wire format instead of hand-rolling a {@link CompositeDataSupport}.
      */
-    private static CompositeData toCompositeData(ThreadInfo info) throws Exception {
+    private static CompositeData toCompositeData(ThreadInfo info) throws JMException {
         MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
         return (CompositeData) mbs.invoke(
                 ObjectName.getInstance("java.lang:type=Threading"),

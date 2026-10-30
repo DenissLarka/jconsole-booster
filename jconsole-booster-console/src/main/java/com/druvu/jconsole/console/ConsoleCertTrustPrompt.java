@@ -4,6 +4,7 @@ import com.druvu.jconsole.core.trust.CertTrustPrompt;
 import java.io.IOException;
 import java.security.cert.X509Certificate;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Console (text) implementation of {@link CertTrustPrompt}: prints the endpoint and certificate details and asks the
@@ -63,7 +64,7 @@ final class ConsoleCertTrustPrompt implements CertTrustPrompt {
         if (line == null) {
             return Decision.CANCEL;
         }
-        return switch (line.strip().toLowerCase()) {
+        return switch (line.strip().toLowerCase(Locale.ROOT)) {
             case "o", "once" -> Decision.TRUST_ONCE;
             case "r", "remember" -> Decision.TRUST_REMEMBER;
             default -> Decision.CANCEL;

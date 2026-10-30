@@ -6,6 +6,7 @@ import javax.management.openmbean.ArrayType;
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeDataSupport;
 import javax.management.openmbean.CompositeType;
+import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
 import javax.management.openmbean.SimpleType;
 import javax.management.openmbean.TabularDataSupport;
@@ -16,7 +17,7 @@ import org.testng.annotations.Test;
 /** Tests for {@link ConsoleRenderer} — plain-text (never HTML) rendering of JMX return values. */
 public class ConsoleRendererTest {
 
-    private static CompositeType rowType() throws Exception {
+    private static CompositeType rowType() throws OpenDataException {
         return new CompositeType(
                 "Row",
                 "a row",
@@ -25,7 +26,7 @@ public class ConsoleRendererTest {
                 new OpenType<?>[] {SimpleType.STRING, SimpleType.INTEGER});
     }
 
-    private static CompositeDataSupport row(CompositeType t, String name, int count) throws Exception {
+    private static CompositeDataSupport row(CompositeType t, String name, int count) throws OpenDataException {
         return new CompositeDataSupport(t, new String[] {"name", "count"}, new Object[] {name, count});
     }
 
@@ -51,7 +52,7 @@ public class ConsoleRendererTest {
     }
 
     @Test
-    public void compositeRendersKeyValueBlockNoHtml() throws Exception {
+    public void compositeRendersKeyValueBlockNoHtml() throws OpenDataException {
         String out = ConsoleRenderer.render(row(rowType(), "alpha", 7));
         Assert.assertTrue(out.contains("name = alpha"), out);
         Assert.assertTrue(out.contains("count = 7"), out);
@@ -59,7 +60,7 @@ public class ConsoleRendererTest {
     }
 
     @Test
-    public void tabularRendersNumberedRowsSortedByIndex() throws Exception {
+    public void tabularRendersNumberedRowsSortedByIndex() throws OpenDataException {
         CompositeType t = rowType();
         TabularType tt = new TabularType("Table", "rows", t, new String[] {"name"});
         TabularDataSupport td = new TabularDataSupport(tt);
@@ -75,7 +76,7 @@ public class ConsoleRendererTest {
     }
 
     @Test
-    public void arrayOfCompositesRendersElementByElement() throws Exception {
+    public void arrayOfCompositesRendersElementByElement() throws OpenDataException {
         CompositeType t = rowType();
 
         String out = ConsoleRenderer.render(new CompositeData[] {row(t, "alpha", 1), row(t, "beta", 2)});
@@ -86,7 +87,7 @@ public class ConsoleRendererTest {
     }
 
     @Test
-    public void compositeFieldHoldingCompositesOpensANestedBlock() throws Exception {
+    public void compositeFieldHoldingCompositesOpensANestedBlock() throws OpenDataException {
         CompositeType rowType = rowType();
         CompositeType holderType = new CompositeType(
                 "Holder", "holds rows", new String[] {"rows"}, new String[] {"the rows"}, new OpenType<?>[] {

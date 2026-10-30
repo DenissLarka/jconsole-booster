@@ -19,6 +19,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
 import javax.management.InstanceNotFoundException;
 import javax.management.IntrospectionException;
@@ -26,6 +28,7 @@ import javax.management.MBeanException;
 import javax.management.MBeanInfo;
 import javax.management.MBeanOperationInfo;
 import javax.management.MBeanParameterInfo;
+import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.management.ReflectionException;
 import javax.management.remote.JMXServiceURL;
@@ -71,13 +74,18 @@ public final class ConsoleMain {
      * opens the REPL on a box without a display.
      */
     public static void main(String[] args) {
-        ArgumentParser.parse(args).ifPresent(ConsoleMain::run);
+        Optional<JConsoleOptions> options = ArgumentParser.parse(args);
+        if (options.isPresent()) {
+            System.exit(run(options.get()));
+        }
     }
 
     /**
      * Production entry: forces headless, wires stdin/stdout, installs the console prompts, runs interactive or script.
+     *
+     * @return the process exit status: the script's (1 when a command failed), 0 after an interactive session
      */
-    public static void run(JConsoleOptions options) {
+    public static int run(JConsoleOptions options) {
         // Nothing on the console path needs a display; set this FIRST, defensively, so an accidental
         // toolkit init inside a shared helper cannot pop AWT on a headless box.
         System.setProperty("java.awt.headless", "true");
@@ -86,9 +94,9 @@ public final class ConsoleMain {
         ConsoleMain main = new ConsoleMain(io);
         if (options.commands().isEmpty()) {
             main.loop(options);
-        } else {
-            System.exit(main.runScript(options));
+            return 0;
         }
+        return main.runScript(options);
     }
 
     /** Installs the console-specific TOFU + plaintext prompts (the console analog of JConsole.main:942-943). */
@@ -183,7 +191,7 @@ public final class ConsoleMain {
             return true;
         }
         String[] parts = tokens.toArray(new String[0]);
-        String cmd = parts[0].toLowerCase();
+        String cmd = parts[0].toLowerCase(Locale.ROOT);
         switch (cmd) {
             case "help", "?" -> printHelp();
             case "version" -> Version.print(io.out());
@@ -281,7 +289,8 @@ public final class ConsoleMain {
         List<ObjectName> sorted = new ArrayList<>(names);
         sorted.sort(Comparator.comparing(ObjectName::getCanonicalName));
         if (filter != null) {
-            sorted.removeIf(on -> !on.getCanonicalName().toLowerCase().contains(filter));
+            sorted.removeIf(
+                    on -> !on.getCanonicalName().toLowerCase(Locale.ROOT).contains(filter));
         }
         lastBeans = sorted;
         if (sorted.isEmpty()) {
@@ -367,10 +376,11 @@ public final class ConsoleMain {
             return;
         }
         MBeanParameterInfo[] sig = op.getSignature();
-        String[] rawArgs = collectArgs(parts, argStart, sig);
-        if (rawArgs == null) {
+        Optional<String[]> collected = collectArgs(parts, argStart, sig);
+        if (collected.isEmpty()) {
             return; // count/abort message already emitted via fail()
         }
+        String[] rawArgs = collected.get();
         Object[] params = new Object[sig.length];
         String[] types = new String[sig.length];
         for (int i = 0; i < sig.length; i++) {
@@ -487,7 +497,7 @@ public final class ConsoleMain {
         }
         try {
             return ObjectName.getInstance(arg);
-        } catch (Exception e) {
+        } catch (MalformedObjectNameException e) {
             fail("not an index or a valid ObjectName: " + arg);
             return null;
         }
@@ -508,21 +518,21 @@ public final class ConsoleMain {
 
     /**
      * Prompts for each argument when none were supplied inline; uses inline args when the full set was given; refuses a
-     * partial/wrong count. Returns raw string values, or {@code null} if reading was aborted or the count was wrong (in
-     * which case {@link #fail} has been called).
+     * partial/wrong count. Returns raw string values, or empty if reading was aborted or the count was wrong (in which
+     * case {@link #fail} has been called).
      */
-    private String[] collectArgs(String[] parts, int argStart, MBeanParameterInfo[] sig) {
+    private Optional<String[]> collectArgs(String[] parts, int argStart, MBeanParameterInfo[] sig) {
         int inline = parts.length - argStart;
         String[] args = new String[sig.length];
         if (inline == sig.length) {
             for (int i = 0; i < sig.length; i++) {
                 args[i] = parts[argStart + i];
             }
-            return args;
+            return Optional.of(args);
         }
         if (inline > 0) {
             fail("operation takes " + sig.length + " argument(s), got " + inline);
-            return null;
+            return Optional.empty();
         }
         for (int i = 0; i < sig.length; i++) {
             MBeanParameterInfo p = sig[i];
@@ -534,15 +544,15 @@ public final class ConsoleMain {
                 v = io.readLine();
             } catch (IOException e) {
                 fail("input error: " + e.getMessage());
-                return null;
+                return Optional.empty();
             }
             if (v == null) {
                 fail("aborted");
-                return null;
+                return Optional.empty();
             }
             args[i] = v;
         }
-        return args;
+        return Optional.of(args);
     }
 
     private void fail(String message) {
@@ -647,7 +657,7 @@ public final class ConsoleMain {
         if (f.length() >= 2 && f.startsWith("[") && f.endsWith("]")) {
             f = f.substring(1, f.length() - 1);
         }
-        return f.isBlank() ? null : f.toLowerCase();
+        return f.isBlank() ? null : f.toLowerCase(Locale.ROOT);
     }
 
     /** Resolves an operation by list index or by name (+arity to disambiguate overloads). Static + testable. */

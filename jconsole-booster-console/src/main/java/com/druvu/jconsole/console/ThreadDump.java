@@ -6,6 +6,7 @@ import java.lang.management.MonitorInfo;
 import java.lang.management.ThreadInfo;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 import javax.management.JMException;
 import javax.management.MBeanServerConnection;
 import javax.management.MalformedObjectNameException;
@@ -69,11 +70,12 @@ final class ThreadDump {
         if (jstack != null) {
             return new Dump(jstack, "DiagnosticCommand.threadPrint (jcmd Thread.print -l)");
         }
-        CompositeData[] rows = dumpAllThreads(conn);
-        if (rows == null) {
+        Optional<CompositeData[]> rows = dumpAllThreads(conn);
+        if (rows.isEmpty()) {
             return null;
         }
-        return new Dump(format(rows, findDeadlockedThreads(conn), LocalDateTime.now()), "ThreadMXBean.dumpAllThreads");
+        return new Dump(
+                format(rows.get(), findDeadlockedThreads(conn), LocalDateTime.now()), "ThreadMXBean.dumpAllThreads");
     }
 
     /** Default file name for a dump of {@code target}, e.g. {@code threaddump-localhost-7091-20260824-133000.txt}. */
@@ -104,9 +106,9 @@ final class ThreadDump {
         }
     }
 
-    private static CompositeData[] dumpAllThreads(MBeanServerConnection conn) throws IOException {
+    private static Optional<CompositeData[]> dumpAllThreads(MBeanServerConnection conn) throws IOException {
         if (THREADING == null || !conn.isRegistered(THREADING)) {
-            return null;
+            return Optional.empty();
         }
         try {
             Object result = conn.invoke(
@@ -114,19 +116,19 @@ final class ThreadDump {
                     "dumpAllThreads",
                     new Object[] {Boolean.TRUE, Boolean.TRUE}, // lockedMonitors, lockedSynchronizers
                     new String[] {"boolean", "boolean"});
-            return (result instanceof CompositeData[] rows) ? rows : null;
+            return (result instanceof CompositeData[] rows) ? Optional.of(rows) : Optional.empty();
         } catch (JMException | RuntimeException e) {
-            return null;
+            return Optional.empty();
         }
     }
 
-    /** Best-effort: a dump without the deadlock section still beats no dump. */
+    /** Best-effort, empty when none or unreadable: a dump without the deadlock section still beats no dump. */
     private static long[] findDeadlockedThreads(MBeanServerConnection conn) throws IOException {
         try {
             Object result = conn.invoke(THREADING, "findDeadlockedThreads", new Object[0], new String[0]);
-            return (result instanceof long[] ids) ? ids : null;
+            return (result instanceof long[] ids) ? ids : new long[0];
         } catch (JMException | RuntimeException e) {
-            return null;
+            return new long[0];
         }
     }
 

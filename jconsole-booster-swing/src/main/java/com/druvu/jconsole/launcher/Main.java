@@ -19,7 +19,7 @@ public final class Main {
     public static void main(String[] args) {
         ArgumentParser.parse(args).ifPresent(options -> {
             if (options.console()) {
-                ConsoleMain.run(options);
+                System.exit(ConsoleMain.run(options));
             } else {
                 // JConsole.main re-parses args (harmless) — keeps JConsole directly launchable as today.
                 JConsole.main(args);

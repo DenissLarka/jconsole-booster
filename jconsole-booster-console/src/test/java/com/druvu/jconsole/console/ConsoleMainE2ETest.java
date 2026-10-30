@@ -18,6 +18,7 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import javax.management.JMException;
 import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
@@ -60,7 +61,7 @@ public class ConsoleMainE2ETest {
     }
 
     @Test
-    public void interactiveDrillDownAndInvoke() throws Exception {
+    public void interactiveDrillDownAndInvoke() throws JMException, IOException {
         int port = freePort();
         JMXConnectorServer server = startSecuredTarget(port);
         try {
@@ -92,7 +93,7 @@ public class ConsoleMainE2ETest {
     }
 
     @Test
-    public void scriptModeSucceedsWithExitZero() throws Exception {
+    public void scriptModeSucceedsWithExitZero() throws JMException, IOException {
         int port = freePort();
         JMXConnectorServer server = startSecuredTarget(port);
         try {
@@ -113,7 +114,7 @@ public class ConsoleMainE2ETest {
     }
 
     @Test
-    public void scriptModeFailsWithExitOne() throws Exception {
+    public void scriptModeFailsWithExitOne() throws JMException, IOException {
         int port = freePort();
         JMXConnectorServer server = startSecuredTarget(port);
         try {
@@ -131,7 +132,7 @@ public class ConsoleMainE2ETest {
     }
 
     @Test
-    public void wrongPasswordIsAConnectFailureWithExitOne() throws Exception {
+    public void wrongPasswordIsAConnectFailureWithExitOne() throws JMException, IOException {
         int port = freePort();
         JMXConnectorServer server = startSecuredTarget(port);
         try {
@@ -151,7 +152,7 @@ public class ConsoleMainE2ETest {
     }
 
     @Test
-    public void threadsWritesADumpFileAndExitsZero() throws Exception {
+    public void threadsWritesADumpFileAndExitsZero() throws JMException, IOException {
         int port = freePort();
         JMXConnectorServer server = startSecuredTarget(port);
         Path dump = Files.createTempDirectory("jcb-threads").resolve("dump.txt");
@@ -179,7 +180,7 @@ public class ConsoleMainE2ETest {
     }
 
     @Test
-    public void threadsFailsWhenTheTargetHasNoThreadMBean() throws Exception {
+    public void threadsFailsWhenTheTargetHasNoThreadMBean() throws JMException, IOException {
         int port = freePort();
         JMXConnectorServer server = startSecuredTarget(port, false); // Echo only — no Threading
         try {
@@ -204,7 +205,7 @@ public class ConsoleMainE2ETest {
                 new BufferedReader(new StringReader(input)), new PrintStream(out, true, StandardCharsets.UTF_8));
     }
 
-    private static JMXConnectorServer startSecuredTarget(int port) throws Exception {
+    private static JMXConnectorServer startSecuredTarget(int port) throws JMException, IOException {
         return startSecuredTarget(port, true);
     }
 
@@ -214,7 +215,8 @@ public class ConsoleMainE2ETest {
      * so the {@code threads} command has a portable source to read. There is no {@code DiagnosticCommand} here, which
      * is exactly what makes this the fallback route's end-to-end test.
      */
-    private static JMXConnectorServer startSecuredTarget(int port, boolean withThreading) throws Exception {
+    private static JMXConnectorServer startSecuredTarget(int port, boolean withThreading)
+            throws JMException, IOException {
         MBeanServer mbs = MBeanServerFactory.newMBeanServer();
         mbs.registerMBean(new Echo(), new ObjectName(OBJ));
         if (withThreading) {

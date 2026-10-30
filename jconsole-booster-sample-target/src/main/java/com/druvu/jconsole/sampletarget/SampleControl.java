@@ -2,6 +2,7 @@ package com.druvu.jconsole.sampletarget;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -91,7 +92,7 @@ public class SampleControl implements SampleControlMBean {
         if (maintenance.get()) {
             System.out.println("[sample] " + message);
         }
-        if (message != null && message.toLowerCase().contains("error")) {
+        if (message != null && message.toLowerCase(Locale.ROOT).contains("error")) {
             errorCount.incrementAndGet();
         }
         return "logged " + (message == null ? 0 : message.length()) + " chars";

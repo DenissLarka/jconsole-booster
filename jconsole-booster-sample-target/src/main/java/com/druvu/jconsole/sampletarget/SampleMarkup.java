@@ -25,7 +25,7 @@ import javax.management.openmbean.TabularType;
 public class SampleMarkup implements SampleMarkupMBean {
 
     private static final TabularType ORDER_BOOK_TYPE = buildOrderBookType();
-    private static final TabularData ORDER_BOOK = buildOrderBook();
+    private static final TabularDataSupport ORDER_BOOK = buildOrderBook();
 
     private static TabularType buildOrderBookType() {
         try {
@@ -79,7 +79,7 @@ public class SampleMarkup implements SampleMarkupMBean {
         }
     }
 
-    private static TabularData buildOrderBook() {
+    private static TabularDataSupport buildOrderBook() {
         Map<String, Double> midPrice = Map.ofEntries(
                 Map.entry("EURUSD", 1.0850),
                 Map.entry("USDCHF", 0.9125),
@@ -195,7 +195,8 @@ public class SampleMarkup implements SampleMarkupMBean {
 
     @Override
     public TabularData loadOrderBook() {
-        return ORDER_BOOK;
+        // A copy, so no caller can change the book the next caller reads.
+        return (TabularData) ORDER_BOOK.clone();
     }
 
     @Override

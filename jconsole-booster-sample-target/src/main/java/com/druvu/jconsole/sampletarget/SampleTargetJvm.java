@@ -1,11 +1,13 @@
 package com.druvu.jconsole.sampletarget;
 
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
+import javax.management.JMException;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.management.remote.JMXAuthenticator;
@@ -32,7 +34,7 @@ public final class SampleTargetJvm {
     public static final String MARKUP_OBJECT_NAME = "com.druvu.testjvm:type=SampleMarkup";
     public static final String DOWNLOADS_OBJECT_NAME = "com.druvu.testjvm:type=SampleDownloads";
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws JMException, IOException, InterruptedException {
         int port = args.length > 0 ? Integer.parseInt(args[0]) : DEFAULT_PORT;
 
         MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();

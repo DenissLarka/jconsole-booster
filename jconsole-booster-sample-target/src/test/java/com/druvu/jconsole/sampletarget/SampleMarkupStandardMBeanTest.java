@@ -3,6 +3,7 @@ package com.druvu.jconsole.sampletarget;
 import javax.management.MBeanInfo;
 import javax.management.MBeanOperationInfo;
 import javax.management.MBeanParameterInfo;
+import javax.management.NotCompliantMBeanException;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -10,7 +11,7 @@ import org.testng.annotations.Test;
 public class SampleMarkupStandardMBeanTest {
 
     @Test
-    public void parameterDescriptionsCarryMarkup() throws Exception {
+    public void parameterDescriptionsCarryMarkup() throws NotCompliantMBeanException {
         SampleMarkupStandardMBean mbean = new SampleMarkupStandardMBean(new SampleMarkup());
         MBeanInfo info = mbean.getMBeanInfo();
 
@@ -24,6 +25,9 @@ public class SampleMarkupStandardMBeanTest {
                     Assert.assertTrue(
                             op.getDescription().contains("{{returns:format=json}}"),
                             "operation description: " + op.getDescription());
+                default -> {
+                    // the other operations carry no markup to check
+                }
             }
         }
     }

@@ -1,7 +1,6 @@
 package com.druvu.jconsole.sampletarget;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Random;
 
 /**
  * The payloads of {@link SampleDownloadsMBean}: a one-page PDF, a CSV export, an unknown blob and a payload without a
@@ -16,7 +15,7 @@ public class SampleDownloads implements SampleDownloadsMBean {
     public byte[] generatePdfReport() {
         // Minimal valid PDF — a one-page empty document. Source: hand-rolled,
         // approx 470 bytes, parseable by every PDF viewer.
-        return ("""
+        return """
                 %PDF-1.4
                 1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
                 2 0 obj<</Type/Pages/Count 1/Kids[3 0 R]>>endobj
@@ -38,23 +37,26 @@ public class SampleDownloads implements SampleDownloadsMBean {
                 startxref
                 344
                 %%EOF
-                """).getBytes(StandardCharsets.US_ASCII);
+                """.getBytes(StandardCharsets.US_ASCII);
     }
 
     @Override
     public byte[] generateCsvExport() {
-        return ("""
+        return """
                 symbol,side,quantity,price
                 EURUSD,BUY,1000000,1.0850
                 USDCHF,SELL,500000,0.9130
                 GBPUSD,BUY,250000,1.2640
-                """).getBytes(StandardCharsets.UTF_8);
+                """.getBytes(StandardCharsets.UTF_8);
     }
 
     @Override
     public byte[] generateUnknownBlob() {
+        // Arbitrary bytes, the same on every call, that start with no known file signature.
         byte[] bytes = new byte[64];
-        new Random(42).nextBytes(bytes);
+        for (int i = 0; i < bytes.length; i++) {
+            bytes[i] = (byte) (i * 151 + 7);
+        }
         return bytes;
     }
 

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+
+    <!-- A connection result carries the live connector and its connection: the caller uses them and closes the
+         connector, and a copy of either cannot exist. -->
+    <Match>
+        <Class name="com.druvu.jconsole.core.connect.JMXConnectionManager$ConnectionResult"/>
+        <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- The process-wide store of trusted certificates: every connection must see the same pins. -->
+    <Match>
+        <Class name="com.druvu.jconsole.core.trust.TrustedCertStore"/>
+        <Method name="getDefault"/>
+        <Bug pattern="MS_EXPOSE_REP"/>
+    </Match>
+
+    <!-- A memory pool reads its collectors through the client it belongs to. -->
+    <Match>
+        <Class name="com.druvu.jconsole.core.vm.MemoryPoolProxy"/>
+        <Method name="&lt;init&gt;"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- The client hands out the connection's live handles: MXBean proxies that read through the connection, the
+         connection itself, and the exception of the last failed connect. -->
+    <Match>
+        <Class name="com.druvu.jconsole.core.vm.ProxyClient"/>
+        <Method name="~get(ClassLoadingMXBean|HotSpotDiagnosticMXBean|MemoryMXBean|ThreadMXBean|MBeanServerConnection|LastConnectException)"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+</FindBugsFilter>

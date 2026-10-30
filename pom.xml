@@ -69,12 +69,15 @@
 
 		<!-- plugins -->
 		<maven-compiler-plugin.version>3.16.0</maven-compiler-plugin.version>
+		<maven-surefire-plugin.version>3.6.0</maven-surefire-plugin.version>
 		<maven-jar-plugin.version>3.5.1</maven-jar-plugin.version>
 		<maven-enforcer-plugin.version>3.6.3</maven-enforcer-plugin.version>
 		<exec-maven-plugin.version>3.6.4</exec-maven-plugin.version>
 		<maven-shade-plugin.version>3.6.2</maven-shade-plugin.version>
 		<spotless-maven-plugin.version>3.10.4</spotless-maven-plugin.version>
 		<palantir-java-format.version>2.90.0</palantir-java-format.version>
+		<spotbugs-maven-plugin.version>4.10.5.0</spotbugs-maven-plugin.version>
+		<maven-pmd-plugin.version>3.28.0</maven-pmd-plugin.version>
 	</properties>
 
 	<dependencyManagement>
@@ -146,8 +149,7 @@
 					<artifactId>maven-compiler-plugin</artifactId>
 					<version>${maven-compiler-plugin.version}</version>
 					<configuration>
-						<source>${java.version}</source>
-						<target>${java.version}</target>
+						<release>${java.version}</release>
 						<encoding>UTF-8</encoding>
 						<debug>true</debug>
 						<showDeprecation>true</showDeprecation>
@@ -156,6 +158,7 @@
 						<fork>true</fork>
 						<compilerArgs>
 							<arg>--module-version=${project.version}</arg>
+							<arg>-parameters</arg>
 						</compilerArgs>
 						<annotationProcessorPaths>
 							<path>
@@ -164,6 +167,21 @@
 								<version>${lombok.version}</version>
 							</path>
 						</annotationProcessorPaths>
+					</configuration>
+				</plugin>
+
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>${maven-surefire-plugin.version}</version>
+					<configuration>
+						<useModulePath>false</useModulePath>
+						<properties>
+							<property>
+								<name>usedefaultlisteners</name>
+								<value>false</value>
+							</property>
+						</properties>
 					</configuration>
 				</plugin>
 
@@ -219,7 +237,8 @@
 								<reactorModuleConvergence/>
 								<dependencyConvergence/>
 								<requireJavaVersion>
-									<version>${java.version}</version>
+									<version>[${java.version},26)</version>
+									<message>JConsole Booster builds on JDK ${java.version}: the formatter does not run on newer JDKs.</message>
 								</requireJavaVersion>
 							</rules>
 						</configuration>
@@ -247,6 +266,46 @@
 							<goal>check</goal>
 						</goals>
 						<phase>verify</phase>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>com.github.spotbugs</groupId>
+				<artifactId>spotbugs-maven-plugin</artifactId>
+				<version>${spotbugs-maven-plugin.version}</version>
+				<configuration>
+					<effort>Max</effort>
+					<threshold>Low</threshold>
+					<xmlOutput>true</xmlOutput>
+					<includeTests>true</includeTests>
+					<excludeFilterFile>${project.basedir}/_spotbug-filters/spotbug-exclude.xml</excludeFilterFile>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<version>${maven-pmd-plugin.version}</version>
+				<configuration>
+					<printFailingErrors>true</printFailingErrors>
+					<failurePriority>3</failurePriority>
+					<includeTests>true</includeTests>
+					<linkXRef>false</linkXRef>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>check</goal>
+							<goal>cpd-check</goal>
+						</goals>
 					</execution>
 				</executions>
 			</plugin>

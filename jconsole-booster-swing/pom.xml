@@ -17,6 +17,10 @@
 
 	<properties>
 		<maven.deploy.skip>true</maven.deploy.skip>
+		<!-- The Swing front is being replaced by the JavaFX app; the static-analysis gates cover the modules that stay. -->
+		<spotbugs.skip>true</spotbugs.skip>
+		<pmd.skip>true</pmd.skip>
+		<cpd.skip>true</cpd.skip>
 	</properties>
 
 	<dependencies>

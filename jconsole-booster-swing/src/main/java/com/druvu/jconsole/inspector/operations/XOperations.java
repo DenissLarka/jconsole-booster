@@ -25,10 +25,11 @@
 
 package com.druvu.jconsole.inspector.operations;
 
+import com.druvu.jconsole.core.mbeans.MBeanExceptions;
+import com.druvu.jconsole.core.mbeans.MBeanValues;
 import com.druvu.jconsole.core.operations.OperationStateStore;
 import com.druvu.jconsole.core.text.Messages;
 import com.druvu.jconsole.inspector.ThreadDialog;
-import com.druvu.jconsole.inspector.Utils;
 import com.druvu.jconsole.inspector.XMBean;
 import com.druvu.jconsole.launcher.JConsole;
 import com.druvu.jconsole.ui.tabs.MBeansTab;
@@ -180,14 +181,14 @@ public abstract class XOperations extends JPanel implements ActionListener {
 
     /** {@code java.lang.String} → {@code String}, {@code java.lang.String[]} → {@code String[]}. */
     private static String simpleReturnType(String fqcn) {
-        String readable = Utils.getReadableClassName(fqcn);
+        String readable = MBeanValues.getReadableClassName(fqcn);
         int dot = readable.lastIndexOf('.');
         return dot < 0 ? readable : readable.substring(dot + 1);
     }
 
     private boolean isCallable(MBeanParameterInfo[] signature) {
         for (int i = 0; i < signature.length; i++) {
-            if (!Utils.isEditableType(signature[i].getType())) {
+            if (!MBeanValues.isEditableType(signature[i].getType())) {
                 return false;
             }
         }
@@ -229,7 +230,7 @@ public abstract class XOperations extends JPanel implements ActionListener {
                                 .run();
                     }
                 } catch (Throwable t) {
-                    t = Utils.getActualException(t);
+                    t = MBeanExceptions.actualCause(t);
                     if (JConsole.isDebug()) {
                         t.printStackTrace();
                     }

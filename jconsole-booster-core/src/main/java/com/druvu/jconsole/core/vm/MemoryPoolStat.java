@@ -23,7 +23,7 @@
  * questions.
  */
 
-package com.druvu.jconsole.jmx;
+package com.druvu.jconsole.core.vm;
 
 import java.lang.management.MemoryUsage;
 

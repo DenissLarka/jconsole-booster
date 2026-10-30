@@ -1,11 +1,11 @@
 package com.druvu.jconsole.ui.core;
 
-import com.druvu.jconsole.jmx.MemoryPoolProxy;
-import com.druvu.jconsole.jmx.api.JmxDataAccess;
+import com.druvu.jconsole.core.vm.ConnectionState;
+import com.druvu.jconsole.core.vm.ConnectionStateListener;
+import com.druvu.jconsole.core.vm.JmxDataAccess;
+import com.druvu.jconsole.core.vm.MemoryPoolProxy;
 import com.sun.management.HotSpotDiagnosticMXBean;
-import com.sun.tools.jconsole.JConsoleContext;
 import java.awt.GraphicsEnvironment;
-import java.beans.PropertyChangeListener;
 import java.lang.management.ClassLoadingMXBean;
 import java.lang.management.CompilationMXBean;
 import java.lang.management.GarbageCollectorMXBean;
@@ -46,8 +46,8 @@ public class TestTabUpdate {
         final AtomicInteger hasPlatformCalls = new AtomicInteger();
 
         @Override
-        public JConsoleContext.ConnectionState getConnectionState() {
-            return JConsoleContext.ConnectionState.CONNECTED;
+        public ConnectionState getConnectionState() {
+            return ConnectionState.CONNECTED;
         }
 
         @Override
@@ -155,13 +155,10 @@ public class TestTabUpdate {
         public void markAsDead() {}
 
         @Override
-        public void addPropertyChangeListener(PropertyChangeListener l) {}
+        public void addConnectionStateListener(ConnectionStateListener listener) {}
 
         @Override
-        public void addWeakPropertyChangeListener(PropertyChangeListener l) {}
-
-        @Override
-        public void removePropertyChangeListener(PropertyChangeListener l) {}
+        public void removeConnectionStateListener(ConnectionStateListener listener) {}
     }
 
     /** Minimal Tab subclass: returns a no-op SwingWorker so we can observe scheduling. */

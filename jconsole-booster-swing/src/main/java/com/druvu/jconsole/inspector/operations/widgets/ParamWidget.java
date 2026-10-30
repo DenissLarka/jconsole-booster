@@ -8,7 +8,7 @@ import javax.swing.JComponent;
  * {@link com.druvu.jconsole.inspector.Utils#getParameters} can consume.
  *
  * <p>{@link #getValue()} returns either a {@link String} (which is then run through
- * {@code Utils.createObjectFromString}) or — for {@code byte[]} parameters backed by a file picker — the bytes
+ * {@code MBeanValues.createObjectFromString}) or — for {@code byte[]} parameters backed by a file picker — the bytes
  * directly.
  */
 public interface ParamWidget {

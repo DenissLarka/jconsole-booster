@@ -25,6 +25,7 @@
 
 package com.druvu.jconsole.inspector.viewers;
 
+import com.druvu.jconsole.core.mbeans.MBeanValues;
 import com.druvu.jconsole.core.text.Messages;
 import com.druvu.jconsole.core.text.Resources;
 import com.druvu.jconsole.inspector.Utils;
@@ -478,8 +479,8 @@ public class XOpenTypeViewer extends JPanel implements ActionListener {
             } else {
                 // Only Collections of CompositeData/TabularData are viewable
                 //
-                return Utils.isUniformCollection(c, CompositeData.class)
-                        || Utils.isUniformCollection(c, TabularData.class);
+                return MBeanValues.isUniformCollection(c, CompositeData.class)
+                        || MBeanValues.isUniformCollection(c, TabularData.class);
             }
         }
         return false;

@@ -28,7 +28,6 @@ package com.druvu.jconsole.util;
 import static java.lang.Math.*;
 
 import java.awt.*;
-import java.util.Arrays;
 import javax.accessibility.*;
 import javax.swing.*;
 import javax.swing.border.*;
@@ -142,20 +141,5 @@ public class Utilities {
         int b = max(0, min(255, (int) round(y - i * 1.105 + q * 1.702)));
 
         return new Color(r, g, b);
-    }
-
-    public static String arrayToString(Object fieldValue) {
-        return switch (fieldValue) {
-            case Object[] a -> Arrays.deepToString(a);
-            case boolean[] a -> Arrays.toString(a);
-            case byte[] a -> Arrays.toString(a);
-            case char[] a -> Arrays.toString(a);
-            case double[] a -> Arrays.toString(a);
-            case float[] a -> Arrays.toString(a);
-            case int[] a -> Arrays.toString(a);
-            case long[] a -> Arrays.toString(a);
-            case short[] a -> Arrays.toString(a);
-            case null, default -> String.valueOf(fieldValue);
-        };
     }
 }

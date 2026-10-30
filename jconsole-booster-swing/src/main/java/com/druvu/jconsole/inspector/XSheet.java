@@ -25,6 +25,7 @@
 
 package com.druvu.jconsole.inspector;
 
+import com.druvu.jconsole.core.mbeans.MBeanExceptions;
 import com.druvu.jconsole.core.mbeans.XNodeInfo;
 import com.druvu.jconsole.core.mbeans.XNodeInfo.Type;
 import com.druvu.jconsole.core.text.Messages;
@@ -253,7 +254,7 @@ public class XSheet extends JPanel implements ActionListener, NotificationListen
                         repaint();
                     }
                 } catch (Exception e) {
-                    Throwable t = Utils.getActualException(e);
+                    Throwable t = MBeanExceptions.actualCause(e);
                     if (JConsole.isDebug()) {
                         logger.error("Couldn't get MBeanInfo for MBean [" + mbean.getObjectName() + "]", t);
                     }
@@ -312,7 +313,7 @@ public class XSheet extends JPanel implements ActionListener, NotificationListen
                             validate();
                             repaint();
                         } catch (Exception e) {
-                            Throwable t = Utils.getActualException(e);
+                            Throwable t = MBeanExceptions.actualCause(e);
                             if (JConsole.isDebug()) {
                                 logger.error(
                                         "Problem displaying MBean attribute for MBean [" + mbean.getObjectName() + "]",
@@ -402,7 +403,7 @@ public class XSheet extends JPanel implements ActionListener, NotificationListen
                         repaint();
                     }
                 } catch (Exception e) {
-                    Throwable t = Utils.getActualException(e);
+                    Throwable t = MBeanExceptions.actualCause(e);
                     if (JConsole.isDebug()) {
                         logger.error(
                                 "Problem displaying MBean " + "attributes for MBean [" + mbean.getObjectName() + "]",
@@ -451,7 +452,7 @@ public class XSheet extends JPanel implements ActionListener, NotificationListen
                         repaint();
                     }
                 } catch (Exception e) {
-                    Throwable t = Utils.getActualException(e);
+                    Throwable t = MBeanExceptions.actualCause(e);
                     if (JConsole.isDebug()) {
                         logger.error(
                                 "Problem displaying MBean " + "operations for MBean [" + mbean.getObjectName() + "]",
@@ -518,7 +519,7 @@ public class XSheet extends JPanel implements ActionListener, NotificationListen
                     updateNotifications();
                     validate();
                 } catch (Exception e) {
-                    Throwable t = Utils.getActualException(e);
+                    Throwable t = MBeanExceptions.actualCause(e);
                     if (JConsole.isDebug()) {
                         logger.error("Problem adding listener", t);
                     }
@@ -544,7 +545,7 @@ public class XSheet extends JPanel implements ActionListener, NotificationListen
                         validate();
                     }
                 } catch (Exception e) {
-                    Throwable t = Utils.getActualException(e);
+                    Throwable t = MBeanExceptions.actualCause(e);
                     if (JConsole.isDebug()) {
                         logger.error("Problem removing listener", t);
                     }

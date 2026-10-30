@@ -1,8 +1,8 @@
 package com.druvu.jconsole.console;
 
 import com.druvu.jconsole.core.connect.JMXConnectionManager.ConnectionResult;
-import com.druvu.jconsole.jmx.ProxyClient.Snapshot;
-import com.druvu.jconsole.jmx.ProxyClient.SnapshotMBeanServerConnection;
+import com.druvu.jconsole.core.vm.ProxyClient.Snapshot;
+import com.druvu.jconsole.core.vm.ProxyClient.SnapshotMBeanServerConnection;
 import java.io.IOException;
 import javax.management.MBeanServerConnection;
 

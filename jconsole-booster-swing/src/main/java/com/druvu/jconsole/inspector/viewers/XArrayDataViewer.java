@@ -25,7 +25,7 @@
 
 package com.druvu.jconsole.inspector.viewers;
 
-import com.druvu.jconsole.inspector.Utils;
+import com.druvu.jconsole.core.mbeans.MBeanValues;
 import java.awt.Color;
 import java.awt.Component;
 import java.lang.reflect.Array;
@@ -39,7 +39,7 @@ class XArrayDataViewer {
     private XArrayDataViewer() {}
 
     public static boolean isViewableValue(Object value) {
-        return Utils.canBeRenderedAsArray(value);
+        return MBeanValues.canBeRenderedAsArray(value);
     }
 
     public static Component loadArray(Object value) {

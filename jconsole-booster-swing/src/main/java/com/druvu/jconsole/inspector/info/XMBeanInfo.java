@@ -29,10 +29,10 @@ import static com.druvu.jconsole.inspector.table.XTable.NAME_COLUMN;
 import static com.druvu.jconsole.inspector.table.XTable.VALUE_COLUMN;
 import static com.druvu.jconsole.util.Utilities.*;
 
+import com.druvu.jconsole.core.mbeans.MBeanValues;
 import com.druvu.jconsole.core.text.Messages;
 import com.druvu.jconsole.inspector.Utils;
 import com.druvu.jconsole.inspector.XMBean;
-import com.druvu.jconsole.util.Utilities;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -190,7 +190,7 @@ public class XMBeanInfo extends JPanel {
                 rowData[0] = fieldName;
                 Object fieldValue = desc.getFieldValue(fieldName);
                 if (fieldValue != null && fieldValue.getClass().isArray()) {
-                    rowData[1] = Utilities.arrayToString(fieldValue);
+                    rowData[1] = MBeanValues.arrayToString(fieldValue);
                 } else {
                     rowData[1] = fieldValue;
                 }

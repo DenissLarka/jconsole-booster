@@ -25,7 +25,7 @@
 
 package com.druvu.jconsole.ui.core;
 
-import com.druvu.jconsole.jmx.api.JmxDataAccess;
+import com.druvu.jconsole.core.vm.JmxDataAccess;
 import com.druvu.jconsole.ui.graphics.OverviewPanel;
 import com.druvu.jconsole.util.Worker;
 import java.awt.*;

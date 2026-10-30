@@ -55,8 +55,6 @@ module com.druvu.jconsole {
 
     exports com.druvu.jconsole.launcher;
     exports com.druvu.jconsole.util;
-    exports com.druvu.jconsole.jmx;
-    exports com.druvu.jconsole.jmx.api;
     exports com.druvu.jconsole.ui.core;
     exports com.druvu.jconsole.ui.components;
     exports com.druvu.jconsole.ui.graphics;

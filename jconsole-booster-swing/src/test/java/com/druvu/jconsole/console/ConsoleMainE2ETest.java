@@ -1,7 +1,7 @@
 package com.druvu.jconsole.console;
 
-import com.druvu.jconsole.launcher.ArgumentParser;
-import com.druvu.jconsole.launcher.JConsoleOptions;
+import com.druvu.jconsole.core.launch.ArgumentParser;
+import com.druvu.jconsole.core.launch.JConsoleOptions;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

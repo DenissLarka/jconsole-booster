@@ -25,6 +25,7 @@
 
 package com.druvu.jconsole.inspector.notifications;
 
+import com.druvu.jconsole.core.mbeans.MBeanValues;
 import com.druvu.jconsole.core.mbeans.XNodeInfo;
 import com.druvu.jconsole.core.text.Messages;
 import com.druvu.jconsole.inspector.Utils;
@@ -433,7 +434,7 @@ public class XMBeanNotifications extends JTable implements NotificationListener 
                 return null;
             }
             if (userData.getClass().isArray()) {
-                String name = Utils.getArrayClassName(userData.getClass().getName());
+                String name = MBeanValues.getArrayClassName(userData.getClass().getName());
                 int length = Array.getLength(userData);
                 return name + "[" + length + "]";
             }

@@ -1,6 +1,6 @@
 package com.druvu.jconsole.console;
 
-import com.druvu.jconsole.util.Utilities;
+import com.druvu.jconsole.core.mbeans.MBeanValues;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -16,7 +16,7 @@ import javax.management.openmbean.TabularType;
  * <ul>
  *   <li>scalars → {@code String.valueOf}
  *   <li>{@code byte[]} → a {@code <n> bytes} length preview (never dumped; file-save is a future item)
- *   <li>other arrays/collections → {@link Utilities#arrayToString} (Swing-free, null-safe)
+ *   <li>other arrays/collections → {@link MBeanValues#arrayToString} (Swing-free, null-safe)
  *   <li>{@link CompositeData} → an indented {@code key = value} block
  *   <li>{@link TabularData} → numbered rows, each a composite, rows sorted by the TabularType index names
  * </ul>
@@ -58,7 +58,7 @@ final class ConsoleRenderer {
             return;
         }
         if (value.getClass().isArray()) {
-            sb.append(Utilities.arrayToString(value));
+            sb.append(MBeanValues.arrayToString(value));
             return;
         }
         sb.append(String.valueOf(value));

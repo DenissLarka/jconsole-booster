@@ -1,8 +1,6 @@
-package com.druvu.jconsole.ui.menu;
+package com.druvu.jconsole.core.bookmarks;
 
 import com.druvu.jconsole.core.home.BoosterHome;
-import java.awt.Desktop;
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -13,11 +11,11 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Writer for the user's {@code connections.txt} bookmarks file, plus opening it in the system editor.
+ * Writer for the user's {@code connections.txt} bookmarks file.
  *
  * <p><b>Additive by design.</b> It only ever inserts one line: hand-authored groups, display markup, comments, ordering
  * and the file's line separator all survive verbatim — editing / deleting / reordering stay the text editor's job (see
- * {@link #openInEditor()}). A bookmark stores only a label and a URL, <b>never credentials</b>.
+ * {@link #ensureBookmarksFile()}). A bookmark stores only a label and a URL, <b>never credentials</b>.
  *
  * <p>A new bookmark goes at the end of its target group's block, found case-insensitively anywhere in the file; a
  * {@code [group]} header is written only when no such group exists, so a group can never be duplicated.
@@ -88,8 +86,8 @@ public final class BookmarkWriter {
         return String.join(nl, lines) + nl;
     }
 
-    /** Opens the bookmarks file in the OS text editor, falling back to the default open action. */
-    public static void openInEditor() throws IOException {
+    /** The user's bookmarks file, created empty when it does not exist yet, so that an editor can open it. */
+    public static Path ensureBookmarksFile() throws IOException {
         Path file = BoosterHome.connectionsFile();
         if (!Files.exists(file)) {
             Path parent = file.getParent();
@@ -98,24 +96,7 @@ public final class BookmarkWriter {
             }
             Files.writeString(file, "", StandardOpenOption.CREATE);
         }
-        if (!Desktop.isDesktopSupported()) {
-            throw new IOException("Desktop actions are not supported on this platform");
-        }
-        Desktop desktop = Desktop.getDesktop();
-        File f = file.toFile();
-        if (desktop.isSupported(Desktop.Action.EDIT)) {
-            try {
-                desktop.edit(f);
-                return;
-            } catch (IOException editFailed) {
-                // some platforms advertise EDIT but cannot honour it — fall back to OPEN
-            }
-        }
-        if (desktop.isSupported(Desktop.Action.OPEN)) {
-            desktop.open(f);
-        } else {
-            throw new IOException("Neither EDIT nor OPEN is supported for " + file);
-        }
+        return file;
     }
 
     /** Index of the first {@code [group]} header naming {@code group} (case-insensitive), or {@code -1}. */

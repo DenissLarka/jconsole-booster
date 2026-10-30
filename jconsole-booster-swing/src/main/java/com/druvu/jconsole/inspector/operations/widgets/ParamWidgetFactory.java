@@ -1,7 +1,7 @@
 package com.druvu.jconsole.inspector.operations.widgets;
 
+import com.druvu.jconsole.core.mbeans.MBeanValues;
 import com.druvu.jconsole.core.operations.ParameterHint;
-import com.druvu.jconsole.inspector.Utils;
 import com.druvu.jconsole.inspector.operations.XOperations;
 import java.util.List;
 import java.util.Map;
@@ -99,7 +99,7 @@ public final class ParamWidgetFactory {
 
     private static Class<?> resolveClass(String name) {
         try {
-            return Utils.getClass(name);
+            return MBeanValues.classForName(name);
         } catch (ClassNotFoundException ex) {
             log.warn("Unknown parameter type '{}' — treating as Object for widget selection", name);
             return Object.class;

@@ -23,7 +23,7 @@ import javax.management.openmbean.CompositeData;
  *   <li><b>{@code com.sun.management:type=DiagnosticCommand} → {@code threadPrint}</b> — the jcmd {@code Thread.print}
  *       bridge. Returns a genuine, byte-for-byte {@code jstack} dump (deadlock analysis included) that any existing
  *       thread-dump analyzer eats. HotSpot only, and its {@code String[]} parameter is exactly what makes it
- *       un-invokable from the generic {@code call} path ({@code Utils.isEditableType} rejects array types).
+ *       un-invokable from the generic {@code call} path ({@code MBeanValues.isEditableType} rejects array types).
  *   <li><b>{@code java.lang:type=Threading} → {@code dumpAllThreads}</b> — the portable fallback for a non-HotSpot
  *       target or one where the diagnostic MBean is absent. The raw result is a {@code CompositeData[]};
  *       {@link #format} rebuilds it into jstack-shaped text here rather than letting {@code ConsoleRenderer} flatten it

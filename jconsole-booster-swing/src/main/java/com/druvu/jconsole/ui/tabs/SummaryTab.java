@@ -28,7 +28,7 @@ package com.druvu.jconsole.ui.tabs;
 import com.druvu.jconsole.core.text.Formatter;
 import com.druvu.jconsole.core.text.Messages;
 import com.druvu.jconsole.core.text.Resources;
-import com.druvu.jconsole.jmx.api.JmxDataAccess;
+import com.druvu.jconsole.core.vm.JmxDataAccess;
 import com.druvu.jconsole.launcher.JConsole;
 import com.druvu.jconsole.ui.components.HTMLPane;
 import com.druvu.jconsole.ui.core.Tab;

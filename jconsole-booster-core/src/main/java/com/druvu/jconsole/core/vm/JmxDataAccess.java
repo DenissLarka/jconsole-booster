@@ -23,12 +23,9 @@
  * questions.
  */
 
-package com.druvu.jconsole.jmx.api;
+package com.druvu.jconsole.core.vm;
 
-import com.druvu.jconsole.jmx.MemoryPoolProxy;
 import com.sun.management.HotSpotDiagnosticMXBean;
-import com.sun.tools.jconsole.JConsoleContext;
-import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.lang.management.ClassLoadingMXBean;
 import java.lang.management.CompilationMXBean;
@@ -52,7 +49,7 @@ public interface JmxDataAccess {
 
     // Connection state
 
-    JConsoleContext.ConnectionState getConnectionState();
+    ConnectionState getConnectionState();
 
     boolean isConnected();
 
@@ -106,11 +103,9 @@ public interface JmxDataAccess {
 
     void markAsDead();
 
-    // Property change support (fires on EDT via SwingPropertyChangeSupport)
+    // Connection state changes, told on the thread that changed the state
 
-    void addPropertyChangeListener(PropertyChangeListener l);
+    void addConnectionStateListener(ConnectionStateListener listener);
 
-    void addWeakPropertyChangeListener(PropertyChangeListener l);
-
-    void removePropertyChangeListener(PropertyChangeListener l);
+    void removeConnectionStateListener(ConnectionStateListener listener);
 }

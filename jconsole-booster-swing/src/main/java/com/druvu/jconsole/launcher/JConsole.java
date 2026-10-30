@@ -25,10 +25,13 @@
 
 package com.druvu.jconsole.launcher;
 
+import com.druvu.jconsole.core.bookmarks.BookmarkWriter;
 import com.druvu.jconsole.core.connect.JMXConnectionManager;
+import com.druvu.jconsole.core.launch.ArgumentParser;
+import com.druvu.jconsole.core.launch.JConsoleOptions;
 import com.druvu.jconsole.core.text.Messages;
 import com.druvu.jconsole.core.text.Resources;
-import com.druvu.jconsole.jmx.ProxyClient;
+import com.druvu.jconsole.core.vm.ProxyClient;
 import com.druvu.jconsole.plugins.PluginRegistry;
 import com.druvu.jconsole.ui.components.OutputViewer;
 import com.druvu.jconsole.ui.core.VMInternalFrame;
@@ -38,13 +41,13 @@ import com.druvu.jconsole.ui.dialogs.CertTrustDialog;
 import com.druvu.jconsole.ui.dialogs.ConnectDialog;
 import com.druvu.jconsole.ui.dialogs.CreateMBeanDialog;
 import com.druvu.jconsole.ui.dialogs.PlaintextCredentialsDialog;
-import com.druvu.jconsole.ui.menu.BookmarkWriter;
 import com.druvu.jconsole.ui.menu.ConnectionBookmarksMenu;
 import com.druvu.jconsole.util.Utilities;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
@@ -59,11 +62,13 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyVetoException;
+import java.io.File;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.MalformedURLException;
 import java.net.NoRouteToHostException;
 import java.net.UnknownHostException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import javax.imageio.ImageIO;
@@ -93,6 +98,7 @@ import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
 import javax.swing.plaf.BorderUIResource;
 import javax.swing.plaf.nimbus.NimbusLookAndFeel;
+import org.beryx.awt.color.ColorFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -886,13 +892,35 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
 
     private void openBookmarksFile() {
         try {
-            BookmarkWriter.openInEditor();
+            openInEditor(BookmarkWriter.ensureBookmarksFile());
         } catch (IOException | RuntimeException ex) {
             JOptionPane.showMessageDialog(
                     this,
                     "Could not open the bookmarks file:\n" + ex.getMessage(),
                     "Bookmarks",
                     JOptionPane.WARNING_MESSAGE);
+        }
+    }
+
+    /** Opens {@code file} in the OS text editor, falling back to the default open action. */
+    private static void openInEditor(Path file) throws IOException {
+        if (!Desktop.isDesktopSupported()) {
+            throw new IOException("Desktop actions are not supported on this platform");
+        }
+        Desktop desktop = Desktop.getDesktop();
+        File f = file.toFile();
+        if (desktop.isSupported(Desktop.Action.EDIT)) {
+            try {
+                desktop.edit(f);
+                return;
+            } catch (IOException editFailed) {
+                // some platforms advertise EDIT but cannot honour it — fall back to OPEN
+            }
+        }
+        if (desktop.isSupported(Desktop.Action.OPEN)) {
+            desktop.open(f);
+        } else {
+            throw new IOException("Neither EDIT nor OPEN is supported for " + file);
         }
     }
 
@@ -1065,7 +1093,7 @@ public class JConsole extends JFrame implements ActionListener, InternalFrameLis
             debug = options.debug();
             updateInterval = options.updateInterval();
 
-            applyLookAndFeel(options.color());
+            applyLookAndFeel(options.colorHex() == null ? null : ColorFactory.valueOf(options.colorHex()));
             JMXConnectionManager.setCertTrustPrompt(CertTrustDialog.asPrompt());
             JMXConnectionManager.setPlaintextCredentialAlert(PlaintextCredentialsDialog.asAlert());
             Runtime.getRuntime().addShutdownHook(new Thread(ProxyClient::disconnectAll, "jcb-connection-close"));

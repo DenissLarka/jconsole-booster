@@ -25,10 +25,10 @@
 
 package com.druvu.jconsole.inspector.tree;
 
+import com.druvu.jconsole.core.mbeans.MBeanExceptions;
 import com.druvu.jconsole.core.mbeans.MBeanService;
 import com.druvu.jconsole.core.mbeans.XNodeInfo;
 import com.druvu.jconsole.core.text.Messages;
-import com.druvu.jconsole.inspector.Utils;
 import com.druvu.jconsole.inspector.XMBean;
 import com.druvu.jconsole.launcher.JConsole;
 import java.awt.Color;
@@ -526,7 +526,7 @@ public class XTree extends JTree {
                     addMBeanInfoNodes(model, node, mbean, mbeanInfo, isBroadcaster);
                 }
             } catch (Exception e) {
-                Throwable t = Utils.getActualException(e);
+                Throwable t = MBeanExceptions.actualCause(e);
                 if (JConsole.isDebug()) {
                     t.printStackTrace();
                 }

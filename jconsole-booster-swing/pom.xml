@@ -84,8 +84,8 @@
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
 				<executions>
-					<!-- The UI from source (Start-JConsole.ps1). trustall accepts the sample target's self-signed
-					     certificate (tests only); connect to localhost:7091 as admin/admin. -->
+					<!-- The UI from source (Start-JConsole.ps1). Against the sample target: localhost:7091 as
+					     admin/admin, and trust its self-signed certificate once. -->
 					<execution>
 						<id>start</id>
 						<goals>
@@ -97,7 +97,6 @@
 							<arguments>
 								<argument>--module-path</argument>
 								<modulepath/>
-								<argument>-Djcb.jmxmp.tls.trustall=true</argument>
 								<argument>-m</argument>
 								<argument>com.druvu.jconsole/com.druvu.jconsole.launcher.Main</argument>
 								<argument>-c=#8BC6E1FF</argument>

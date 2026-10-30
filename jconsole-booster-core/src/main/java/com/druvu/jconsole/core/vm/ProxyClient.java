@@ -23,7 +23,7 @@
  * questions.
  */
 
-package com.druvu.jconsole.jmx;
+package com.druvu.jconsole.core.vm;
 
 import static java.lang.management.ManagementFactory.CLASS_LOADING_MXBEAN_NAME;
 import static java.lang.management.ManagementFactory.COMPILATION_MXBEAN_NAME;
@@ -39,12 +39,7 @@ import com.druvu.jconsole.core.connect.JMXConnectionManager;
 import com.druvu.jconsole.core.connect.JMXConnectionManager.ConnectionResult;
 import com.druvu.jconsole.core.text.Messages;
 import com.druvu.jconsole.core.text.Resources;
-import com.druvu.jconsole.jmx.api.JmxDataAccess;
-import com.druvu.jconsole.launcher.JConsole;
 import com.sun.management.HotSpotDiagnosticMXBean;
-import com.sun.tools.jconsole.JConsoleContext;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.lang.management.ClassLoadingMXBean;
 import java.lang.management.CompilationMXBean;
@@ -53,7 +48,6 @@ import java.lang.management.MemoryMXBean;
 import java.lang.management.OperatingSystemMXBean;
 import java.lang.management.RuntimeMXBean;
 import java.lang.management.ThreadMXBean;
-import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -68,6 +62,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.CopyOnWriteArrayList;
 import javax.management.Attribute;
 import javax.management.AttributeList;
 import javax.management.AttributeNotFoundException;
@@ -82,17 +77,18 @@ import javax.management.ObjectName;
 import javax.management.ReflectionException;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXServiceURL;
-import javax.swing.event.SwingPropertyChangeSupport;
+import lombok.extern.slf4j.Slf4j;
 
-public class ProxyClient implements JConsoleContext, JmxDataAccess {
+@Slf4j
+public class ProxyClient implements JmxDataAccess {
 
-    private ConnectionState connectionState = ConnectionState.DISCONNECTED;
+    private volatile ConnectionState connectionState = ConnectionState.DISCONNECTED;
 
     // Last exception thrown by connect(); surfaced by the retry dialog on an initial-connect failure.
     private volatile Exception lastConnectException;
 
-    // The SwingPropertyChangeSupport will fire events on the EDT
-    private SwingPropertyChangeSupport propertyChangeSupport = new SwingPropertyChangeSupport(this, true);
+    // Called on the thread that changes the state; a user interface hands the change to its own thread.
+    private final List<ConnectionStateListener> stateListeners = new CopyOnWriteArrayList<>();
 
     private static Map<String, ProxyClient> cache = Collections.synchronizedMap(new HashMap<String, ProxyClient>());
 
@@ -152,7 +148,9 @@ public class ProxyClient implements JConsoleContext, JmxDataAccess {
     private void setConnectionState(ConnectionState state) {
         ConnectionState oldState = this.connectionState;
         this.connectionState = state;
-        propertyChangeSupport.firePropertyChange(CONNECTION_STATE_PROPERTY, oldState, state);
+        if (oldState != state) {
+            stateListeners.forEach(listener -> listener.connectionStateChanged(oldState, state));
+        }
     }
 
     public ConnectionState getConnectionState() {
@@ -173,9 +171,7 @@ public class ProxyClient implements JConsoleContext, JmxDataAccess {
             setConnectionState(ConnectionState.CONNECTED);
         } catch (Exception e) {
             lastConnectException = e;
-            if (JConsole.isDebug()) {
-                e.printStackTrace();
-            }
+            log.debug("Connection to {} failed", url, e);
             setConnectionState(ConnectionState.DISCONNECTED);
         }
     }
@@ -579,51 +575,14 @@ public class ProxyClient implements JConsoleContext, JmxDataAccess {
         return server.isRegistered(name);
     }
 
-    public void addPropertyChangeListener(PropertyChangeListener listener) {
-        propertyChangeSupport.addPropertyChangeListener(listener);
+    @Override
+    public void addConnectionStateListener(ConnectionStateListener listener) {
+        stateListeners.add(listener);
     }
 
-    public void addWeakPropertyChangeListener(PropertyChangeListener listener) {
-        if (!(listener instanceof WeakPCL)) {
-            listener = new WeakPCL(listener);
-        }
-        propertyChangeSupport.addPropertyChangeListener(listener);
-    }
-
-    public void removePropertyChangeListener(PropertyChangeListener listener) {
-        if (!(listener instanceof WeakPCL)) {
-            // Search for the WeakPCL holding this listener (if any)
-            for (PropertyChangeListener pcl : propertyChangeSupport.getPropertyChangeListeners()) {
-                if (pcl instanceof WeakPCL && ((WeakPCL) pcl).get() == listener) {
-                    listener = pcl;
-                    break;
-                }
-            }
-        }
-        propertyChangeSupport.removePropertyChangeListener(listener);
-    }
-
-    /** The PropertyChangeListener is handled via a WeakReference so as not to pin down the listener. */
-    private class WeakPCL extends WeakReference<PropertyChangeListener> implements PropertyChangeListener {
-        WeakPCL(PropertyChangeListener referent) {
-            super(referent);
-        }
-
-        public void propertyChange(PropertyChangeEvent pce) {
-            PropertyChangeListener pcl = get();
-
-            if (pcl == null) {
-                // The referent listener was GC'ed, we're no longer
-                // interested in PropertyChanges, remove the listener.
-                dispose();
-            } else {
-                pcl.propertyChange(pce);
-            }
-        }
-
-        private void dispose() {
-            removePropertyChangeListener(this);
-        }
+    @Override
+    public void removeConnectionStateListener(ConnectionStateListener listener) {
+        stateListeners.remove(listener);
     }
 
     //

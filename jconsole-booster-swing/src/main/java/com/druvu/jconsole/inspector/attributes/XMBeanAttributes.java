@@ -25,6 +25,8 @@
 
 package com.druvu.jconsole.inspector.attributes;
 
+import com.druvu.jconsole.core.mbeans.MBeanExceptions;
+import com.druvu.jconsole.core.mbeans.MBeanValues;
 import com.druvu.jconsole.core.text.Messages;
 import com.druvu.jconsole.inspector.ThreadDialog;
 import com.druvu.jconsole.inspector.Utils;
@@ -155,7 +157,7 @@ public class XMBeanAttributes extends XTable implements RowHeightSink {
             }
             DefaultTableCellRenderer renderer = (DefaultTableCellRenderer) super.getCellRenderer(row, column);
             if (!isCellError(row, column)) {
-                if (!(isColumnEditable(column) && isWritable(row) && Utils.isEditableType(getClassName(row)))) {
+                if (!(isColumnEditable(column) && isWritable(row) && MBeanValues.isEditableType(getClassName(row)))) {
                     renderer.setForeground(getDefaultColor());
                 }
             }
@@ -234,7 +236,7 @@ public class XMBeanAttributes extends XTable implements RowHeightSink {
         if (!isCellError(row, column)
                 && isColumnEditable(column)
                 && isWritable(row)
-                && Utils.isEditableType(getClassName(row))) {
+                && MBeanValues.isEditableType(getClassName(row))) {
             if (JConsole.isDebug()) {
                 logger.debug("validating [row=" + row + ", column=" + column + "]: " + getValueName(row) + "=" + value);
             }
@@ -410,7 +412,8 @@ public class XMBeanAttributes extends XTable implements RowHeightSink {
                     list.add(new Attribute(name, value));
                 } catch (Exception ex) {
                     if (attrsInfo[i].isReadable()) {
-                        unavailableAttrs.put(name, Utils.getActualException(ex).toString());
+                        unavailableAttrs.put(
+                                name, MBeanExceptions.actualCause(ex).toString());
                     }
                 }
             }
@@ -447,7 +450,7 @@ public class XMBeanAttributes extends XTable implements RowHeightSink {
                                 // in tooltip
                                 unavailableAttrs.put(
                                         attributeInfo.getName(),
-                                        Utils.getActualException(e).toString());
+                                        MBeanExceptions.actualCause(e).toString());
                             }
                         }
                     }
@@ -459,7 +462,8 @@ public class XMBeanAttributes extends XTable implements RowHeightSink {
                 MBeanAttributeInfo attributeInfo = attrsInfo[i];
                 if (attributeInfo.isReadable()) {
                     unavailableAttrs.put(
-                            attributeInfo.getName(), Utils.getActualException(e).toString());
+                            attributeInfo.getName(),
+                            MBeanExceptions.actualCause(e).toString());
                 }
             }
         }
@@ -672,7 +676,7 @@ public class XMBeanAttributes extends XTable implements RowHeightSink {
                 rowData[1] = Messages.UNAVAILABLE;
             } else if (viewableAttributes.containsKey(rowData[0])) {
                 rowData[1] = viewableAttributes.get(rowData[0]);
-                if (!attributesInfo[i].isWritable() || !Utils.isEditableType(attributesInfo[i].getType())) {
+                if (!attributesInfo[i].isWritable() || !MBeanValues.isEditableType(attributesInfo[i].getType())) {
                     rowData[1] = getZoomedCell(mbean, (String) rowData[0], rowData[1]);
                 }
             } else {
@@ -742,7 +746,9 @@ public class XMBeanAttributes extends XTable implements RowHeightSink {
                     }
                 } else {
                     Component comp = super.getTableCellEditorComponent(table, val, isSelected, row, column);
-                    if (isCellError(row, column) || !isWritable(row) || !Utils.isEditableType(getClassName(row))) {
+                    if (isCellError(row, column)
+                            || !isWritable(row)
+                            || !MBeanValues.isEditableType(getClassName(row))) {
                         textField.setEditable(false);
                     }
                     return comp;
@@ -865,7 +871,7 @@ public class XMBeanAttributes extends XTable implements RowHeightSink {
             if (value == null) return null;
 
             if (value.getClass().isArray()) {
-                String name = Utils.getArrayClassName(value.getClass().getName());
+                String name = MBeanValues.getArrayClassName(value.getClass().getName());
                 int length = Array.getLength(value);
                 return name + "[" + length + "]";
             }
@@ -913,7 +919,7 @@ public class XMBeanAttributes extends XTable implements RowHeightSink {
                 // using the defined type.
                 if (tableValue instanceof String) {
                     try {
-                        tableValue = Utils.createObjectFromString(
+                        tableValue = MBeanValues.createObjectFromString(
                                 getClassName(e.getFirstRow()), // type
                                 (String) tableValue); // value
                     } catch (Throwable ex) {
@@ -957,7 +963,7 @@ public class XMBeanAttributes extends XTable implements RowHeightSink {
 
         // Call this outside EDT
         private void popupAndLog(Throwable ex, String method, String title) {
-            ex = Utils.getActualException(ex);
+            ex = MBeanExceptions.actualCause(ex);
             if (JConsole.isDebug()) ex.printStackTrace();
 
             String message = (ex.getMessage() != null) ? ex.getMessage() : ex.toString();

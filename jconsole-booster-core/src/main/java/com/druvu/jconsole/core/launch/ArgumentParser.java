@@ -1,16 +1,14 @@
-package com.druvu.jconsole.launcher;
+package com.druvu.jconsole.core.launch;
 
 import com.druvu.jconsole.core.text.Messages;
 import com.druvu.jconsole.core.text.Resources;
 import com.druvu.jconsole.core.text.Version;
-import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
-import org.beryx.awt.color.ColorFactory;
 
 /**
  * Parses command-line arguments into {@link JConsoleOptions}.
@@ -40,7 +38,7 @@ public class ArgumentParser {
         boolean console = false;
         List<String> commands = new ArrayList<>();
         String scriptUser = null;
-        Color color = null;
+        String colorHex = null;
 
         int argIndex = 0;
 
@@ -55,7 +53,7 @@ public class ArgumentParser {
 
             Matcher colorMatcher = COLOR_PATTERN.matcher(arg);
             if (colorMatcher.matches()) {
-                color = ColorFactory.valueOf(colorMatcher.group(1));
+                colorHex = colorMatcher.group(1);
                 continue;
             }
 
@@ -115,7 +113,7 @@ public class ArgumentParser {
         }
 
         return Optional.of(new JConsoleOptions(
-                noTile, hotspot, debug, updateInterval, color, urls, console, commands, scriptUser));
+                noTile, hotspot, debug, updateInterval, colorHex, urls, console, commands, scriptUser));
     }
 
     /**

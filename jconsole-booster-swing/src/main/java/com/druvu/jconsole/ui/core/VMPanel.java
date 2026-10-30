@@ -26,11 +26,11 @@
 package com.druvu.jconsole.ui.core;
 
 import com.druvu.jconsole.core.bookmarks.RecentConnections;
+import com.druvu.jconsole.core.launch.ArgumentParser;
 import com.druvu.jconsole.core.text.Messages;
 import com.druvu.jconsole.core.text.Resources;
-import com.druvu.jconsole.jmx.ProxyClient;
-import com.druvu.jconsole.jmx.api.JmxDataAccess;
-import com.druvu.jconsole.launcher.ArgumentParser;
+import com.druvu.jconsole.core.vm.JmxDataAccess;
+import com.druvu.jconsole.core.vm.ProxyClient;
 import com.druvu.jconsole.launcher.JConsole;
 import com.druvu.jconsole.plugins.ExceptionSafePlugin;
 import com.druvu.jconsole.plugins.PluginRegistry;
@@ -76,6 +76,8 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
 
     private static final Logger logger = LoggerFactory.getLogger(VMPanel.class);
     private ProxyClient proxyClient;
+    // the connection as the plugins and this panel's state handler see it, on the EDT
+    private final SwingConnectionContext connectionContext;
     private final VMUpdateCoordinator updateCoordinator;
     private String hostName;
     private int port;
@@ -108,6 +110,7 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
 
     public VMPanel(ProxyClient proxyClient, int updateInterval) {
         this.proxyClient = proxyClient;
+        this.connectionContext = new SwingConnectionContext(proxyClient);
         this.updateCoordinator = new VMUpdateCoordinator(this, proxyClient, updateInterval);
         this.hostName = proxyClient.getHostName();
         this.port = proxyClient.getPort();
@@ -125,7 +128,7 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
         }
 
         for (JConsolePlugin p : PluginRegistry.newEnabledInstances()) {
-            p.setContext(proxyClient);
+            p.setContext(connectionContext);
             updateCoordinator.addPlugin(new ExceptionSafePlugin(p));
         }
 
@@ -135,7 +138,7 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
 
         // Start listening to connection state events
         //
-        proxyClient.addPropertyChangeListener(this);
+        connectionContext.addPropertyChangeListener(this);
 
         addMouseListener(new MouseAdapter() {
 
@@ -275,6 +278,14 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
         return proxyClient;
     }
 
+    /**
+     * The connection as this panel's tabs and plugins see it: connection-state changes arrive on the EDT, and the
+     * listeners live as long as the panel.
+     */
+    public SwingConnectionContext getConnectionContext() {
+        return connectionContext;
+    }
+
     public void cleanUp() {
         // proxyClient.disconnect();
         for (Tab tab : getTabs()) {
@@ -287,7 +298,8 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
         updateCoordinator.stop();
         // Stop listening to connection state events
         //
-        proxyClient.removePropertyChangeListener(this);
+        connectionContext.removePropertyChangeListener(this);
+        connectionContext.close();
     }
 
     // Call on EDT

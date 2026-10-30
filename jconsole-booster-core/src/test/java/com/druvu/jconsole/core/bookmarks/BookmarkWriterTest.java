@@ -1,8 +1,5 @@
-package com.druvu.jconsole.ui.menu;
+package com.druvu.jconsole.core.bookmarks;
 
-import com.druvu.jconsole.core.bookmarks.Bookmark;
-import com.druvu.jconsole.core.bookmarks.BookmarkGroup;
-import com.druvu.jconsole.core.bookmarks.ConnectionBookmarksLoader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;

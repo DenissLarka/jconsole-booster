@@ -3,7 +3,7 @@ package com.druvu.jconsole.ui.menu;
 import com.druvu.jconsole.core.bookmarks.Bookmark;
 import com.druvu.jconsole.core.bookmarks.BookmarkEntry;
 import com.druvu.jconsole.core.bookmarks.BookmarkGroup;
-import com.druvu.jconsole.launcher.ArgumentParser;
+import com.druvu.jconsole.core.launch.ArgumentParser;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;

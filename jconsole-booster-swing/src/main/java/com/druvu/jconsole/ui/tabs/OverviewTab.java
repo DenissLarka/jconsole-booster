@@ -27,7 +27,7 @@ package com.druvu.jconsole.ui.tabs;
 
 import com.druvu.jconsole.core.text.Messages;
 import com.druvu.jconsole.core.text.Resources;
-import com.druvu.jconsole.jmx.api.JmxDataAccess;
+import com.druvu.jconsole.core.vm.JmxDataAccess;
 import com.druvu.jconsole.ui.components.LabeledComponent;
 import com.druvu.jconsole.ui.components.TimeComboBox;
 import com.druvu.jconsole.ui.core.Tab;
@@ -102,7 +102,7 @@ public class OverviewTab extends Tab {
                         workerAdd(new Runnable() {
                             public void run() {
                                 for (Plotter plotter : plotters) {
-                                    dataAccess.addWeakPropertyChangeListener(plotter);
+                                    vmPanel.getConnectionContext().addPropertyChangeListener(plotter);
                                 }
                             }
                         });

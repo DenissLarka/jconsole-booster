@@ -28,7 +28,7 @@ package com.druvu.jconsole.ui.tabs;
 import com.druvu.jconsole.core.text.Formatter;
 import com.druvu.jconsole.core.text.Messages;
 import com.druvu.jconsole.core.text.Resources;
-import com.druvu.jconsole.jmx.api.JmxDataAccess;
+import com.druvu.jconsole.core.vm.JmxDataAccess;
 import com.druvu.jconsole.launcher.JConsole;
 import com.druvu.jconsole.ui.components.BorderedComponent;
 import com.druvu.jconsole.ui.components.HTMLPane;
@@ -156,7 +156,7 @@ public class MemoryTab extends Tab implements ActionListener, ItemListener {
                 return Messages.HEAP_MEMORY_USAGE;
             }
         };
-        dataAccess.addWeakPropertyChangeListener(heapPlotter);
+        vmPanel.getConnectionContext().addPropertyChangeListener(heapPlotter);
 
         nonHeapPlotter = new Plotter(Plotter.Unit.BYTES) {
             public String toString() {
@@ -167,7 +167,7 @@ public class MemoryTab extends Tab implements ActionListener, ItemListener {
         Utilities.setAccessibleName(heapPlotter, Messages.MEMORY_TAB_HEAP_PLOTTER_ACCESSIBLE_NAME);
         Utilities.setAccessibleName(nonHeapPlotter, Messages.MEMORY_TAB_NON_HEAP_PLOTTER_ACCESSIBLE_NAME);
 
-        dataAccess.addWeakPropertyChangeListener(nonHeapPlotter);
+        vmPanel.getConnectionContext().addPropertyChangeListener(nonHeapPlotter);
 
         heapPlotter.createSequence(usedKey, Messages.USED, usedColor, true);
         heapPlotter.createSequence(committedKey, Messages.COMMITTED, committedColor, false);
@@ -196,7 +196,7 @@ public class MemoryTab extends Tab implements ActionListener, ItemListener {
                     isHeap = MemoryType.HEAP.name().equals(((Attribute) al.get(0)).getValue());
                 }
                 PoolPlotter poolPlotter = new PoolPlotter(objectName, name, isHeap);
-                dataAccess.addWeakPropertyChangeListener(poolPlotter);
+                vmPanel.getConnectionContext().addPropertyChangeListener(poolPlotter);
 
                 poolPlotter.createSequence(usedKey, Messages.USED, usedColor, true);
                 poolPlotter.createSequence(committedKey, Messages.COMMITTED, committedColor, false);

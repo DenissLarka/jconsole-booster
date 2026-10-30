@@ -1,13 +1,13 @@
-package com.druvu.jconsole;
+package com.druvu.jconsole.core.launch;
 
-import com.druvu.jconsole.launcher.ArgumentParser;
-import com.druvu.jconsole.launcher.JConsoleOptions;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.Optional;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 /** Tests for {@link ArgumentParser} URL shorthand expansion and option parsing. */
-public class TestArgumentParser {
+public class ArgumentParserTest {
 
     @Test
     public void bareHostColonPortDefaultsToJmxmp() {
@@ -31,7 +31,7 @@ public class TestArgumentParser {
         Assert.assertFalse(o.debug());
         Assert.assertFalse(o.noTile());
         Assert.assertEquals(o.updateInterval(), 4000);
-        Assert.assertNull(o.color());
+        assertThat(o.colorHex()).isNull();
         Assert.assertTrue(o.urls().isEmpty());
     }
 
@@ -86,7 +86,7 @@ public class TestArgumentParser {
     @Test
     public void colorFlagIsParsed() {
         JConsoleOptions o = ArgumentParser.parse(new String[] {"-c=#8BC6E1FF"}).orElseThrow();
-        Assert.assertNotNull(o.color());
+        assertThat(o.colorHex()).isEqualTo("#8BC6E1FF");
     }
 
     @Test

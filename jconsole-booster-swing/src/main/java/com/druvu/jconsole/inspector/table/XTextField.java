@@ -25,7 +25,7 @@
 
 package com.druvu.jconsole.inspector.table;
 
-import com.druvu.jconsole.inspector.Utils;
+import com.druvu.jconsole.core.mbeans.MBeanValues;
 import com.druvu.jconsole.inspector.XObject;
 import com.druvu.jconsole.inspector.operations.XOperations;
 import java.awt.*;
@@ -80,7 +80,7 @@ public class XTextField extends JPanel implements DocumentListener, ActionListen
             textField.addActionListener(this);
         }
 
-        boolean fieldEditable = Utils.isEditableType(expectedClass.getName());
+        boolean fieldEditable = MBeanValues.isEditableType(expectedClass.getName());
         if (fieldEditable && isCallable) {
             textField.setEditable(true);
         } else {
@@ -106,7 +106,7 @@ public class XTextField extends JPanel implements DocumentListener, ActionListen
     }
 
     protected void init(Object value, Class<?> expectedClass) {
-        boolean fieldEditable = Utils.isEditableType(expectedClass.getName());
+        boolean fieldEditable = MBeanValues.isEditableType(expectedClass.getName());
         clearObject();
         if (value != null) {
             textField.setText(value.toString());

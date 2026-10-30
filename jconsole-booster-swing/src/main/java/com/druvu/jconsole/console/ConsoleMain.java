@@ -3,10 +3,11 @@ package com.druvu.jconsole.console;
 import com.druvu.jconsole.core.bookmarks.RecentConnections;
 import com.druvu.jconsole.core.connect.JMXConnectionManager;
 import com.druvu.jconsole.core.connect.JMXConnectionManager.ConnectionResult;
+import com.druvu.jconsole.core.launch.ArgumentParser;
+import com.druvu.jconsole.core.launch.JConsoleOptions;
+import com.druvu.jconsole.core.mbeans.MBeanExceptions;
+import com.druvu.jconsole.core.mbeans.MBeanValues;
 import com.druvu.jconsole.core.text.Version;
-import com.druvu.jconsole.inspector.Utils;
-import com.druvu.jconsole.launcher.ArgumentParser;
-import com.druvu.jconsole.launcher.JConsoleOptions;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -40,8 +41,8 @@ import javax.management.remote.JMXServiceURL;
  * domain browsing, bookmarks and notifications are out of v1.
  *
  * <p>{@code threads} is the one diagnostic that is NOT expressible through that generic drill-down: the jstack-grade
- * source ({@code DiagnosticCommand.threadPrint}) takes a {@code String[]}, which {@code Utils.isEditableType} rejects,
- * so {@code call}/{@code invoke} refuse it as not-callable. It gets a dedicated verb → {@link ThreadDump}.
+ * source ({@code DiagnosticCommand.threadPrint}) takes a {@code String[]}, which {@code MBeanValues.isEditableType}
+ * rejects, so {@code call}/{@code invoke} refuse it as not-callable. It gets a dedicated verb → {@link ThreadDump}.
  *
  * <p>With one or more {@code -e=<cmd>} flags the mode is non-interactive (see {@link #runScript}): auto-open the
  * target, run the commands in order, exit 0 on success / 1 on the first failure. The REPL is driven through a
@@ -366,7 +367,7 @@ public final class ConsoleMain {
         for (int i = 0; i < sig.length; i++) {
             types[i] = sig[i].getType();
             try {
-                params[i] = Utils.createObjectFromString(sig[i].getType(), rawArgs[i]);
+                params[i] = MBeanValues.createObjectFromString(sig[i].getType(), rawArgs[i]);
             } catch (Exception e) {
                 fail("could not convert argument " + (i + 1) + " ('" + rawArgs[i] + "') to " + sig[i].getType() + ": "
                         + e.getMessage());
@@ -383,7 +384,7 @@ public final class ConsoleMain {
         try {
             result = session.connection().invoke(bean, op.getName(), params, types);
         } catch (MBeanException | ReflectionException | InstanceNotFoundException | RuntimeException e) {
-            Throwable actual = Utils.getActualException(e);
+            Throwable actual = MBeanExceptions.actualCause(e);
             fail("invocation failed: " + actual.getClass().getSimpleName()
                     + (actual.getMessage() != null ? ": " + actual.getMessage() : ""));
             return;
@@ -542,7 +543,7 @@ public final class ConsoleMain {
 
     private static boolean isCallable(MBeanOperationInfo op) {
         for (MBeanParameterInfo p : op.getSignature()) {
-            if (!Utils.isEditableType(p.getType())) {
+            if (!MBeanValues.isEditableType(p.getType())) {
                 return false;
             }
         }

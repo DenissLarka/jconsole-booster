@@ -25,7 +25,7 @@
 
 package com.druvu.jconsole.inspector.table;
 
-import com.druvu.jconsole.inspector.Utils;
+import com.druvu.jconsole.core.mbeans.MBeanValues;
 import com.druvu.jconsole.inspector.XObject;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
@@ -142,7 +142,7 @@ public class XTextFieldEditor extends XTextField implements TableCellEditor {
             className = String.class.getName();
         }
         try {
-            init(value, Utils.getClass(className));
+            init(value, MBeanValues.classForName(className));
         } catch (Exception e) {
         }
 

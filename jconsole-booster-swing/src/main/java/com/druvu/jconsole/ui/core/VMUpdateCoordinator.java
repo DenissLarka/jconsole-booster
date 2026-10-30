@@ -8,7 +8,7 @@
 
 package com.druvu.jconsole.ui.core;
 
-import com.druvu.jconsole.jmx.ProxyClient;
+import com.druvu.jconsole.core.vm.ProxyClient;
 import com.druvu.jconsole.plugins.ExceptionSafePlugin;
 import java.awt.EventQueue;
 import java.util.LinkedHashMap;

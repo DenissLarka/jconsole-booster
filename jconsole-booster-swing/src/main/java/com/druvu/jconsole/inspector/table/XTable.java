@@ -25,7 +25,7 @@
 
 package com.druvu.jconsole.inspector.table;
 
-import com.druvu.jconsole.inspector.Utils;
+import com.druvu.jconsole.core.mbeans.MBeanValues;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
@@ -123,7 +123,7 @@ public abstract class XTable extends JTable {
         return ((isTableEditable()
                 && isColumnEditable(col)
                 && isWritable(row)
-                && Utils.isEditableType(getClassName(row))));
+                && MBeanValues.isEditableType(getClassName(row))));
     }
 
     // attribute can be droppable even if unavailable

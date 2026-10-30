@@ -360,7 +360,7 @@ Requires JDK 25+ and Maven 3.9+.
 git clone https://github.com/DenissLarka/jconsole-booster.git
 cd jconsole-booster
 mvn clean package
-mvn exec:exec@start
+mvn -pl jconsole-booster-swing -am compile exec:exec@start
 ```
 
 ### Single-jar build (no installer)
@@ -369,8 +369,8 @@ An opt-in profile shades everything into one plain (non-JPMS) executable jar —
 
 ```bash
 mvn -Puberjar package
-java -jar target/dist/jconsole-booster.jar            # GUI
-java -jar target/dist/jconsole-booster.jar --console  # headless REPL
+java -jar jconsole-booster-swing/target/dist/jconsole-booster.jar            # GUI
+java -jar jconsole-booster-swing/target/dist/jconsole-booster.jar --console  # headless REPL
 ```
 
 Requires a full JDK 25+ at runtime (the jar does not bundle one, unlike the installers).

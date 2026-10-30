@@ -1,17 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- The child.*.inherit.append.path attributes keep the inherited url and scm pointing at the repository itself. -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         child.project.url.inherit.append.path="false">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.druvu</groupId>
-	<artifactId>jconsole-booster</artifactId>
-	<version>1.1.1-SNAPSHOT</version>
-	<packaging>jar</packaging>
+	<artifactId>jconsole-booster-parent</artifactId>
+	<version>1.2.0-SNAPSHOT</version>
+	<packaging>pom</packaging>
 
-	<name>JConsole Booster</name>
-	<description>An OpenJDK 25+ fork of JConsole with color theming, markup-driven Operations widgets, connection bookmarks, parameter persistence, and a flat TabularData viewer.</description>
+	<name>DRUVU.COM / JCONSOLE BOOSTER</name>
+	<description>JConsole Booster: a maintained JConsole fork for JVM operations, with markup-driven operation widgets, connection bookmarks, adaptive TLS and a console mode.</description>
 	<url>https://github.com/DenissLarka/jconsole-booster</url>
+
+	<modules>
+		<module>jconsole-booster-swing</module>
+	</modules>
 
 	<licenses>
 		<license>
@@ -28,7 +34,9 @@
 		</developer>
 	</developers>
 
-	<scm>
+	<scm child.scm.connection.inherit.append.path="false"
+		 child.scm.developerConnection.inherit.append.path="false"
+		 child.scm.url.inherit.append.path="false">
 		<url>https://github.com/DenissLarka/jconsole-booster</url>
 		<connection>scm:git:https://github.com/DenissLarka/jconsole-booster</connection>
 		<developerConnection>scm:git:https://github.com/DenissLarka/jconsole-booster</developerConnection>
@@ -46,156 +54,149 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>25</java.version>
-		<launcher.name>JConsoleApp</launcher.name>
+
 		<druvu-lib-jmxmp.version>2.0.0</druvu-lib-jmxmp.version>
+		<awt-color-factory.version>1.0.2</awt-color-factory.version>
 		<lombok.version>1.18.48</lombok.version>
 		<slf4j.version>2.0.20</slf4j.version>
-		<target.port>7091</target.port>
+		<testng.version>7.12.0</testng.version>
+		<assertj.version>3.27.7</assertj.version>
+
+		<!-- plugins -->
+		<maven-compiler-plugin.version>3.16.0</maven-compiler-plugin.version>
+		<maven-jar-plugin.version>3.5.1</maven-jar-plugin.version>
+		<maven-enforcer-plugin.version>3.6.3</maven-enforcer-plugin.version>
+		<exec-maven-plugin.version>3.6.4</exec-maven-plugin.version>
+		<maven-shade-plugin.version>3.6.2</maven-shade-plugin.version>
+		<spotless-maven-plugin.version>3.10.4</spotless-maven-plugin.version>
+		<palantir-java-format.version>2.90.0</palantir-java-format.version>
 	</properties>
 
-	<dependencies>
-
-		<dependency>
-			<groupId>org.beryx</groupId>
-			<artifactId>awt-color-factory</artifactId>
-			<version>1.0.2</version>
-		</dependency>
-
-		<!-- JMXMP transport: druvu-lib-jmxmp (modular OpenDMK fork; JCB's
-		     permanent JMXMP foundation, replaces jmxremote_optional-repackaged).
-		     JCB injects ClientProfilePolicy.unrestricted() at connect time so
-		     it reaches plaintext / TLS / SASL endpoints alike (see
-		     JMXConnectionManager). -->
-		<dependency>
-			<groupId>com.druvu</groupId>
-			<artifactId>druvu-lib-jmxmp-common</artifactId>
-			<version>${druvu-lib-jmxmp.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.druvu</groupId>
-			<artifactId>druvu-lib-jmxmp-client</artifactId>
-			<version>${druvu-lib-jmxmp.version}</version>
-		</dependency>
-		<!-- Server side, used only by SampleTargetJvm (the integration-test
-		     target). Test-scoped so JCB's runtime/jlink graph stays client-only. -->
-		<dependency>
-			<groupId>com.druvu</groupId>
-			<artifactId>druvu-lib-jmxmp-server</artifactId>
-			<version>${druvu-lib-jmxmp.version}</version>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.testng</groupId>
-			<artifactId>testng</artifactId>
-			<version>7.12.0</version>
-			<scope>test</scope>
-			<exclusions>
-				<exclusion>
-					<artifactId>slf4j-api</artifactId>
-					<groupId>org.slf4j</groupId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-
-		<dependency>
-			<groupId>org.assertj</groupId>
-			<artifactId>assertj-core</artifactId>
-			<version>3.27.7</version>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<version>${lombok.version}</version>
-			<scope>provided</scope>
-		</dependency>
-
-		<!-- Logging dependencies -->
-		<!-- API only — concrete binding belongs to whoever runs the app.
-		     Installer builds wire logback in jconsole-booster-dist; standalone
-		     source builds get slf4j-simple below. -->
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>${slf4j.version}</version>
-		</dependency>
-
-		<!-- Convenience binding for IDE / `mvn exec:java` runs without the dist module.
-		     `optional=true` keeps it off any consumer's transitive classpath, so the
-		     installer build (which pulls jconsole-booster as a dep from dist) never
-		     sees it — logback wins as the sole provider in the jimage. -->
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-simple</artifactId>
-			<version>${slf4j.version}</version>
-			<scope>runtime</scope>
-			<optional>true</optional>
-		</dependency>
-
-	</dependencies>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>com.druvu</groupId>
+				<artifactId>druvu-lib-jmxmp-common</artifactId>
+				<version>${druvu-lib-jmxmp.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.druvu</groupId>
+				<artifactId>druvu-lib-jmxmp-client</artifactId>
+				<version>${druvu-lib-jmxmp.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.druvu</groupId>
+				<artifactId>druvu-lib-jmxmp-server</artifactId>
+				<version>${druvu-lib-jmxmp.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.beryx</groupId>
+				<artifactId>awt-color-factory</artifactId>
+				<version>${awt-color-factory.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.projectlombok</groupId>
+				<artifactId>lombok</artifactId>
+				<version>${lombok.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-api</artifactId>
+				<version>${slf4j.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-simple</artifactId>
+				<version>${slf4j.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.testng</groupId>
+				<artifactId>testng</artifactId>
+				<version>${testng.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>org.slf4j</groupId>
+						<artifactId>slf4j-api</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>org.assertj</groupId>
+				<artifactId>assertj-core</artifactId>
+				<version>${assertj.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>${maven-compiler-plugin.version}</version>
+					<configuration>
+						<source>${java.version}</source>
+						<target>${java.version}</target>
+						<encoding>UTF-8</encoding>
+						<debug>true</debug>
+						<showDeprecation>true</showDeprecation>
+						<showWarnings>true</showWarnings>
+						<optimize>true</optimize>
+						<fork>true</fork>
+						<compilerArgs>
+							<arg>--module-version=${project.version}</arg>
+						</compilerArgs>
+						<annotationProcessorPaths>
+							<path>
+								<groupId>org.projectlombok</groupId>
+								<artifactId>lombok</artifactId>
+								<version>${lombok.version}</version>
+							</path>
+						</annotationProcessorPaths>
+					</configuration>
+				</plugin>
+
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-jar-plugin</artifactId>
+					<version>${maven-jar-plugin.version}</version>
+					<configuration>
+						<archive>
+							<manifest>
+								<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+								<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+							</manifest>
+						</archive>
+					</configuration>
+				</plugin>
+
+				<!-- Skipped unless a module's execution says otherwise, so `mvn -pl <module> -am compile exec:exec@<id>`
+				     runs the program in that module only. The plugin checks the executable before the skip flag,
+				     hence the executable here. -->
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>exec-maven-plugin</artifactId>
+					<version>${exec-maven-plugin.version}</version>
+					<configuration>
+						<skip>true</skip>
+						<executable>java</executable>
+					</configuration>
+				</plugin>
+
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-shade-plugin</artifactId>
+					<version>${maven-shade-plugin.version}</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+
 		<plugins>
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.16.0</version>
-				<configuration>
-					<source>${java.version}</source>
-					<target>${java.version}</target>
-					<encoding>UTF-8</encoding>
-					<debug>true</debug>
-					<showDeprecation>true</showDeprecation>
-					<showWarnings>true</showWarnings>
-					<optimize>true</optimize>
-					<fork>true</fork>
-					<compilerArgs>
-						<arg>--module-version=${project.version}</arg>
-					</compilerArgs>
-					<annotationProcessorPaths>
-						<path>
-							<groupId>org.projectlombok</groupId>
-							<artifactId>lombok</artifactId>
-							<version>${lombok.version}</version>
-						</path>
-					</annotationProcessorPaths>
-				</configuration>
-			</plugin>
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-source-plugin</artifactId>
-				<version>3.4.0</version>
-				<executions>
-					<execution>
-						<id>attach-sources</id>
-						<phase>verify</phase>
-					</execution>
-				</executions>
-			</plugin>
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<version>3.5.1</version>
-				<configuration>
-					<archive>
-						<manifest>
-							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
-						</manifest>
-					</archive>
-				</configuration>
-			</plugin>
-
-
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-enforcer-plugin</artifactId>
-				<version>3.6.3</version>
+				<version>${maven-enforcer-plugin.version}</version>
 				<executions>
 					<execution>
 						<id>enforce-versions</id>
@@ -207,7 +208,6 @@
 								<banDuplicatePomDependencyVersions/>
 								<reactorModuleConvergence/>
 								<dependencyConvergence/>
-								<reactorModuleConvergence/>
 								<requireJavaVersion>
 									<version>${java.version}</version>
 								</requireJavaVersion>
@@ -218,75 +218,17 @@
 			</plugin>
 
 			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
-				<version>3.6.4</version>
-
-				<executions>
-					<execution>
-						<id>start</id>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-
-						<configuration>
-							<executable>java</executable>
-							<arguments>
-								<argument>--module-path</argument>
-								<modulepath/>
-								<!-- GUI smoke run against the bundled secured sample target.
-								     SampleTargetJvm uses druvu-lib-jmxmp's on-the-fly self-signed
-								     cert, so there is no fixed cert to pin: trustall=true makes the
-								     client accept the ephemeral server cert (test only). Connect to
-								     localhost:7091 with user/password admin/admin. Unset = plaintext
-								     connect under the default unrestricted client policy. -->
-								<argument>-Djcb.jmxmp.tls.trustall=true</argument>
-								<argument>-m</argument>
-								<argument>com.druvu.jconsole/com.druvu.jconsole.launcher.Main</argument>
-								<argument>-c=#8BC6E1FF</argument>
-								<argument>-debug</argument>
-							</arguments>
-						</configuration>
-					</execution>
-
-					<execution>
-						<id>start-target</id>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-
-						<configuration>
-							<executable>java</executable>
-							<classpathScope>test</classpathScope>
-							<arguments>
-								<argument>-Xmx256m</argument>
-								<!-- Integration-test target: SampleTargetJvm exposes a secured JMXMP
-								     endpoint (authenticator accepts admin/admin). druvu-lib-jmxmp 2.0.0
-								     defaults the profile to TLS SASL/PLAIN and auto-generates an
-								     ephemeral self-signed cert — no keystore needed. -->
-								<argument>-cp</argument>
-								<classpath/>
-								<argument>com.druvu.jconsole.testjvm.SampleTargetJvm</argument>
-								<argument>${target.port}</argument>
-							</arguments>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-
-			<plugin>
 				<groupId>com.diffplug.spotless</groupId>
 				<artifactId>spotless-maven-plugin</artifactId>
-				<version>3.10.4</version>
+				<version>${spotless-maven-plugin.version}</version>
 				<configuration>
 					<java>
 						<palantirJavaFormat>
-							<version>2.90.0</version>                     <!-- optional -->
-							<style>PALANTIR</style>                       <!-- or AOSP/GOOGLE (optional) -->
-							<formatJavadoc>true
-							</formatJavadoc>          <!-- defaults to false (optional, requires at least Palantir 2.39.0) -->
+							<version>${palantir-java-format.version}</version>
+							<style>PALANTIR</style>
+							<formatJavadoc>true</formatJavadoc>
 						</palantirJavaFormat>
-						<removeUnusedImports />
+						<removeUnusedImports/>
 					</java>
 				</configuration>
 				<executions>
@@ -300,88 +242,5 @@
 			</plugin>
 		</plugins>
 	</build>
-
-	<profiles>
-		<!-- Activated by Start-JConsole.ps1 when the user passes a connection target on the
-		     command line, e.g. ./Start-JConsole.ps1 localhost:7091. The target is appended
-		     to the start exec arguments, so the connection dialog comes up pre-filled. -->
-		<profile>
-			<id>jconsole-with-target</id>
-			<activation>
-				<property>
-					<name>jconsole.target</name>
-				</property>
-			</activation>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.codehaus.mojo</groupId>
-						<artifactId>exec-maven-plugin</artifactId>
-						<executions>
-							<execution>
-								<id>start</id>
-								<configuration>
-									<arguments combine.children="append">
-										<argument>${jconsole.target}</argument>
-									</arguments>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-
-		<!-- Opt-in single-jar build: `mvn -Puberjar package` emits target/dist/jconsole-booster.jar,
-		     a plain classpath (non-JPMS) executable jar: `java -jar` on any full JDK 25+, GUI and
-		     console mode alike. Not part of the default build; installer builds are unaffected.
-		     module-info.class is excluded on purpose (classpath delivery), so jmxmp connector
-		     discovery rides the META-INF/services entries; ServicesResourceTransformer is load-bearing. -->
-		<profile>
-			<id>uberjar</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-shade-plugin</artifactId>
-						<version>3.6.2</version>
-						<executions>
-							<execution>
-								<id>uberjar</id>
-								<phase>package</phase>
-								<goals>
-									<goal>shade</goal>
-								</goals>
-								<configuration>
-									<outputFile>${project.build.directory}/dist/${project.artifactId}.jar</outputFile>
-									<createDependencyReducedPom>false</createDependencyReducedPom>
-									<filters>
-										<filter>
-											<artifact>*:*</artifact>
-											<excludes>
-												<exclude>module-info.class</exclude>
-												<exclude>META-INF/versions/*/module-info.class</exclude>
-												<exclude>META-INF/*.SF</exclude>
-												<exclude>META-INF/*.DSA</exclude>
-												<exclude>META-INF/*.RSA</exclude>
-											</excludes>
-										</filter>
-									</filters>
-									<transformers>
-										<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-											<manifestEntries>
-												<Main-Class>com.druvu.jconsole.launcher.Main</Main-Class>
-											</manifestEntries>
-										</transformer>
-										<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-									</transformers>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
 
 </project>

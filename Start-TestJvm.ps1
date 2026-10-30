@@ -4,8 +4,10 @@ param(
     [int]$Port = 7091
 )
 
+$module = 'jconsole-booster-swing'
+
 Write-Host "Starting sample target JVM on port $Port..."
-Write-Host "Connect with: mvn exec:exec@start  (then enter localhost:$Port)"
+Write-Host "Connect with: ./Start-JConsole.ps1 localhost:$Port"
 Write-Host ""
 
-mvn test-compile "exec:exec@start-target" "-Dtarget.port=$Port"
+mvn -pl $module -am test-compile "exec:exec@start-target" "-Dtarget.port=$Port"

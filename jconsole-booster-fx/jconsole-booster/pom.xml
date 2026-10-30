@@ -33,6 +33,11 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<scope>provided</scope>
+		</dependency>
 		<!-- found at run time through druvu-lib-loader -->
 		<dependency>
 			<groupId>com.druvu</groupId>
@@ -48,7 +53,37 @@
 		</dependency>
 		<dependency>
 			<groupId>com.druvu</groupId>
+			<artifactId>jconsole-booster-fx-tab-jtop</artifactId>
+			<version>${project.version}</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.druvu</groupId>
 			<artifactId>jconsole-booster-fx-tab-mbeans</artifactId>
+			<version>${project.version}</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.druvu</groupId>
+			<artifactId>jconsole-booster-fx-tab-memory</artifactId>
+			<version>${project.version}</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.druvu</groupId>
+			<artifactId>jconsole-booster-fx-tab-classes</artifactId>
+			<version>${project.version}</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.druvu</groupId>
+			<artifactId>jconsole-booster-fx-tab-threads</artifactId>
+			<version>${project.version}</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.druvu</groupId>
+			<artifactId>jconsole-booster-fx-tab-overview</artifactId>
 			<version>${project.version}</version>
 			<scope>runtime</scope>
 		</dependency>
@@ -68,4 +103,64 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<executions>
+					<!-- The app from source. Against the sample target: localhost:7091 as admin/admin, and trust its
+					     self-signed certificate once. -->
+					<execution>
+						<id>start</id>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<skip>false</skip>
+							<executable>java</executable>
+							<arguments>
+								<argument>--module-path</argument>
+								<modulepath/>
+								<argument>--enable-native-access=javafx.graphics</argument>
+								<argument>-m</argument>
+								<argument>com.druvu.jconsole.app/com.druvu.jconsole.app.Main</argument>
+							</arguments>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+	<profiles>
+		<!-- -Djconsole.target=<host:port>: the app connects to the target at start. -->
+		<profile>
+			<id>jconsole-with-target</id>
+			<activation>
+				<property>
+					<name>jconsole.target</name>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>start</id>
+								<configuration>
+									<arguments combine.children="append">
+										<argument>${jconsole.target}</argument>
+									</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>

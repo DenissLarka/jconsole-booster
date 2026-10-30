@@ -1,0 +1,26 @@
+/*
+ * JConsole Booster's own styles, on top of the AtlantaFX theme the app applies at start.
+ *
+ * On macOS the menus move into the screen menu bar, but the MenuBar node has to stay in the scene for macOS to adopt
+ * it, and under AtlantaFX it keeps an empty strip with the theme's background and bottom border: a stray line under
+ * the title bar. The window collapses it on macOS only.
+ */
+.menu-bar.system-menu-bar-host {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-min-height: 0;
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+}
+
+/* The status bar sits apart from the tabs: the theme's border colour as a line above it. */
+.status-bar {
+    -fx-border-color: -color-border-default transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+/* The hint shown in place of the tabs while there is no connection. */
+.not-connected-hint {
+    -fx-text-fill: -color-fg-muted;
+}

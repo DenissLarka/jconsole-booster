@@ -1,7 +1,12 @@
 #!/usr/bin/env pwsh
 
-# Runs the UI from source. The first arg (if any) becomes the connection target,
-# pre-filling the connect dialog (or auto-connecting on success).
+# Runs the JavaFX app from source; -Swing runs the 1.1 Swing UI instead, kept as the reference until 1.2.0.
+# The first other arg (if any) is the connection target (host:port or a service:jmx: URL).
+param(
+    [switch]$Swing,
+    [Parameter(ValueFromRemainingArguments = $true)]
+    [string[]]$Target
+)
 
 # The build runs on a JDK 27 that bundles JavaFX (the enforcer refuses another). When Use-Jdk27.ps1, the
 # session-scoped JDK switcher from common-scripts, is on PATH, the script switches this session to it first.
@@ -10,10 +15,11 @@ if ($useJdk) {
     . $useJdk.Path
 }
 
-$module = 'jconsole-booster-swing'
+$module = if ($Swing) { 'jconsole-booster-swing' } else { 'jconsole-booster-fx/jconsole-booster' }
+$pom = Join-Path $PSScriptRoot 'pom.xml'
 
-if ($args.Count -gt 0) {
-    mvn -pl $module -am compile exec:exec@start "-Djconsole.target=$($args[0])"
+if ($Target.Count -gt 0) {
+    mvn -f $pom -pl $module -am compile exec:exec@start "-Djconsole.target=$($Target[0])"
 } else {
-    mvn -pl $module -am compile exec:exec@start
+    mvn -f $pom -pl $module -am compile exec:exec@start
 }

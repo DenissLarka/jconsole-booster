@@ -1,3 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <FindBugsFilter>
+	<!-- A view hands out its live scene-graph node, and the tree model its root item: that is what they are for. -->
+	<Match>
+		<Bug pattern="EI_EXPOSE_REP"/>
+		<Or>
+			<Method name="node"/>
+			<And>
+				<Class name="com.druvu.jconsole.fx.tab.mbeans.tree.MBeanTreeModel"/>
+				<Method name="root"/>
+			</And>
+		</Or>
+	</Match>
+
+	<!-- ObjectName and the MBean*Info descriptions are immutable; SpotBugs takes ObjectName's no-op setMBeanServer,
+	     inherited from QueryExp, for a setter. -->
+	<Match>
+		<Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+		<Or>
+			<Field type="javax.management.ObjectName"/>
+			<Field type="javax.management.MBeanInfo"/>
+			<Field type="javax.management.MBeanAttributeInfo"/>
+			<Field type="javax.management.MBeanOperationInfo"/>
+			<Field type="javax.management.MBeanNotificationInfo"/>
+		</Or>
+	</Match>
+
+	<!-- Live handles shared by the tab's parts: the connection, the tab's MBean access and its notification buffer. -->
+	<Match>
+		<Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+		<Or>
+			<Field type="javax.management.MBeanServerConnection"/>
+			<Field type="com.druvu.jconsole.fx.tab.mbeans.common.MBeanAccess"/>
+			<Field type="com.druvu.jconsole.fx.tab.mbeans.notifications.NotificationBuffer"/>
+		</Or>
+	</Match>
 </FindBugsFilter>

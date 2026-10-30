@@ -1,0 +1,7 @@
+/* The chart's colours, taken from the AtlantaFX theme colours that every theme of the app defines. */
+.time-series-chart {
+    -jcb-chart-plot-background: -color-bg-subtle;
+    -jcb-chart-plot-border: -color-border-default;
+    -jcb-chart-text: -color-fg-default;
+    -jcb-chart-grid: -color-border-muted;
+}

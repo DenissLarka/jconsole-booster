@@ -11,7 +11,8 @@ import org.testng.annotations.Test;
 
 /**
  * The module layers of JConsole Booster, checked on the compiled classes of every module: the core at the bottom, the
- * protocols found at run time, the console and the desktop app as fronts, the sample target outside them all.
+ * protocols found at run time, the console and the two desktop apps as fronts (the JavaFX app over its tab contract,
+ * its charts and its tabs; the Swing app until the JavaFX one replaces it), the sample target outside them all.
  *
  * @author Deniss Larka <br>
  *     on 30 Oct 2026
@@ -46,17 +47,34 @@ public class LayersConsistencyTest {
                 .definedBy(DESKTOP)
                 .layer("Sample target")
                 .definedBy("com.druvu.jconsole.sampletarget..")
+                .layer("Tab contract")
+                .definedBy("com.druvu.jconsole.fx.tab")
+                .layer("Charts")
+                .definedBy("com.druvu.jconsole.fx.charts..")
+                .layer("Tabs")
+                .definedBy("com.druvu.jconsole.fx.tab.*..")
+                .layer("App")
+                .definedBy("com.druvu.jconsole.app..")
                 .whereLayer("Core")
-                .mayOnlyBeAccessedByLayers("Protocols", "Console", "Desktop")
+                .mayOnlyBeAccessedByLayers("Protocols", "Console", "Desktop", "Tab contract", "Charts", "Tabs", "App")
                 // the core finds a protocol through druvu-lib-loader, so nothing names one
                 .whereLayer("Protocols")
                 .mayNotBeAccessedByAnyLayer()
-                // the desktop launcher hands --console over
+                // both desktop apps hand --console over
                 .whereLayer("Console")
-                .mayOnlyBeAccessedByLayers("Desktop")
+                .mayOnlyBeAccessedByLayers("Desktop", "App")
                 .whereLayer("Desktop")
                 .mayNotBeAccessedByAnyLayer()
                 .whereLayer("Sample target")
+                .mayNotBeAccessedByAnyLayer()
+                .whereLayer("Tab contract")
+                .mayOnlyBeAccessedByLayers("Tabs", "App")
+                .whereLayer("Charts")
+                .mayOnlyBeAccessedByLayers("Tabs")
+                // the app finds the tabs through druvu-lib-loader, so nothing names one
+                .whereLayer("Tabs")
+                .mayNotBeAccessedByAnyLayer()
+                .whereLayer("App")
                 .mayNotBeAccessedByAnyLayer()
                 .check(JCB);
     }
@@ -72,6 +90,25 @@ public class LayersConsistencyTest {
                 .resideInAnyPackage("java.awt..", "javax.swing..", "javafx..", "java.beans..")
                 .because(
                         "the console runs on boxes without a display, and the JavaFX app replaces Swing on the same core")
+                .check(JCB);
+    }
+
+    @Test
+    public void theJavaFxAppUsesNoSwing() {
+        noClasses()
+                .that()
+                .resideInAnyPackage("com.druvu.jconsole.fx..", "com.druvu.jconsole.app..")
+                .should()
+                .dependOnClassesThat()
+                .resideInAnyPackage("javax.swing..")
+                .check(JCB);
+    }
+
+    @Test
+    public void tabsDoNotDependOnEachOther() {
+        slices().matching("com.druvu.jconsole.fx.tab.(*)..")
+                .should()
+                .notDependOnEachOther()
                 .check(JCB);
     }
 

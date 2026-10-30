@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+
+    <!-- The tests' stand-in connection hands out the live thread MXBean it was given, as a real connection does. -->
+    <Match>
+        <Class name="com.druvu.jconsole.fx.tab.threads.LocalJvmConnection"/>
+        <Method name="getThreadMXBean"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+</FindBugsFilter>

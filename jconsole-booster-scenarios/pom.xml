@@ -52,6 +52,66 @@
 			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.druvu</groupId>
+			<artifactId>jconsole-booster-fx-tab-api</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.druvu</groupId>
+			<artifactId>jconsole-booster-fx-charts</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.druvu</groupId>
+			<artifactId>jconsole-booster-fx-tab-summary</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.druvu</groupId>
+			<artifactId>jconsole-booster-fx-tab-jtop</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.druvu</groupId>
+			<artifactId>jconsole-booster-fx-tab-mbeans</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.druvu</groupId>
+			<artifactId>jconsole-booster-fx-tab-memory</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.druvu</groupId>
+			<artifactId>jconsole-booster-fx-tab-classes</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.druvu</groupId>
+			<artifactId>jconsole-booster-fx-tab-threads</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.druvu</groupId>
+			<artifactId>jconsole-booster-fx-tab-overview</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.druvu</groupId>
+			<artifactId>jconsole-booster</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
 
 		<dependency>
 			<groupId>org.testng</groupId>

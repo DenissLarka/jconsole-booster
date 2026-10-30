@@ -1,3 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <FindBugsFilter>
+
+    <!-- The window hands out its live stage, the owner of every dialog; a copy of a window cannot exist. -->
+    <Match>
+        <Class name="com.druvu.jconsole.app.window.MainWindow"/>
+        <Method name="window"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
 </FindBugsFilter>

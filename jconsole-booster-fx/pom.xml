@@ -20,6 +20,11 @@
 		<module>jconsole-booster-fx-charts</module>
 		<module>jconsole-booster-fx-tab-summary</module>
 		<module>jconsole-booster-fx-tab-mbeans</module>
+		<module>jconsole-booster-fx-tab-jtop</module>
+		<module>jconsole-booster-fx-tab-classes</module>
+		<module>jconsole-booster-fx-tab-threads</module>
+		<module>jconsole-booster-fx-tab-memory</module>
+		<module>jconsole-booster-fx-tab-overview</module>
 		<module>jconsole-booster</module>
 	</modules>
 

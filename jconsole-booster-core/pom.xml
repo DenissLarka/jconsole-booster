@@ -13,18 +13,13 @@
 	<artifactId>jconsole-booster-core</artifactId>
 
 	<name>DRUVU.COM / JCONSOLE BOOSTER / CORE</name>
-	<description>The JMX session of JConsole Booster without a user-interface toolkit: connecting with adaptive TLS and trust on first use, bookmarks and recent connections, operation state, the MBean description markup and the messages; every front builds on it.</description>
+	<description>The JMX session of JConsole Booster without a user-interface toolkit: connecting (each protocol's transport found at run time), trust on first use, bookmarks and recent connections, operation state, the MBean description markup and the messages; every front builds on it.</description>
 
 	<dependencies>
+		<!-- finds the protocol transports at run time -->
 		<dependency>
 			<groupId>com.druvu</groupId>
-			<artifactId>druvu-lib-jmxmp-common</artifactId>
-		</dependency>
-		<!-- the JMXMP connector, found at run time by JMXConnectorFactory -->
-		<dependency>
-			<groupId>com.druvu</groupId>
-			<artifactId>druvu-lib-jmxmp-client</artifactId>
-			<scope>runtime</scope>
+			<artifactId>druvu-lib-loader</artifactId>
 		</dependency>
 
 		<dependency>
@@ -45,12 +40,6 @@
 		<dependency>
 			<groupId>org.assertj</groupId>
 			<artifactId>assertj-core</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<!-- the in-process targets of the connection tests -->
-		<dependency>
-			<groupId>com.druvu</groupId>
-			<artifactId>druvu-lib-jmxmp-server</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

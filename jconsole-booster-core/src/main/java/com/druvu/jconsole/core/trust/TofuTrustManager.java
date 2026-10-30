@@ -1,5 +1,7 @@
 package com.druvu.jconsole.core.trust;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -7,6 +9,8 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Set;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
@@ -33,12 +37,31 @@ public final class TofuTrustManager implements X509TrustManager {
     private final TrustedCertStore store;
     private final boolean requireValidChain;
 
-    public TofuTrustManager(
-            String hostPort, CertTrustPrompt prompt, TrustedCertStore store, boolean requireValidChain) {
+    TofuTrustManager(String hostPort, CertTrustPrompt prompt, TrustedCertStore store, boolean requireValidChain) {
         this.hostPort = hostPort;
         this.prompt = prompt;
         this.store = store;
         this.requireValidChain = requireValidChain;
+    }
+
+    /**
+     * A TLS socket factory for one endpoint whose trust is this class's: the default trust store, then the pins in the
+     * default {@link TrustedCertStore}, then {@code prompt}. Protocol and ciphers are left to the transport.
+     */
+    public static SSLSocketFactory socketFactory(String hostPort, CertTrustPrompt prompt, boolean requireValidChain)
+            throws IOException {
+        try {
+            SSLContext context = SSLContext.getInstance("TLS");
+            context.init(
+                    null,
+                    new TrustManager[] {
+                        new TofuTrustManager(hostPort, prompt, TrustedCertStore.getDefault(), requireValidChain)
+                    },
+                    null);
+            return context.getSocketFactory();
+        } catch (GeneralSecurityException e) {
+            throw new IOException("TLS setup failed", e);
+        }
     }
 
     @Override

@@ -6,7 +6,8 @@ module com.druvu.jconsole.core {
     requires transitive java.management;
     // the HotSpot and com.sun.management views of the target JVM
     requires transitive jdk.management;
-    requires com.druvu.jmxmp.common;
+    // finds the protocol transports at run time
+    requires com.druvu.lib.loader;
     requires org.slf4j;
     requires static lombok;
 

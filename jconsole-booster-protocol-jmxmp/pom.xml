@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.druvu</groupId>
+		<artifactId>jconsole-booster-parent</artifactId>
+		<version>1.2.0-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>jconsole-booster-protocol-jmxmp</artifactId>
+
+	<name>DRUVU.COM / JCONSOLE BOOSTER / PROTOCOL / JMXMP</name>
+	<description>The JMXMP protocol for JConsole Booster, on druvu-lib-jmxmp: the server's TLS and SASL profiles mirrored in-band, trust on first use for its certificate, and no credentials over plaintext; the core finds it at run time.</description>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.druvu</groupId>
+			<artifactId>jconsole-booster-core</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.druvu</groupId>
+			<artifactId>druvu-lib-loader</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.druvu</groupId>
+			<artifactId>druvu-lib-jmxmp-common</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.druvu</groupId>
+			<artifactId>druvu-lib-jmxmp-client</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<!-- the in-process targets of the connection tests -->
+		<dependency>
+			<groupId>com.druvu</groupId>
+			<artifactId>druvu-lib-jmxmp-server</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+</project>

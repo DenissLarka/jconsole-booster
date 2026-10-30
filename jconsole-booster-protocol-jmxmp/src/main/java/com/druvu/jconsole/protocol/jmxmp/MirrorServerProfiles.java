@@ -1,5 +1,6 @@
-package com.druvu.jconsole.core.connect;
+package com.druvu.jconsole.protocol.jmxmp;
 
+import com.druvu.jconsole.core.connect.PlaintextCredentialsRefusedException;
 import com.druvu.jmxmp.shared.SelectProfiles;
 import java.util.HashSet;
 import java.util.Locale;
@@ -19,9 +20,9 @@ import java.util.Set;
  * <p>This is what lets a single JCB connection reach both legacy and hardened servers with no user-facing "use TLS"
  * toggle and no retry: the jmxmp handshake advertises the server's profiles before the client commits, and this
  * selector adapts in-band (see {@code AdminClient.selectProfiles}). It is installed under the
- * {@code com.sun.jmx.remote.profile.selector} env key by {@link JMXConnectionManager}. It requires the client policy to
- * be {@link com.druvu.jmxmp.shared.ClientProfilePolicy#unrestricted()} — the default mandatory-TLS policy would reject
- * a plaintext server before this selector ever runs.
+ * {@code com.sun.jmx.remote.profile.selector} env key by {@link JmxmpTransport}. It requires the client policy to be
+ * {@link com.druvu.jmxmp.shared.ClientProfilePolicy#unrestricted()} — the default mandatory-TLS policy would reject a
+ * plaintext server before this selector ever runs.
  *
  * <p><b>Hard security rule:</b> if this connection carries credentials and the server offers no encryption, the
  * selector throws {@link PlaintextCredentialsRefusedException} — refusing the connection <em>before</em> the SASL

@@ -31,14 +31,12 @@
 			<artifactId>awt-color-factory</artifactId>
 		</dependency>
 
-		<!-- JMXMP transport -->
+		<!-- the JMXMP protocol, found by the core at run time -->
 		<dependency>
 			<groupId>com.druvu</groupId>
-			<artifactId>druvu-lib-jmxmp-common</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.druvu</groupId>
-			<artifactId>druvu-lib-jmxmp-client</artifactId>
+			<artifactId>jconsole-booster-protocol-jmxmp</artifactId>
+			<version>${project.version}</version>
+			<scope>runtime</scope>
 		</dependency>
 		<!-- the server side serves only the in-process targets of the tests -->
 		<dependency>

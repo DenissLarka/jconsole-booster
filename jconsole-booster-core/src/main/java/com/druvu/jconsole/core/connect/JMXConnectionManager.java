@@ -29,11 +29,7 @@ import static java.lang.management.ManagementFactory.COMPILATION_MXBEAN_NAME;
 import static java.lang.management.ManagementFactory.THREAD_MXBEAN_NAME;
 
 import com.druvu.jconsole.core.trust.CertTrustPrompt;
-import com.druvu.jconsole.core.trust.TofuTrustManager;
-import com.druvu.jconsole.core.trust.TrustedCertStore;
-import com.druvu.jmxmp.shared.ClientProfilePolicy;
 import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.Map;
 import javax.management.InstanceNotFoundException;
@@ -46,9 +42,6 @@ import javax.management.ReflectionException;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -142,15 +135,10 @@ public final class JMXConnectionManager {
     }
 
     /**
-     * Establishes a JMX connection, auto-negotiating transport with the server.
-     *
-     * <p>JCB keeps the client policy {@link ClientProfilePolicy#unrestricted()} and installs a
-     * {@link MirrorServerProfiles} selector, so one connection reaches both legacy plaintext servers and hardened
-     * druvu-lib-jmxmp 2.0.0 servers (mandatory TLS+SASL/PLAIN): the jmxmp handshake advertises the server's profiles
-     * before the client commits, and the selector mirrors them in-band — no "use TLS" toggle, no retry. On the TLS leg,
-     * a certificate that does not validate against the default trust store triggers {@code trustPrompt}
-     * (trust-on-first-use). The lib's {@code JmxmpSerialFilter} still enforces default-deny deserialization regardless
-     * of transport, so this does not widen RCE surface.
+     * Establishes a JMX connection. The {@link Transport} for the URL's protocol, found at run time, adds its part of
+     * the connector environment (for JMXMP: the server's profiles mirrored in-band, TLS with trust on first use); a
+     * protocol without a transport, such as RMI, connects with the credentials alone. On a TLS leg, a certificate that
+     * does not validate against the default trust store triggers {@code trustPrompt} (trust on first use).
      *
      * @param jmxUrl the JMX service URL to connect to
      * @param userName optional username (may be {@code null})
@@ -177,21 +165,21 @@ public final class JMXConnectionManager {
             boolean requireValidChain)
             throws IOException {
         Map<String, Object> env = new HashMap<>();
-        if (userName != null || password != null) {
+        boolean withCredentials = userName != null || password != null;
+        if (withCredentials) {
             env.put(JMXConnector.CREDENTIALS, new String[] {userName, password});
         }
-        // Unrestricted so the selector below is free to pick either transport; the default
-        // mandatory-TLS client policy would reject a plaintext server before it runs.
-        env.put(ClientProfilePolicy.ENV_KEY, ClientProfilePolicy.unrestricted());
-        boolean credentialsPresent = userName != null || password != null;
-        env.put("com.sun.jmx.remote.profile.selector", new MirrorServerProfiles(credentialsPresent));
-        env.put("jmx.remote.tls.socket.factory", tofuSocketFactory(hostPort(jmxUrl), trustPrompt, requireValidChain));
+        Transport transport = Transports.forProtocol(jmxUrl.getProtocol());
+        if (transport != null) {
+            CertTrustPrompt prompt = (trustPrompt == null) ? DENY : trustPrompt;
+            transport.configure(env, new ConnectRequest(jmxUrl, withCredentials, prompt, requireValidChain));
+        }
         JMXConnector jmxc;
         try {
             jmxc = JMXConnectorFactory.connect(jmxUrl, env);
         } catch (IOException e) {
-            // The selector hard-refuses a credentialed connection to a server that offered no encryption, throwing
-            // before the password reaches the wire. jmxmp may wrap that exception, so scan the cause chain.
+            // A transport hard-refuses a credentialed connection to a server that offered no encryption, throwing
+            // before the password reaches the wire. The connector may wrap that exception, so scan the cause chain.
             PlaintextCredentialsRefusedException refused = plaintextCredentialRefusal(e);
             if (refused != null) {
                 plaintextAlert.refused(hostPort(jmxUrl));
@@ -217,27 +205,6 @@ public final class JMXConnectionManager {
 
     private static String hostPort(JMXServiceURL jmxUrl) {
         return jmxUrl.getHost() + ":" + jmxUrl.getPort();
-    }
-
-    /**
-     * SSL socket factory used only if the profile selector chooses TLS: trust is a {@link TofuTrustManager} keyed to
-     * this endpoint (default trust store &rarr; pinned fingerprint &rarr; operator prompt). Protocol/ciphers are set by
-     * druvu-lib-jmxmp's {@code TLSClientHandler} (TLS 1.3 by default).
-     */
-    private static SSLSocketFactory tofuSocketFactory(
-            String hostPort, CertTrustPrompt trustPrompt, boolean requireValidChain) throws IOException {
-        try {
-            SSLContext ctx = SSLContext.getInstance("TLS");
-            ctx.init(
-                    null,
-                    new TrustManager[] {
-                        new TofuTrustManager(hostPort, trustPrompt, TrustedCertStore.getDefault(), requireValidChain)
-                    },
-                    null);
-            return ctx.getSocketFactory();
-        } catch (GeneralSecurityException e) {
-            throw new IOException("TLS setup failed", e);
-        }
     }
 
     // -----------------------------------------------------------------------

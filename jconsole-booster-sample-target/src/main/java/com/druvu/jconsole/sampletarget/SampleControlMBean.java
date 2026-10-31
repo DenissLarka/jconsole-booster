@@ -7,8 +7,8 @@ import java.lang.annotation.Target;
 import javax.management.DescriptorKey;
 
 /**
- * Management interface of {@link SampleControl}: counters, a status, and operations that create load on demand (memory,
- * sleeps, CPU).
+ * Management interface of {@link SampleControl}: counters, a status, the log level, operations that create load on
+ * demand (memory, sleeps, CPU), and one that sends a notification.
  *
  * @author Deniss Larka <br>
  *     on 25 Apr 2026
@@ -38,6 +38,12 @@ public interface SampleControlMBean {
      */
     @Since("1.2")
     String changeLogLevel(@LegalValues({"ERROR", "WARN", "INFO", "DEBUG"}) @DefaultValue("INFO") String level);
+
+    /** The level {@link #logMessage} prints with; a change sends an attribute change notification. */
+    String getLogLevel();
+
+    /** Sends a notification with this message to every listener. */
+    void broadcast(String message);
 
     void releaseBuffers();
 

@@ -34,6 +34,9 @@ public final class SampleTargetJvm {
     public static final String MARKUP_OBJECT_NAME = "com.druvu.testjvm:type=SampleMarkup";
     public static final String DOWNLOADS_OBJECT_NAME = "com.druvu.testjvm:type=SampleDownloads";
 
+    /** How often the control MBean sends its heartbeat notification. */
+    private static final long HEARTBEAT_MILLIS = 5_000;
+
     // 0.0.0.0 is the wildcard bind address, every interface, so a JConsole Booster on another box can connect too;
     // it names no host, which is what the rule guards against.
     @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
@@ -55,6 +58,7 @@ public final class SampleTargetJvm {
         System.out.println("Press Ctrl+C to stop.");
 
         startCpuChurn(control);
+        startHeartbeat(control);
         startAllocationChurn();
         startNamedIdleThreads();
 
@@ -129,6 +133,24 @@ public final class SampleTargetJvm {
                     }
                 },
                 "sample-cpu-churn");
+        t.setDaemon(true);
+        t.start();
+    }
+
+    private static void startHeartbeat(SampleControl control) {
+        Thread t = new Thread(
+                () -> {
+                    while (!Thread.currentThread().isInterrupted()) {
+                        try {
+                            Thread.sleep(HEARTBEAT_MILLIS);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            return;
+                        }
+                        control.sendHeartbeat();
+                    }
+                },
+                "sample-heartbeat");
         t.setDaemon(true);
         t.start();
     }

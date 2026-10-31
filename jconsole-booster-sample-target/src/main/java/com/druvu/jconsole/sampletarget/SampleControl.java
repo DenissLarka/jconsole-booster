@@ -7,21 +7,49 @@ import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import javax.management.AttributeChangeNotification;
+import javax.management.MBeanNotificationInfo;
+import javax.management.Notification;
+import javax.management.NotificationBroadcasterSupport;
 
 /**
- * The sample target's control MBean: counts requests, derives a status from the error count, and creates load on
- * demand, so the monitoring tabs have something to show.
+ * The sample target's control MBean: counts requests, derives a status from the error count, creates load on demand,
+ * and sends notifications, so the monitoring tabs and the Notifications view have something to show.
+ *
+ * <p>The notifications: an attribute change when the log level changes, a heartbeat every few seconds with the request
+ * count so far, and a message sent on demand with {@link #broadcast}. Their source is this object, which the MBean
+ * server replaces with the MBean's name on the way to a listener.
  *
  * @author Deniss Larka <br>
  *     on 25 Apr 2026
  */
-public class SampleControl implements SampleControlMBean {
+public class SampleControl extends NotificationBroadcasterSupport implements SampleControlMBean {
+
+    /** The heartbeat's type; its user data is the request count so far. */
+    public static final String HEARTBEAT = "com.druvu.testjvm.heartbeat";
+
+    /** The type of a message sent with {@link #broadcast}. */
+    public static final String MESSAGE = "com.druvu.testjvm.message";
 
     private final AtomicLong requestCount = new AtomicLong();
     private final AtomicLong errorCount = new AtomicLong();
     private final AtomicBoolean maintenance = new AtomicBoolean(false);
     private final List<byte[]> retainedBuffers = new ArrayList<>();
     private final AtomicReference<String> logLevel = new AtomicReference<>("INFO");
+    private final AtomicLong sequence = new AtomicLong();
+
+    /** Declares the notifications, so a JMX client can list them before it subscribes. */
+    public SampleControl() {
+        super(
+                new MBeanNotificationInfo(
+                        new String[] {AttributeChangeNotification.ATTRIBUTE_CHANGE},
+                        AttributeChangeNotification.class.getName(),
+                        "The log level changed"),
+                new MBeanNotificationInfo(
+                        new String[] {HEARTBEAT}, Notification.class.getName(), "The request count, every few seconds"),
+                new MBeanNotificationInfo(
+                        new String[] {MESSAGE}, Notification.class.getName(), "A message sent with broadcast"));
+    }
 
     public void recordRequest() {
         requestCount.incrementAndGet();
@@ -106,7 +134,37 @@ public class SampleControl implements SampleControlMBean {
         if (!List.of("ERROR", "WARN", "INFO", "DEBUG").contains(chosen)) {
             throw new IllegalArgumentException("level must be ERROR, WARN, INFO or DEBUG, not '" + level + "'");
         }
-        return logLevel.getAndSet(chosen);
+        String previous = logLevel.getAndSet(chosen);
+        if (!previous.equals(chosen)) {
+            sendNotification(new AttributeChangeNotification(
+                    this,
+                    sequence.incrementAndGet(),
+                    System.currentTimeMillis(),
+                    "Log level " + previous + " -> " + chosen,
+                    "LogLevel",
+                    String.class.getName(),
+                    previous,
+                    chosen));
+        }
+        return previous;
+    }
+
+    @Override
+    public String getLogLevel() {
+        return logLevel.get();
+    }
+
+    @Override
+    public void broadcast(String message) {
+        sendNotification(new Notification(MESSAGE, this, sequence.incrementAndGet(), message));
+    }
+
+    /** Sends the heartbeat: the request count so far, in the message and as the user data. */
+    public void sendHeartbeat() {
+        long requests = requestCount.get();
+        Notification heartbeat = new Notification(HEARTBEAT, this, sequence.incrementAndGet(), requests + " requests");
+        heartbeat.setUserData(requests);
+        sendNotification(heartbeat);
     }
 
     @Override

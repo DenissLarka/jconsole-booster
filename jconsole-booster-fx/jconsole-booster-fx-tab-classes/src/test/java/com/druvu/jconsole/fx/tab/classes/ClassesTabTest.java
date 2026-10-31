@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.druvu.jconsole.fx.charts.TimeSeriesChart;
+import com.druvu.jconsole.fx.tab.DetailsGrid;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.util.List;

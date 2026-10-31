@@ -2,6 +2,7 @@ package com.druvu.jconsole.fx.tab.threads;
 
 import com.druvu.jconsole.core.text.Messages;
 import com.druvu.jconsole.fx.tab.ConnectionTab;
+import com.druvu.jconsole.fx.tab.JmxRead;
 import com.druvu.jconsole.fx.tab.TabContext;
 import java.io.IOException;
 import java.lang.management.ThreadMXBean;

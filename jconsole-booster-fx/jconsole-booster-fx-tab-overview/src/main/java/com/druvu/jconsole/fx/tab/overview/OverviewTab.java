@@ -2,6 +2,7 @@ package com.druvu.jconsole.fx.tab.overview;
 
 import com.druvu.jconsole.core.text.Messages;
 import com.druvu.jconsole.fx.tab.ConnectionTab;
+import com.druvu.jconsole.fx.tab.JmxRead;
 import java.io.IOException;
 import java.util.Optional;
 import javafx.scene.Node;

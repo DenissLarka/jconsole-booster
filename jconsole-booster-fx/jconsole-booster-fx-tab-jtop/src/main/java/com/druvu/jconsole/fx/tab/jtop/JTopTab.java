@@ -1,8 +1,8 @@
 package com.druvu.jconsole.fx.tab.jtop;
 
 import com.druvu.jconsole.fx.tab.ConnectionTab;
+import com.druvu.jconsole.fx.tab.JmxRead;
 import java.io.IOException;
-import java.lang.reflect.UndeclaredThrowableException;
 import javafx.scene.Node;
 
 /**
@@ -49,15 +49,7 @@ final class JTopTab implements ConnectionTab {
     }
 
     private ThreadSnapshot read() throws IOException {
-        try {
-            return ThreadCpuReader.read(source.threadBean());
-        } catch (UndeclaredThrowableException wrapped) {
-            // An MXBean proxy hands over a lost connection as an IOException in this wrapper.
-            if (wrapped.getCause() instanceof IOException lost) {
-                throw lost;
-            }
-            throw wrapped;
-        }
+        return JmxRead.run(() -> ThreadCpuReader.read(source.threadBean()));
     }
 
     private JTopView view() {

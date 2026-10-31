@@ -1,4 +1,4 @@
-package com.druvu.jconsole.fx.tab.threads;
+package com.druvu.jconsole.fx.tab;
 
 import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
@@ -11,13 +11,13 @@ import java.lang.reflect.UndeclaredThrowableException;
  *     on 30 Oct 2026
  */
 @FunctionalInterface
-interface JmxRead<T> {
+public interface JmxRead<T> {
 
     T read() throws IOException;
 
     /**
      * Runs {@code read}. An MXBean proxy reports a lost connection as an {@link UndeclaredThrowableException} around an
-     * {@link IOException}; this hands over the IOException itself, as the tab contract expects.
+     * {@link IOException}; this hands over the IOException itself, as {@link ConnectionTab#refresh()} expects.
      */
     static <T> T run(JmxRead<T> read) throws IOException {
         try {

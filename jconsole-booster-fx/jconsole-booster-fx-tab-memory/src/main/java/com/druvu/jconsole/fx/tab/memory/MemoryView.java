@@ -2,6 +2,7 @@ package com.druvu.jconsole.fx.tab.memory;
 
 import com.druvu.jconsole.core.text.Messages;
 import com.druvu.jconsole.fx.charts.TimeRangeChooser;
+import com.druvu.jconsole.fx.tab.DetailsGrid;
 import java.util.HashMap;
 import java.util.Map;
 import javafx.geometry.Insets;

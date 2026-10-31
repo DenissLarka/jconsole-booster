@@ -2,10 +2,11 @@ package com.druvu.jconsole.fx.tab.classes;
 
 import com.druvu.jconsole.core.text.Messages;
 import com.druvu.jconsole.core.vm.JmxDataAccess;
+import com.druvu.jconsole.fx.tab.BackgroundCall;
 import com.druvu.jconsole.fx.tab.ConnectionTab;
+import com.druvu.jconsole.fx.tab.JmxRead;
 import com.druvu.jconsole.fx.tab.TabHost;
 import java.io.IOException;
-import java.lang.reflect.UndeclaredThrowableException;
 import javafx.scene.Node;
 
 /**
@@ -68,15 +69,7 @@ final class ClassesTab implements ConnectionTab {
     }
 
     private ClassLoadingReading read() throws IOException {
-        try {
-            return ClassLoadingReading.read(connection.getClassLoadingMXBean());
-        } catch (UndeclaredThrowableException wrapped) {
-            // An MXBean proxy hands over a lost connection as an IOException in this wrapper.
-            if (wrapped.getCause() instanceof IOException lost) {
-                throw lost;
-            }
-            throw wrapped;
-        }
+        return JmxRead.run(() -> ClassLoadingReading.read(connection.getClassLoadingMXBean()));
     }
 
     private ClassesView view() {

@@ -4,6 +4,7 @@ import com.druvu.jconsole.core.text.Messages;
 import com.druvu.jconsole.fx.charts.TimeRangeChooser;
 import com.druvu.jconsole.fx.charts.TimeSeriesChart;
 import com.druvu.jconsole.fx.charts.TitledChart;
+import com.druvu.jconsole.fx.tab.DetailsGrid;
 import java.util.function.Consumer;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;

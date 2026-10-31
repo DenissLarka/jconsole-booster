@@ -1,4 +1,4 @@
-package com.druvu.jconsole.fx.tab.memory;
+package com.druvu.jconsole.fx.tab;
 
 import java.util.List;
 import javafx.geometry.HPos;
@@ -12,11 +12,11 @@ import javafx.scene.layout.GridPane;
  * @author Deniss Larka <br>
  *     on 30 Oct 2026
  */
-final class DetailsGrid extends GridPane {
+public final class DetailsGrid extends GridPane {
 
-    static final String STYLE_CLASS = "memory-details";
+    public static final String STYLE_CLASS = "details-grid";
 
-    DetailsGrid() {
+    public DetailsGrid() {
         getStyleClass().add(STYLE_CLASS);
         setHgap(8);
         setVgap(2);
@@ -24,7 +24,7 @@ final class DetailsGrid extends GridPane {
     }
 
     /** Replaces the lines shown with {@code rows}. */
-    void show(List<DetailRow> rows) {
+    public void show(List<DetailRow> rows) {
         getChildren().clear();
         for (int i = 0; i < rows.size(); i++) {
             DetailRow row = rows.get(i);

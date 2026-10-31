@@ -1,6 +1,5 @@
-package com.druvu.jconsole.fx.tab.classes;
+package com.druvu.jconsole.fx.tab;
 
-import com.druvu.jconsole.fx.tab.TabHost;
 import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
 import javafx.application.Platform;
@@ -12,11 +11,11 @@ import javafx.application.Platform;
  * @author Deniss Larka <br>
  *     on 30 Oct 2026
  */
-final class BackgroundCall {
+public final class BackgroundCall {
 
     /** A JMX call that changes the target JVM. */
     @FunctionalInterface
-    interface JmxCall {
+    public interface JmxCall {
         void run() throws IOException;
     }
 
@@ -28,7 +27,7 @@ final class BackgroundCall {
      * @param title the title of the error the app shows when the call fails
      * @return the thread making the call, which a caller may wait for
      */
-    static Thread start(String title, JmxCall call, TabHost host) {
+    public static Thread start(String title, JmxCall call, TabHost host) {
         return Thread.ofVirtual().name(title).start(() -> {
             try {
                 call.run();

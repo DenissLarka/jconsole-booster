@@ -2,6 +2,7 @@ package com.druvu.jconsole.fx.tab.classes;
 
 import com.druvu.jconsole.core.text.Formatter;
 import com.druvu.jconsole.core.text.Messages;
+import com.druvu.jconsole.fx.tab.DetailRow;
 import java.util.List;
 
 /**

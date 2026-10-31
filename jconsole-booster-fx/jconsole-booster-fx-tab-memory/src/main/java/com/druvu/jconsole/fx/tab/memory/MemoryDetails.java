@@ -3,6 +3,7 @@ package com.druvu.jconsole.fx.tab.memory;
 import com.druvu.jconsole.core.text.Formatter;
 import com.druvu.jconsole.core.text.Messages;
 import com.druvu.jconsole.core.text.Resources;
+import com.druvu.jconsole.fx.tab.DetailRow;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;

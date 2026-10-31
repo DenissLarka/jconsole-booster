@@ -2,6 +2,7 @@ package com.druvu.jconsole.fx.tab.memory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.druvu.jconsole.fx.tab.DetailRow;
 import java.util.List;
 import org.testng.annotations.Test;
 

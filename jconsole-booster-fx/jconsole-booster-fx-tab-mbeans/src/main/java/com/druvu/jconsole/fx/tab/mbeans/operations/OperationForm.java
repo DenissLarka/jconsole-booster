@@ -15,8 +15,8 @@ import javax.management.MBeanOperationInfo;
 import javax.management.MBeanParameterInfo;
 
 /**
- * One operation's row: the invoke button and an input per parameter, filled with the values remembered for the MBean
- * class. An operation whose parameters the form cannot supply is shown disabled.
+ * One operation's row: the invoke button and a cell per parameter, its input filled with the value remembered for the
+ * MBean class. An operation whose parameters the form cannot supply is shown disabled.
  *
  * @author Deniss Larka <br>
  *     on 30 Oct 2026
@@ -28,7 +28,7 @@ final class OperationForm {
     private final OperationMemory memory;
     private final List<ParameterInput> inputs = new ArrayList<>();
     private final Button button;
-    private final HBox parameters = new HBox(6);
+    private final List<Node> parameterCells = new ArrayList<>();
 
     /**
      * @param mbeanClass the MBean's class, the key of the remembered values
@@ -47,7 +47,6 @@ final class OperationForm {
         button = new Button(operation.getName());
         button.setDisable(!callable);
         button.setOnAction(event -> invoke.accept(this));
-        parameters.setAlignment(Pos.CENTER_LEFT);
         Runnable invokeOnEnter = () -> {
             if (callable) {
                 invoke.accept(this);
@@ -65,7 +64,9 @@ final class OperationForm {
             input.onForget(() -> memory.forget(mbeanClass, operation.getName(), parameter.getName()));
             input.node().setDisable(!callable);
             inputs.add(input);
-            parameters.getChildren().addAll(label, input.node());
+            HBox cell = new HBox(6, label, input.node());
+            cell.setAlignment(Pos.CENTER_LEFT);
+            parameterCells.add(cell);
         }
     }
 
@@ -77,8 +78,9 @@ final class OperationForm {
         return button;
     }
 
-    Node parameters() {
-        return parameters;
+    /** One cell per parameter, in signature order: the parameter's name, then its input. */
+    List<Node> parameterCells() {
+        return List.copyOf(parameterCells);
     }
 
     /** The parameter types, as the invocation names them. */

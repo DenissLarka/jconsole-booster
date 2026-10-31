@@ -262,6 +262,7 @@ public final class Messages {
     public static final String REMOTE_PROCESS_TEXT_FIELD_ACCESSIBLE_NAME = "Remote Process";
     public static final String RESTORE_ALL = "Restore All";
     public static final String RETURN_TYPE = "ReturnType";
+    public static final String RETURN_TYPE_COLUMN = "Return type";
     public static final String SEQ_NUM = "SeqNum";
     public static final String SIZE_BYTES = "{0,number,integer} bytes";
     public static final String SIZE_GB = "{0} Gb";

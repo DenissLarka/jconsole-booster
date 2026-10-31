@@ -8,6 +8,7 @@ import java.util.List;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -66,8 +67,8 @@ public final class OperationsView {
             OperationForm form = new OperationForm(operation, mbeanClass, memory, services.host(), call::invoke);
             forms.add(form);
             grid.add(line(ROW_LINE_STYLE), 0, row, columns, 1);
-            addCell(grid, returnType(operation), 0, row);
-            addCell(grid, fullWidth(form.button()), 1, row);
+            addCell(grid, onTheFieldsLine(returnType(operation)), 0, row);
+            addCell(grid, onTheFieldsLine(fullWidth(form.button())), 1, row);
             List<Node> parameters = form.parameterCells();
             for (int p = 0; p < parameters.size(); p++) {
                 addCell(grid, parameters.get(p), 2 + p, row);
@@ -117,6 +118,12 @@ public final class OperationsView {
         button.setMaxWidth(Double.MAX_VALUE);
         button.setAlignment(Pos.CENTER_LEFT);
         return button;
+    }
+
+    /** A parameter's name sits above its input, so the row's other cells keep to the bottom, beside the inputs. */
+    private static Node onTheFieldsLine(Node cell) {
+        GridPane.setValignment(cell, VPos.BOTTOM);
+        return cell;
     }
 
     private static void addCell(GridPane grid, Node cell, int column, int row) {

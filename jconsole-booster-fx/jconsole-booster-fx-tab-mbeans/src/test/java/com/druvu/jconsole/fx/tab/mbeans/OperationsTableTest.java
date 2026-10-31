@@ -17,7 +17,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javax.management.Descriptor;
 import javax.management.ImmutableDescriptor;
 import javax.management.JMException;
@@ -67,8 +67,8 @@ public class OperationsTableTest {
     }
 
     @Test
-    public void aParameterHasAColumnWithItsNameBeforeItsInput() {
-        HBox cell = FxTestToolkit.call(() -> (HBox) cellAt(2, rowOf("rename")));
+    public void aParameterHasAColumnWithItsNameAboveItsInput() {
+        VBox cell = FxTestToolkit.call(() -> (VBox) cellAt(2, rowOf("rename")));
 
         assertThat(cell.getChildren()).hasSize(2);
         assertThat(((Label) cell.getChildren().get(0)).getText()).isEqualTo("p1");
@@ -91,7 +91,7 @@ public class OperationsTableTest {
             OperationsView view = new OperationsView(
                     services, new MemoryOnlyOperationMemory(), TestServers.GADGET, "Levels", List.of(changeLevel));
             GridPane table = (GridPane) ((ScrollPane) view.node()).getContent();
-            HBox cell = (HBox) table.getChildren().stream()
+            VBox cell = (VBox) table.getChildren().stream()
                     .filter(node -> GridPane.getColumnIndex(node) == 2 && GridPane.getRowIndex(node) == 1)
                     .findFirst()
                     .orElseThrow();

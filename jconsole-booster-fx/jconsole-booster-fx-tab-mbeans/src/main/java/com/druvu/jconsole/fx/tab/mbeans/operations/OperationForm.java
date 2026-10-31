@@ -1,16 +1,17 @@
 package com.druvu.jconsole.fx.tab.mbeans.operations;
 
+import com.druvu.jconsole.core.mbeans.MBeanValues;
+import com.druvu.jconsole.core.text.Messages;
 import com.druvu.jconsole.fx.tab.TabHost;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
-import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javax.management.MBeanOperationInfo;
 import javax.management.MBeanParameterInfo;
 
@@ -23,6 +24,9 @@ import javax.management.MBeanParameterInfo;
  *     on 30 Oct 2026
  */
 final class OperationForm {
+
+    /** The parameter's name sits above its input as a hint: smaller and quieter than the value. */
+    private static final String NAME_STYLE = "-fx-font-size: 0.85em; -fx-text-fill: -color-fg-muted;";
 
     private final MBeanOperationInfo operation;
     private final String mbeanClass;
@@ -54,21 +58,24 @@ final class OperationForm {
             }
         };
         for (MBeanParameterInfo parameter : operation.getSignature()) {
-            Label label = new Label(parameter.getName());
-            String tooltip = ParameterKind.tooltip(parameter);
-            if (!tooltip.isEmpty()) {
-                label.setTooltip(new Tooltip(tooltip));
-            }
+            Label name = new Label(parameter.getName());
+            name.setStyle(NAME_STYLE);
+            name.setTooltip(new Tooltip(nameTooltip(parameter)));
             String preset = memory.load(mbeanClass, operation.getName(), parameter.getName())
                     .orElse(ParameterDescriptor.defaultValue(parameter));
             ParameterInput input = ParameterInputs.create(parameter, preset, invokeOnEnter, host);
             input.onForget(() -> memory.forget(mbeanClass, operation.getName(), parameter.getName()));
             input.node().setDisable(!callable);
             inputs.add(input);
-            HBox cell = new HBox(6, label, input.node());
-            cell.setAlignment(Pos.CENTER_LEFT);
-            parameterCells.add(cell);
+            parameterCells.add(new VBox(2, name, input.node()));
         }
+    }
+
+    /** The parameter's description when the MBean gives one, then its full type. */
+    static String nameTooltip(MBeanParameterInfo parameter) {
+        String type = Messages.TYPE + ": " + MBeanValues.getReadableClassName(parameter.getType());
+        String description = ParameterKind.tooltip(parameter);
+        return description.isBlank() ? type : description + "\n" + type;
     }
 
     MBeanOperationInfo operation() {
@@ -79,7 +86,7 @@ final class OperationForm {
         return button;
     }
 
-    /** One cell per parameter, in signature order: the parameter's name, then its input. */
+    /** One cell per parameter, in signature order: the parameter's name above its input. */
     List<Node> parameterCells() {
         return List.copyOf(parameterCells);
     }

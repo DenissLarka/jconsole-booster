@@ -86,6 +86,14 @@ public class ParameterKindTest {
     }
 
     @Test
+    public void theNamesTooltipIsTheDescriptionThenTheFullType() {
+        assertThat(OperationForm.nameTooltip(parameter("Pair {{combo:A,B}} to trade", "java.lang.String")))
+                .isEqualTo("Pair to trade\nType: java.lang.String");
+        assertThat(OperationForm.nameTooltip(parameter("", "[Ljava.lang.String;")))
+                .isEqualTo("Type: java.lang.String[]");
+    }
+
+    @Test
     public void theInputShowsTheSimpleTypeName() {
         assertThat(ParameterInputs.simpleName("java.lang.String")).isEqualTo("String");
         assertThat(ParameterInputs.simpleName("[Ljava.lang.String;")).isEqualTo("String[]");

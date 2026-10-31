@@ -6,15 +6,13 @@ import java.util.List;
  * What the info view shows for one MBean, attribute, operation or notification.
  *
  * @param title the kind of info ({@code MBeanInfo}, {@code MBeanAttributeInfo}...)
- * @param info the info rows
- * @param descriptor the descriptor rows of the feature and its parts
+ * @param rows the properties block by block, then the descriptor section when any descriptor has fields
  * @author Deniss Larka <br>
  *     on 30 Oct 2026
  */
-public record InfoTables(String title, List<InfoRow> info, List<InfoRow> descriptor) {
+public record InfoTable(String title, List<InfoRow> rows) {
 
-    public InfoTables {
-        info = List.copyOf(info);
-        descriptor = List.copyOf(descriptor);
+    public InfoTable {
+        rows = List.copyOf(rows);
     }
 }

@@ -33,6 +33,11 @@
 			<artifactId>testng</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
+			<scope>test</scope>
+		</dependency>
 		<!-- TestNG logs through SLF4J; the parent excludes its own copy so one version serves the build -->
 		<dependency>
 			<groupId>org.slf4j</groupId>

@@ -15,8 +15,8 @@ import javax.management.MBeanParameterInfo;
 import javax.management.ObjectName;
 
 /**
- * Turns JMX's descriptions into the rows of the info view: the feature's properties in one table, the descriptors in
- * the other, each block under a header.
+ * Turns JMX's descriptions into the rows of the info view: the feature's properties, each block under a header, then
+ * the descriptors' fields in a section of their own when any descriptor has fields.
  *
  * @author Deniss Larka <br>
  *     on 30 Oct 2026
@@ -28,7 +28,7 @@ public final class InfoRows {
 
     private InfoRows() {}
 
-    public static InfoTables forMBean(ObjectName name, MBeanInfo mbean) {
+    public static InfoTable forMBean(ObjectName name, MBeanInfo mbean) {
         InfoRows rows = new InfoRows();
         String header = Messages.INFO + ":";
         rows.info.add(InfoRow.header(header));
@@ -48,10 +48,10 @@ public final class InfoRows {
                 rows.addParameter(Messages.PARAMETER + "-" + i + "-" + j + ":", parameters[j]);
             }
         }
-        return rows.tables(Messages.MBEAN_INFO);
+        return rows.table(Messages.MBEAN_INFO);
     }
 
-    public static InfoTables forAttribute(MBeanAttributeInfo attribute) {
+    public static InfoTable forAttribute(MBeanAttributeInfo attribute) {
         InfoRows rows = new InfoRows();
         String header = Messages.ATTRIBUTE + ":";
         rows.info.add(InfoRow.header(header));
@@ -62,10 +62,10 @@ public final class InfoRows {
         rows.info.add(InfoRow.of(Messages.IS, attribute.isIs()));
         rows.info.add(InfoRow.of(Messages.TYPE, attribute.getType()));
         rows.addDescriptor(header, attribute.getDescriptor());
-        return rows.tables(Messages.MBEAN_ATTRIBUTE_INFO);
+        return rows.table(Messages.MBEAN_ATTRIBUTE_INFO);
     }
 
-    public static InfoTables forOperation(MBeanOperationInfo operation) {
+    public static InfoTable forOperation(MBeanOperationInfo operation) {
         InfoRows rows = new InfoRows();
         String header = Messages.OPERATION + ":";
         rows.info.add(InfoRow.header(header));
@@ -78,10 +78,10 @@ public final class InfoRows {
         for (int i = 0; i < parameters.length; i++) {
             rows.addParameter(Messages.PARAMETER + "-" + i + ":", parameters[i]);
         }
-        return rows.tables(Messages.MBEAN_OPERATION_INFO);
+        return rows.table(Messages.MBEAN_OPERATION_INFO);
     }
 
-    public static InfoTables forNotification(MBeanNotificationInfo notification) {
+    public static InfoTable forNotification(MBeanNotificationInfo notification) {
         InfoRows rows = new InfoRows();
         String header = Messages.NOTIFICATION + ":";
         rows.info.add(InfoRow.header(header));
@@ -89,7 +89,7 @@ public final class InfoRows {
         rows.info.add(InfoRow.of(Messages.DESCRIPTION, notification.getDescription()));
         rows.info.add(InfoRow.of(Messages.NOTIF_TYPES, Arrays.toString(notification.getNotifTypes())));
         rows.addDescriptor(header, notification.getDescriptor());
-        return rows.tables(Messages.MBEAN_NOTIFICATION_INFO);
+        return rows.table(Messages.MBEAN_NOTIFICATION_INFO);
     }
 
     static String impact(int impact) {
@@ -120,7 +120,12 @@ public final class InfoRows {
         }
     }
 
-    private InfoTables tables(String title) {
-        return new InfoTables(title, info, descriptor);
+    private InfoTable table(String title) {
+        List<InfoRow> rows = new ArrayList<>(info);
+        if (!descriptor.isEmpty()) {
+            rows.add(InfoRow.section(Messages.DESCRIPTOR));
+            rows.addAll(descriptor);
+        }
+        return new InfoTable(title, rows);
     }
 }

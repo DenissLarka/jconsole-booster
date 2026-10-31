@@ -6,32 +6,33 @@ import com.druvu.jconsole.fx.tab.mbeans.common.Sections;
 import com.druvu.jconsole.fx.tab.mbeans.common.TableCopy;
 import java.util.List;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.geometry.Orientation;
 import javafx.scene.Node;
-import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 
 /**
- * Two read-only Name/Value tables, one above the other: the feature's info and its descriptor. Header rows are bold.
+ * The feature's info as one read-only Name/Value table under its title: the properties block by block, then the
+ * descriptor section. Header rows are bold; the section row is shaded too, so it stands apart from the blocks.
  *
  * @author Deniss Larka <br>
  *     on 30 Oct 2026
  */
 public final class InfoView {
 
-    private final SplitPane pane;
+    private static final String HEADER_STYLE = "-fx-font-weight: bold;";
+    /** The table's own row background (a bottom line over the cell colour), with the subtle colour instead. */
+    private static final String SECTION_STYLE = HEADER_STYLE
+            + " -fx-background-color: -color-cell-border, -color-bg-subtle; -fx-background-insets: 0, 0 0 1 0;";
 
-    public InfoView(InfoTables tables) {
-        pane = new SplitPane(
-                Sections.titled(tables.title(), table(tables.info())),
-                Sections.titled(Messages.DESCRIPTOR, table(tables.descriptor())));
-        pane.setOrientation(Orientation.VERTICAL);
+    private final Node node;
+
+    public InfoView(InfoTable info) {
+        node = Sections.titled(info.title(), table(info.rows()));
     }
 
     public Node node() {
-        return pane;
+        return node;
     }
 
     private static TableView<InfoRow> table(List<InfoRow> rows) {
@@ -48,18 +49,26 @@ public final class InfoView {
         table.getColumns().setAll(List.of(name, value));
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         DenseRows.apply(table);
-        table.setRowFactory(view -> new HeaderAwareRow());
+        table.setRowFactory(view -> new KindAwareRow());
         table.getItems().setAll(rows);
         TableCopy.install(table);
         return table;
     }
 
-    /** Puts header rows in bold. */
-    private static final class HeaderAwareRow extends TableRow<InfoRow> {
+    private static String style(InfoRow row) {
+        return switch (row.kind()) {
+            case SECTION -> SECTION_STYLE;
+            case HEADER -> HEADER_STYLE;
+            case PROPERTY -> "";
+        };
+    }
+
+    /** Styles each row by its kind. */
+    private static final class KindAwareRow extends TableRow<InfoRow> {
         @Override
         protected void updateItem(InfoRow row, boolean empty) {
             super.updateItem(row, empty);
-            setStyle(!empty && row != null && row.header() ? "-fx-font-weight: bold;" : "");
+            setStyle(empty || row == null ? "" : style(row));
         }
     }
 }

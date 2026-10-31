@@ -6,6 +6,7 @@ import java.util.Locale;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * The sample target's control MBean: counts requests, derives a status from the error count, and creates load on
@@ -20,6 +21,7 @@ public class SampleControl implements SampleControlMBean {
     private final AtomicLong errorCount = new AtomicLong();
     private final AtomicBoolean maintenance = new AtomicBoolean(false);
     private final List<byte[]> retainedBuffers = new ArrayList<>();
+    private final AtomicReference<String> logLevel = new AtomicReference<>("INFO");
 
     public void recordRequest() {
         requestCount.incrementAndGet();
@@ -90,12 +92,21 @@ public class SampleControl implements SampleControlMBean {
     @Override
     public String logMessage(String message) {
         if (maintenance.get()) {
-            System.out.println("[sample] " + message);
+            System.out.println("[sample] " + logLevel.get() + " " + message);
         }
         if (message != null && message.toLowerCase(Locale.ROOT).contains("error")) {
             errorCount.incrementAndGet();
         }
         return "logged " + (message == null ? 0 : message.length()) + " chars";
+    }
+
+    @Override
+    public String changeLogLevel(String level) {
+        String chosen = level == null ? "" : level.trim().toUpperCase(Locale.ROOT);
+        if (!List.of("ERROR", "WARN", "INFO", "DEBUG").contains(chosen)) {
+            throw new IllegalArgumentException("level must be ERROR, WARN, INFO or DEBUG, not '" + level + "'");
+        }
+        return logLevel.getAndSet(chosen);
     }
 
     @Override

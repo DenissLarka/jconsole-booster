@@ -5,7 +5,7 @@ It includes third-party material as noted below.
 
 ## Phosphor Icons
 
-The toolbar's glyphs in `com.druvu.jconsole.app.window.Icons` (connect, disconnect, settings) are duotone-weight
+The toolbar's glyphs in `com.druvu.jconsole.app.window.Icons` (connect, settings) are duotone-weight
 `<path>` data copied verbatim from [Phosphor Icons](https://github.com/phosphor-icons/core),
 Copyright (c) 2023 Phosphor Icons, MIT License.
 

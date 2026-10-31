@@ -20,8 +20,9 @@ import javafx.scene.layout.Region;
 
 /**
  * The toolbar under the menus, in the letterblade and wealth-app style: icon buttons whose tooltips carry the labels.
- * On the left the connection button, which names the JVM the app is connected to and lists the bookmarks (a click opens
- * the Connect dialog on that bookmark), then Disconnect; on the right Settings. FX thread only.
+ * On the left the connection button, which names the JVM the app is connected to; its list holds New Connection, the
+ * bookmarks (a click opens the Connect dialog on that bookmark) and, at the bottom, Disconnect. On the right Settings.
+ * FX thread only.
  *
  * @author Deniss Larka <br>
  *     on 31 Oct 2026
@@ -61,15 +62,11 @@ final class AppToolbar {
         connect.setOnShowing(event -> fillConnectionList());
         connection.activeProperty().addListener((observable, was, active) -> nameTheConnection(active));
 
-        Button disconnect = iconButton(Icons.disconnect(), DISCONNECT, connection::disconnect);
-        disconnect.disableProperty().bind(connection.activeProperty().not());
-
         // the spacer grows, pushing what follows it to the right edge
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        ToolBar toolBar =
-                new ToolBar(connect, disconnect, spacer, iconButton(Icons.settings(), SETTINGS, showSettings));
+        ToolBar toolBar = new ToolBar(connect, spacer, iconButton(Icons.settings(), SETTINGS, showSettings));
         toolBar.getStyleClass().add(STYLE_CLASS);
         return toolBar;
     }
@@ -79,6 +76,10 @@ final class AppToolbar {
         newConnection.setOnAction(event -> connection.newConnection());
         connect.getItems().setAll(newConnection, new SeparatorMenuItem());
         connect.getItems().addAll(BookmarksMenu.items(bookmarksFile.groups(), connection::newConnection));
+        MenuItem disconnect = new MenuItem(DISCONNECT);
+        disconnect.setOnAction(event -> connection.disconnect());
+        disconnect.disableProperty().bind(connection.activeProperty().not());
+        connect.getItems().addAll(new SeparatorMenuItem(), disconnect);
     }
 
     /** The button reads the connection's bookmark label, or its {@code host:port} when it is not bookmarked. */

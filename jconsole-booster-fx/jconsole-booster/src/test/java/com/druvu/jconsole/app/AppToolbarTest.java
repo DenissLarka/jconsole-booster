@@ -28,7 +28,8 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 /**
- * The toolbar without a connection: Connect lists New Connection and the bookmark groups, Settings sits on the right.
+ * The toolbar without a connection: Connect lists New Connection, the bookmark groups and Disconnect, Settings sits on
+ * the right.
  */
 public class AppToolbarTest {
 
@@ -65,18 +66,21 @@ public class AppToolbarTest {
     @Test
     public void withoutAConnectionTheButtonSaysConnectAndDisconnectIsOff() {
         assertThat(connectButton().getText()).isEqualTo(AppToolbar.CONNECT);
-        assertThat(button(AppToolbar.DISCONNECT).isDisabled()).isTrue();
+        MenuItem disconnect = connectButton().getItems().getLast();
+        assertThat(disconnect.getText()).isEqualTo(AppToolbar.DISCONNECT);
+        assertThat(disconnect.isDisable()).isTrue();
     }
 
     @Test
-    public void connectListsNewConnectionThenTheBookmarkGroups() {
+    public void connectListsNewConnectionTheBookmarkGroupsThenDisconnect() {
         List<MenuItem> items = connectButton().getItems();
 
         assertThat(items.get(1)).isInstanceOf(SeparatorMenuItem.class);
+        assertThat(items.get(items.size() - 2)).isInstanceOf(SeparatorMenuItem.class);
         assertThat(items.stream()
                         .filter(item -> !(item instanceof SeparatorMenuItem))
                         .map(MenuItem::getText))
-                .containsExactly(AppToolbar.NEW_CONNECTION, "Prod", "Test");
+                .containsExactly(AppToolbar.NEW_CONNECTION, "Prod", "Test", AppToolbar.DISCONNECT);
     }
 
     @Test
@@ -85,6 +89,7 @@ public class AppToolbarTest {
 
         FxTestToolkit.runAndWait(settings::fire);
 
+        assertThat(toolBar.getItems()).hasSize(3).first().isSameAs(connectButton());
         assertThat(toolBar.getItems().getLast()).isSameAs(settings);
         assertThat(settingsOpened).hasValue(1);
     }

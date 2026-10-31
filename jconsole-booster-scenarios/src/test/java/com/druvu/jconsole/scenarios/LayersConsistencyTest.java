@@ -11,22 +11,13 @@ import org.testng.annotations.Test;
 
 /**
  * The module layers of JConsole Booster, checked on the compiled classes of every module: the core at the bottom, the
- * protocols found at run time, the console and the two desktop apps as fronts (the JavaFX app over its tab contract,
- * its charts and its tabs; the Swing app until the JavaFX one replaces it), the sample target outside them all.
+ * protocols found at run time, the console and the JavaFX app as fronts (the app over its tab contract, its charts and
+ * its tabs), the sample target outside them all.
  *
  * @author Deniss Larka <br>
  *     on 30 Oct 2026
  */
 public class LayersConsistencyTest {
-
-    // The Swing front's packages, the reference until the JavaFX app replaces it.
-    private static final String[] DESKTOP = {
-        "com.druvu.jconsole.inspector..",
-        "com.druvu.jconsole.launcher..",
-        "com.druvu.jconsole.plugins..",
-        "com.druvu.jconsole.ui..",
-        "com.druvu.jconsole.util.."
-    };
 
     private static final JavaClasses JCB = new ClassFileImporter()
             .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
@@ -43,8 +34,6 @@ public class LayersConsistencyTest {
                 .definedBy("com.druvu.jconsole.protocol..")
                 .layer("Console")
                 .definedBy("com.druvu.jconsole.console..")
-                .layer("Desktop")
-                .definedBy(DESKTOP)
                 .layer("Sample target")
                 .definedBy("com.druvu.jconsole.sampletarget..")
                 .layer("Tab contract")
@@ -56,15 +45,13 @@ public class LayersConsistencyTest {
                 .layer("App")
                 .definedBy("com.druvu.jconsole.app..")
                 .whereLayer("Core")
-                .mayOnlyBeAccessedByLayers("Protocols", "Console", "Desktop", "Tab contract", "Charts", "Tabs", "App")
+                .mayOnlyBeAccessedByLayers("Protocols", "Console", "Tab contract", "Charts", "Tabs", "App")
                 // the core finds a protocol through druvu-lib-loader, so nothing names one
                 .whereLayer("Protocols")
                 .mayNotBeAccessedByAnyLayer()
-                // both desktop apps hand --console over
+                // the app hands --console over
                 .whereLayer("Console")
-                .mayOnlyBeAccessedByLayers("Desktop", "App")
-                .whereLayer("Desktop")
-                .mayNotBeAccessedByAnyLayer()
+                .mayOnlyBeAccessedByLayers("App")
                 .whereLayer("Sample target")
                 .mayNotBeAccessedByAnyLayer()
                 .whereLayer("Tab contract")
@@ -88,8 +75,7 @@ public class LayersConsistencyTest {
                 .should()
                 .dependOnClassesThat()
                 .resideInAnyPackage("java.awt..", "javax.swing..", "javafx..", "java.beans..")
-                .because(
-                        "the console runs on boxes without a display, and the JavaFX app replaces Swing on the same core")
+                .because("the console runs on boxes without a display")
                 .check(JCB);
     }
 

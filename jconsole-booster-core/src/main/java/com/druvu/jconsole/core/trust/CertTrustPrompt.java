@@ -8,7 +8,7 @@ import java.util.List;
  * against the default trust store (typically a self-signed cert — the druvu-lib-jmxmp 2.0.0 default).
  * Trust-on-first-use, SSH style.
  *
- * <p>Implementations may be invoked off the Swing EDT (connections are established on a worker thread); a UI
+ * <p>Implementations may be invoked off the UI thread (connections are established on a worker thread); a UI
  * implementation must marshal to the EDT itself (see {@code CertTrustDialog}).
  */
 public interface CertTrustPrompt {

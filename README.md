@@ -354,13 +354,13 @@ If JMX is part of your day, I'd genuinely like to hear what still fights you —
 
 ## Building from source
 
-Requires JDK 25+ and Maven 3.9+.
+Requires a JDK 27 that bundles JavaFX (for example Zulu 27 JDK FX) and Maven 3.9+.
 
 ```bash
 git clone https://github.com/DenissLarka/jconsole-booster.git
 cd jconsole-booster
 mvn clean package
-mvn -pl jconsole-booster-swing -am compile exec:exec@start
+mvn -pl jconsole-booster-fx/jconsole-booster -am compile exec:exec@start
 ```
 
 ### Single-jar build (no installer)

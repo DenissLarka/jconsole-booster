@@ -1,9 +1,8 @@
 #!/usr/bin/env pwsh
 
-# Runs the JavaFX app from source; -Swing runs the 1.1 Swing UI instead, kept as the reference until 1.2.0.
-# The first other arg (if any) is the connection target (host:port or a service:jmx: URL).
+# Runs the JavaFX app from source.
+# The first arg (if any) is the connection target (host:port or a service:jmx: URL).
 param(
-    [switch]$Swing,
     [Parameter(ValueFromRemainingArguments = $true)]
     [string[]]$Target
 )
@@ -15,7 +14,7 @@ if ($useJdk) {
     . $useJdk.Path
 }
 
-$module = if ($Swing) { 'jconsole-booster-swing' } else { 'jconsole-booster-fx/jconsole-booster' }
+$module = 'jconsole-booster-fx/jconsole-booster'
 $pom = Join-Path $PSScriptRoot 'pom.xml'
 
 if ($Target.Count -gt 0) {

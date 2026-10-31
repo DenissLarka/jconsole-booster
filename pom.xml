@@ -20,7 +20,6 @@
 		<module>jconsole-booster-protocol-jmxmp</module>
 		<module>jconsole-booster-console</module>
 		<module>jconsole-booster-sample-target</module>
-		<module>jconsole-booster-swing</module>
 		<module>jconsole-booster-fx</module>
 		<module>jconsole-booster-scenarios</module>
 	</modules>
@@ -65,7 +64,6 @@
 
 		<druvu-lib-jmxmp.version>2.0.0</druvu-lib-jmxmp.version>
 		<druvu-lib-loader.version>1.1.2</druvu-lib-loader.version>
-		<awt-color-factory.version>1.0.2</awt-color-factory.version>
 		<lombok.version>1.18.48</lombok.version>
 		<slf4j.version>2.0.20</slf4j.version>
 		<testng.version>7.12.0</testng.version>
@@ -108,11 +106,6 @@
 				<groupId>com.druvu</groupId>
 				<artifactId>druvu-lib-loader</artifactId>
 				<version>${druvu-lib-loader.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.beryx</groupId>
-				<artifactId>awt-color-factory</artifactId>
-				<version>${awt-color-factory.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.projectlombok</groupId>

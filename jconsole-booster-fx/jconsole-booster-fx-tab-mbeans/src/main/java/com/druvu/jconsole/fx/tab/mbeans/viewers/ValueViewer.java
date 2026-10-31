@@ -1,6 +1,7 @@
 package com.druvu.jconsole.fx.tab.mbeans.viewers;
 
 import com.druvu.jconsole.core.text.Messages;
+import com.druvu.jconsole.fx.tab.DenseRows;
 import com.druvu.jconsole.fx.tab.TabHost;
 import com.druvu.jconsole.fx.tab.mbeans.common.TableCopy;
 import java.io.File;
@@ -63,6 +64,7 @@ public final class ValueViewer {
         bar.setPadding(new Insets(0, 0, 6, 0));
         pane.setTop(bar);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        DenseRows.apply(table);
         TableCopy.install(table);
         opened.push(level);
         render();

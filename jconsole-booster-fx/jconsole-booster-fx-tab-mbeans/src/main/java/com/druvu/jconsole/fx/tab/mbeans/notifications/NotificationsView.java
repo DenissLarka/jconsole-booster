@@ -1,6 +1,7 @@
 package com.druvu.jconsole.fx.tab.mbeans.notifications;
 
 import com.druvu.jconsole.core.text.Messages;
+import com.druvu.jconsole.fx.tab.DenseRows;
 import com.druvu.jconsole.fx.tab.mbeans.common.TabServices;
 import com.druvu.jconsole.fx.tab.mbeans.common.TableCopy;
 import java.util.List;
@@ -48,6 +49,7 @@ public final class NotificationsView {
                         column(Messages.SEQ_NUM, NotificationRow::sequenceNumber, 70),
                         column(Messages.MESSAGE, NotificationRow::message, 400)));
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        DenseRows.apply(table);
         TableCopy.install(table);
         HBox buttons = new HBox(
                 6,

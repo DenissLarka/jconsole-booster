@@ -1,6 +1,7 @@
 package com.druvu.jconsole.fx.tab.threads;
 
 import com.druvu.jconsole.core.text.Messages;
+import com.druvu.jconsole.fx.tab.DenseRows;
 import java.util.List;
 import javafx.scene.Node;
 import javafx.scene.control.ListView;
@@ -38,6 +39,7 @@ final class ThreadBrowser {
         details.getStyleClass().add(DETAILS_STYLE_CLASS);
         details.setAccessibleText(Messages.THREAD_TAB_THREAD_INFO_ACCESSIBLE_NAME);
         root.setDividerPositions(LIST_SHARE);
+        DenseRows.apply(list);
         // a wider window widens the details, where the long stack lines are
         SplitPane.setResizableWithParent(list, false);
         list.getSelectionModel()

@@ -1,5 +1,6 @@
 package com.druvu.jconsole.fx.tab.jtop;
 
+import com.druvu.jconsole.fx.tab.DenseRows;
 import java.util.function.Function;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
@@ -42,6 +43,7 @@ final class JTopView {
         table.getColumns().add(cpu);
         table.getColumns().add(state);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        DenseRows.apply(table);
         table.setPlaceholder(new Label("No threads to show"));
         // The table sorts a sorted view of the rows, so the user's column order outlives every new reading.
         SortedList<ThreadRow> sorted = new SortedList<>(rows);

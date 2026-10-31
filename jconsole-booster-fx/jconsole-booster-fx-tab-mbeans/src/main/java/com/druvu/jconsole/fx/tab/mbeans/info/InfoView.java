@@ -1,6 +1,7 @@
 package com.druvu.jconsole.fx.tab.mbeans.info;
 
 import com.druvu.jconsole.core.text.Messages;
+import com.druvu.jconsole.fx.tab.DenseRows;
 import com.druvu.jconsole.fx.tab.mbeans.common.Sections;
 import com.druvu.jconsole.fx.tab.mbeans.common.TableCopy;
 import java.util.List;
@@ -46,6 +47,7 @@ public final class InfoView {
         value.setSortable(false);
         table.getColumns().setAll(List.of(name, value));
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        DenseRows.apply(table);
         table.setRowFactory(view -> new HeaderAwareRow());
         table.getItems().setAll(rows);
         TableCopy.install(table);

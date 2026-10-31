@@ -1,5 +1,6 @@
 package com.druvu.jconsole.fx.tab.mbeans.tree;
 
+import com.druvu.jconsole.fx.tab.DenseRows;
 import com.druvu.jconsole.fx.tab.mbeans.common.MBeanMetadata;
 import com.druvu.lib.fx.util.FxThreads;
 import java.util.Collection;
@@ -37,6 +38,7 @@ public final class MBeanTree {
     public MBeanTree(Function<ObjectName, CompletionStage<MBeanMetadata>> metadataReader) {
         this.metadataReader = metadataReader;
         view.setShowRoot(false);
+        DenseRows.apply(view);
         view.setCellFactory(tree -> new EntryCell());
         model.root()
                 .addEventHandler(TreeItem.<TreeEntry>branchExpandedEvent(), event -> readMetadata(event.getTreeItem()));

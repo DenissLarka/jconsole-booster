@@ -2,6 +2,7 @@ package com.druvu.jconsole.fx.tab.mbeans.attributes;
 
 import com.druvu.jconsole.core.mbeans.MBeanValues;
 import com.druvu.jconsole.core.text.Messages;
+import com.druvu.jconsole.fx.tab.DenseRows;
 import com.druvu.jconsole.fx.tab.mbeans.common.Failures;
 import com.druvu.jconsole.fx.tab.mbeans.common.TabServices;
 import com.druvu.jconsole.fx.tab.mbeans.common.TableCopy;
@@ -54,6 +55,7 @@ public final class AttributesView {
         valueColumn.setCellFactory(column -> new AttributeValueCell(this::write, this::view));
         table.getColumns().setAll(List.of(nameColumn, valueColumn));
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        DenseRows.apply(table);
         table.setEditable(true);
         TableCopy.install(table);
 

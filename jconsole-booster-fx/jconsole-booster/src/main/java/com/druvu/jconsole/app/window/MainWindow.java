@@ -19,6 +19,7 @@ import javafx.scene.control.MenuBar;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.ToolBar;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -27,16 +28,16 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 
 /**
- * The app's one window: the menus, the optional colour band, the connection's tabs (or a hint while there are none) and
- * the status bar. It shows what it is told and asks the user when told to; the connection's life is decided elsewhere.
- * It is also the {@link TabHost} the tabs talk to. FX thread only.
+ * The app's one window: the menus, the toolbar, the optional colour band, the connection's tabs (or a hint while there
+ * are none) and the status bar. It shows what it is told and asks the user when told to; the connection's life is
+ * decided elsewhere. It is also the {@link TabHost} the tabs talk to. FX thread only.
  *
  * @author Deniss Larka <br>
  *     on 30 Oct 2026
  */
 public final class MainWindow implements TabHost {
 
-    private static final String NOT_CONNECTED_HINT = "Not connected. Connection > New Connection… opens a JVM.";
+    private static final String NOT_CONNECTED_HINT = "Not connected. Connect, in the toolbar, opens a JVM.";
 
     /** macOS lifts the menus out of the window, leaving the bar behind as an empty strip. */
     private static final boolean MAC =
@@ -91,6 +92,13 @@ public final class MainWindow implements TabHost {
             menuBar.getStyleClass().add("system-menu-bar-host");
         }
         top.getChildren().addFirst(menuBar);
+    }
+
+    /** Puts the toolbar under the menus and above the colour band, whichever of them came first. */
+    public void setToolBar(ToolBar toolBar) {
+        int menus = (int)
+                top.getChildren().stream().filter(MenuBar.class::isInstance).count();
+        top.getChildren().add(menus, toolBar);
     }
 
     /** A thin band in the colour given at launch, under the menus. */

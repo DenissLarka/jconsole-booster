@@ -23,6 +23,16 @@ public class BookmarksMenuTest {
     }
 
     @Test
+    public void theItemsWithoutBookmarksAreOneDisabledLine() {
+        List<MenuItem> items = BookmarksMenu.items(List.of(), target -> {});
+
+        assertThat(items).singleElement().satisfies(item -> {
+            assertThat(item.getText()).isEqualTo(BookmarksMenu.EMPTY);
+            assertThat(item.isDisable()).isTrue();
+        });
+    }
+
+    @Test
     public void aGroupIsASubmenuAndABookmarkClickHandsItsTargetOn() {
         List<String> picked = new ArrayList<>();
         List<BookmarkGroup> groups = List.of(new BookmarkGroup(

@@ -8,6 +8,7 @@ import com.druvu.jconsole.app.connect.FxCertTrustPrompt;
 import com.druvu.jconsole.app.connect.FxPlaintextAlert;
 import com.druvu.jconsole.app.session.ConnectionController;
 import com.druvu.jconsole.app.session.TabSwitches;
+import com.druvu.jconsole.app.settings.SettingsDialog;
 import com.druvu.jconsole.app.window.AboutBox;
 import com.druvu.jconsole.app.window.ColorBand;
 import com.druvu.jconsole.app.window.MainWindow;
@@ -97,9 +98,11 @@ public final class JConsoleBoosterApp extends Application {
                 new ConnectDialog(stage, RecentConnections::load, bookmarksFile::labelsByTarget, bookmarkActions::add);
         connection = new ConnectionController(
                 window, connectDialog, switches, Duration.ofMillis(options.updateInterval()), exec);
+        SettingsDialog settings = new SettingsDialog(stage, themes, switches, connection.tabChoices());
         AppMenus menus = new AppMenus(
-                connection, bookmarksFile, bookmarkActions, themes, switches, window, getHostServices()::showDocument);
+                connection, bookmarksFile, bookmarkActions, settings::show, window, getHostServices()::showDocument);
         window.setMenuBar(menus.build());
+        window.setToolBar(new AppToolbar(connection, bookmarksFile, settings::show).build());
 
         JMXConnectionManager.setCertTrustPrompt(new FxCertTrustPrompt(stage));
         JMXConnectionManager.setPlaintextCredentialAlert(new FxPlaintextAlert(stage));

@@ -4,62 +4,51 @@ import com.druvu.jconsole.app.bookmarks.BookmarkActions;
 import com.druvu.jconsole.app.bookmarks.BookmarksFile;
 import com.druvu.jconsole.app.bookmarks.BookmarksMenu;
 import com.druvu.jconsole.app.session.ConnectionController;
-import com.druvu.jconsole.app.session.TabChoice;
-import com.druvu.jconsole.app.session.TabSwitches;
 import com.druvu.jconsole.app.window.AboutBox;
 import com.druvu.jconsole.app.window.MainWindow;
-import com.druvu.lib.fx.theme.FxTheme;
-import com.druvu.lib.fx.theme.ThemeManager;
 import java.util.Objects;
 import java.util.function.Consumer;
 import javafx.application.Platform;
-import javafx.collections.ListChangeListener;
-import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.RadioMenuItem;
 import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.control.ToggleGroup;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 
 /**
- * The app's menus: Connection (connect, bookmarks, disconnect, exit), View (theme, tabs) and Help (guide, feedback,
- * About). About sits in Help on every system, macOS included. FX thread only.
+ * The app's menus: Connection (connect, bookmarks, disconnect, exit), View (settings: the theme and the tabs) and Help
+ * (guide, feedback, About). About sits in Help on every system, macOS included. FX thread only.
  *
  * @author Deniss Larka <br>
  *     on 30 Oct 2026
  */
 final class AppMenus {
 
-    private static final String NO_TABS_YET = "(connect to list the tabs)";
-
     private final ConnectionController connection;
     private final BookmarksFile bookmarksFile;
     private final BookmarkActions bookmarkActions;
-    private final ThemeManager themes;
-    private final TabSwitches switches;
+    private final Runnable showSettings;
     private final MainWindow window;
     private final Consumer<String> openLink;
     private final Menu bookmarksMenu = new Menu("Bookmarks");
-    private final Menu tabsMenu = new Menu("Tabs");
 
-    /** @param openLink opens an address in the browser */
+    /**
+     * @param showSettings opens the settings dialog
+     * @param openLink opens an address in the browser
+     */
     AppMenus(
             ConnectionController connection,
             BookmarksFile bookmarksFile,
             BookmarkActions bookmarkActions,
-            ThemeManager themes,
-            TabSwitches switches,
+            Runnable showSettings,
             MainWindow window,
             Consumer<String> openLink) {
         this.connection = Objects.requireNonNull(connection, "connection");
         this.bookmarksFile = Objects.requireNonNull(bookmarksFile, "bookmarksFile");
         this.bookmarkActions = Objects.requireNonNull(bookmarkActions, "bookmarkActions");
-        this.themes = Objects.requireNonNull(themes, "themes");
-        this.switches = Objects.requireNonNull(switches, "switches");
+        this.showSettings = Objects.requireNonNull(showSettings, "showSettings");
         this.window = Objects.requireNonNull(window, "window");
         this.openLink = Objects.requireNonNull(openLink, "openLink");
     }
@@ -107,42 +96,9 @@ final class AppMenus {
     }
 
     private Menu viewMenu() {
-        fillTabsMenu();
-        connection.tabChoices().addListener((ListChangeListener<TabChoice>) change -> fillTabsMenu());
-        return new Menu("View", null, themeMenu(), tabsMenu);
-    }
-
-    private Menu themeMenu() {
-        Menu menu = new Menu("Theme");
-        ToggleGroup choice = new ToggleGroup();
-        for (FxTheme theme : FxTheme.values()) {
-            RadioMenuItem item = new RadioMenuItem(theme.displayName());
-            item.setToggleGroup(choice);
-            item.setSelected(theme == themes.current());
-            item.setOnAction(event -> themes.apply(theme));
-            menu.getItems().add(item);
-        }
-        return menu;
-    }
-
-    /** One switch per tab of the last connection; a change counts from the next connect. */
-    private void fillTabsMenu() {
-        tabsMenu.getItems().clear();
-        if (connection.tabChoices().isEmpty()) {
-            MenuItem none = new MenuItem(NO_TABS_YET);
-            none.setDisable(true);
-            tabsMenu.getItems().add(none);
-            return;
-        }
-        for (TabChoice tab : connection.tabChoices()) {
-            CheckMenuItem item = new CheckMenuItem(tab.title());
-            item.setSelected(switches.isOn(tab.id()));
-            item.setOnAction(event -> {
-                switches.set(tab.id(), item.isSelected());
-                window.notice(tab.title() + (item.isSelected() ? " on" : " off") + " from the next connect");
-            });
-            tabsMenu.getItems().add(item);
-        }
+        MenuItem settings = item("Settings…", showSettings);
+        settings.setAccelerator(new KeyCodeCombination(KeyCode.COMMA, KeyCombination.SHORTCUT_DOWN));
+        return new Menu("View", null, settings);
     }
 
     private Menu helpMenu() {

@@ -376,7 +376,7 @@ Requires a full JDK 25+ at runtime (the jar does not bundle one, unlike the inst
 
 ## License
 
-JConsole Booster is licensed under the **GNU General Public License v2 with the Classpath Exception**, inherited from upstream OpenJDK JConsole. See [LICENSE](LICENSE) for the full text.
+JConsole Booster is licensed under the **GNU General Public License v2 with the Classpath Exception**, inherited from upstream OpenJDK JConsole. See [LICENSE](LICENSE) for the full text. The toolbar icons are from Phosphor Icons (MIT); see [NOTICE.md](NOTICE.md).
 
 ---
 

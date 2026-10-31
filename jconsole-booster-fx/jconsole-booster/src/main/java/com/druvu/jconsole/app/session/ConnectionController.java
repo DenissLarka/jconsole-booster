@@ -90,7 +90,7 @@ public final class ConnectionController {
         return reconnectable.getReadOnlyProperty();
     }
 
-    /** The tabs of the last connection, for View &gt; Tabs; empty before the first connect. */
+    /** The tabs of the last connection, for Settings &gt; Plugins; empty before the first connect. */
     public ObservableList<TabChoice> tabChoices() {
         return FXCollections.unmodifiableObservableList(tabChoices);
     }

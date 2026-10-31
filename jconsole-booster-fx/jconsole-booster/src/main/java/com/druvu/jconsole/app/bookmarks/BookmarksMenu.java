@@ -4,6 +4,7 @@ import com.druvu.jconsole.core.bookmarks.Bookmark;
 import com.druvu.jconsole.core.bookmarks.BookmarkEntry;
 import com.druvu.jconsole.core.bookmarks.BookmarkGroup;
 import com.druvu.jconsole.core.bookmarks.BookmarkSeparator;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import javafx.scene.control.Menu;
@@ -11,8 +12,9 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 
 /**
- * Fills the Bookmarks menu: one submenu per group, one item per bookmark. A click hands the bookmark's target on; it
- * never connects by itself, because a bookmark keeps no password.
+ * The bookmarks as menu items, for the Bookmarks menu and the toolbar's connection button: one submenu per group, one
+ * item per bookmark. A click hands the bookmark's target on; it never connects by itself, because a bookmark keeps no
+ * password.
  *
  * @author Deniss Larka <br>
  *     on 30 Oct 2026
@@ -29,13 +31,21 @@ public final class BookmarksMenu {
      * @param onPick told the target of the clicked bookmark
      */
     public static void fill(Menu menu, List<BookmarkGroup> groups, Consumer<String> onPick) {
-        menu.getItems().clear();
+        menu.getItems().setAll(items(groups, onPick));
+    }
+
+    /**
+     * The groups' bookmarks as items: a submenu per group, or one disabled line saying there are none.
+     *
+     * @param onPick told the target of the clicked bookmark
+     */
+    public static List<MenuItem> items(List<BookmarkGroup> groups, Consumer<String> onPick) {
         if (groups.isEmpty()) {
             MenuItem empty = new MenuItem(EMPTY);
             empty.setDisable(true);
-            menu.getItems().add(empty);
-            return;
+            return List.of(empty);
         }
+        List<MenuItem> items = new ArrayList<>();
         for (BookmarkGroup group : groups) {
             Menu groupMenu = new Menu(group.name());
             for (BookmarkEntry entry : group.entries()) {
@@ -47,7 +57,8 @@ public final class BookmarksMenu {
                     groupMenu.getItems().add(item);
                 }
             }
-            menu.getItems().add(groupMenu);
+            items.add(groupMenu);
         }
+        return items;
     }
 }

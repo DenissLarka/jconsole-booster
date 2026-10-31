@@ -60,7 +60,7 @@ final class TabSet {
                 ordered.stream().filter(tab -> !isOn.test(tab.id())).toList());
     }
 
-    /** What View &gt; Tabs offers: every loaded tab, in place order. */
+    /** What Settings &gt; Plugins offers: every loaded tab, in place order. */
     static List<TabChoice> choices(List<ConnectionTab> loaded) {
         return loaded.stream()
                 .sorted(BY_PLACE)

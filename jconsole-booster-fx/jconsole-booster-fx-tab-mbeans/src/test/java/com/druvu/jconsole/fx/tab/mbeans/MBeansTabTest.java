@@ -176,10 +176,11 @@ public class MBeansTabTest {
                 .orElse(null);
     }
 
-    /** The text input of the operation's first parameter, in the button's row of the operations grid. */
+    /** The text input of the operation's first parameter, in the row of the button's cell in the operations grid. */
     private static TextField inputBeside(Button operation) {
-        Integer row = GridPane.getRowIndex(operation);
-        return operation.getParent().getChildrenUnmodifiable().stream()
+        Node operationCell = operation.getParent();
+        Integer row = GridPane.getRowIndex(operationCell);
+        return operationCell.getParent().getChildrenUnmodifiable().stream()
                 .filter(cell -> row.equals(GridPane.getRowIndex(cell)))
                 .flatMap(cell -> find(cell, TextField.class).stream())
                 .findFirst()

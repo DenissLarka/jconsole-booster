@@ -10,7 +10,6 @@ import com.druvu.jconsole.fx.tab.mbeans.testing.TestServers;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -28,7 +27,10 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-/** The operations table: a header row, then per operation its return type, its button and a column per parameter. */
+/**
+ * The operations table: a header row, then per operation its cell (the return type above the button) and a column per
+ * parameter (the name above the input).
+ */
 public class OperationsTableTest {
 
     private TabServices services;
@@ -55,20 +57,29 @@ public class OperationsTableTest {
 
     @Test
     public void theHeaderNamesTheColumns() {
-        assertThat(FxTestToolkit.call(() -> textsInRow(0))).containsExactly("Return type", "Operation", "Parameter 1");
+        assertThat(FxTestToolkit.call(() -> textsInRow(0))).containsExactly("Operation", "Parameter 1");
     }
 
     @Test
     public void eachOperationHasARowSortedByName() {
-        assertThat(FxTestToolkit.call(() ->
-                        cellsIn(1, Button.class).stream().map(Button::getText).toList()))
+        assertThat(FxTestToolkit.call(() -> operationCells().stream()
+                        .map(cell -> button(cell).getText())
+                        .toList()))
                 .containsExactly("echo", "ping", "rename", "reset");
-        assertThat(FxTestToolkit.call(() -> textsInRow(rowOf("echo")))).containsExactly("String");
+    }
+
+    @Test
+    public void theReturnTypeIsAboveTheButton() {
+        VBox cell = FxTestToolkit.call(() -> cellAt(0, rowOf("echo")));
+
+        assertThat(cell.getChildren()).hasSize(2);
+        assertThat(((Label) cell.getChildren().get(0)).getText()).isEqualTo("String");
+        assertThat(cell.getChildren().get(1)).isInstanceOf(Button.class);
     }
 
     @Test
     public void aParameterHasAColumnWithItsNameAboveItsInput() {
-        VBox cell = FxTestToolkit.call(() -> (VBox) cellAt(2, rowOf("rename")));
+        VBox cell = FxTestToolkit.call(() -> cellAt(1, rowOf("rename")));
 
         assertThat(cell.getChildren()).hasSize(2);
         assertThat(((Label) cell.getChildren().get(0)).getText()).isEqualTo("p1");
@@ -92,7 +103,7 @@ public class OperationsTableTest {
                     services, new MemoryOnlyOperationMemory(), TestServers.GADGET, "Levels", List.of(changeLevel));
             GridPane table = (GridPane) ((ScrollPane) view.node()).getContent();
             VBox cell = (VBox) table.getChildren().stream()
-                    .filter(node -> GridPane.getColumnIndex(node) == 2 && GridPane.getRowIndex(node) == 1)
+                    .filter(node -> GridPane.getColumnIndex(node) == 1 && GridPane.getRowIndex(node) == 1)
                     .findFirst()
                     .orElseThrow();
             return (ComboBox<?>) cell.getChildren().get(1);
@@ -111,25 +122,34 @@ public class OperationsTableTest {
                 .toList();
     }
 
-    private <T extends Node> List<T> cellsIn(int column, Class<T> type) {
+    /** The operations' cells, in row order. */
+    private List<VBox> operationCells() {
         return grid.getChildren().stream()
-                .filter(node -> type.isInstance(node) && GridPane.getColumnIndex(node) == column)
+                .filter(node -> node instanceof VBox && GridPane.getColumnIndex(node) == 0)
                 .sorted(Comparator.comparing(GridPane::getRowIndex))
-                .map(type::cast)
+                .map(VBox.class::cast)
                 .toList();
     }
 
+    private static Button button(VBox operationCell) {
+        return (Button) operationCell.getChildren().get(1);
+    }
+
     private int rowOf(String operation) {
-        return cellsIn(1, Button.class).stream()
-                .filter(button -> operation.equals(button.getText()))
+        return operationCells().stream()
+                .filter(cell -> operation.equals(button(cell).getText()))
                 .map(GridPane::getRowIndex)
                 .findFirst()
                 .orElseThrow();
     }
 
-    private Node cellAt(int column, int row) {
+    /** The cell at a column and row; the row's line, which starts at column 0 too, is not a cell. */
+    private VBox cellAt(int column, int row) {
         return grid.getChildren().stream()
-                .filter(node -> GridPane.getColumnIndex(node) == column && GridPane.getRowIndex(node) == row)
+                .filter(node -> node instanceof VBox
+                        && GridPane.getColumnIndex(node) == column
+                        && GridPane.getRowIndex(node) == row)
+                .map(VBox.class::cast)
                 .findFirst()
                 .orElseThrow();
     }

@@ -5,25 +5,21 @@ import com.druvu.jconsole.fx.tab.mbeans.common.TabServices;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import javafx.geometry.HPos;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
 import javax.management.MBeanOperationInfo;
 import javax.management.ObjectName;
 
 /**
- * An MBean's operations as a table, sorted by name: a header row, then one row per operation with the return type (its
- * full name in the tooltip), the invoke button and a column per parameter. It is a grid drawn like a table rather than
- * a TableView, because a TableView reuses its cells while scrolling, which takes the focus out of a field being typed
- * in.
+ * An MBean's operations as a table, sorted by name: a header row, then one row per operation with the operation's cell
+ * (its return type above the invoke button) and a column per parameter (its name above its input). It is a grid drawn
+ * like a table rather than a TableView, because a TableView reuses its cells while scrolling, which takes the focus out
+ * of a field being typed in.
  *
  * @author Deniss Larka <br>
  *     on 30 Oct 2026
@@ -56,22 +52,20 @@ public final class OperationsView {
                 .mapToInt(operation -> operation.getSignature().length)
                 .max()
                 .orElse(0);
-        int columns = 2 + parameterColumns;
+        int columns = 1 + parameterColumns;
         GridPane grid = new GridPane();
         grid.setHgap(12);
         grid.setPadding(new Insets(0, 6, 6, 6));
         addHeader(grid, columns, parameterColumns);
         for (int i = 0; i < sorted.size(); i++) {
             int row = i + 1;
-            MBeanOperationInfo operation = sorted.get(i);
-            OperationForm form = new OperationForm(operation, mbeanClass, memory, services.host(), call::invoke);
+            OperationForm form = new OperationForm(sorted.get(i), mbeanClass, memory, services.host(), call::invoke);
             forms.add(form);
             grid.add(line(ROW_LINE_STYLE), 0, row, columns, 1);
-            addCell(grid, onTheFieldsLine(returnType(operation)), 0, row);
-            addCell(grid, onTheFieldsLine(fullWidth(form.button())), 1, row);
+            addCell(grid, form.operationCell(), 0, row);
             List<Node> parameters = form.parameterCells();
             for (int p = 0; p < parameters.size(); p++) {
-                addCell(grid, parameters.get(p), 2 + p, row);
+                addCell(grid, parameters.get(p), 1 + p, row);
             }
         }
         pane = new ScrollPane(grid);
@@ -89,12 +83,9 @@ public final class OperationsView {
 
     private static void addHeader(GridPane grid, int columns, int parameterColumns) {
         grid.add(line(HEADER_LINE_STYLE), 0, 0, columns, 1);
-        Label returnType = header(Messages.RETURN_TYPE_COLUMN);
-        GridPane.setHalignment(returnType, HPos.RIGHT);
-        addCell(grid, returnType, 0, 0);
-        addCell(grid, header(Messages.OPERATION), 1, 0);
+        addCell(grid, header(Messages.OPERATION), 0, 0);
         for (int p = 0; p < parameterColumns; p++) {
-            addCell(grid, header(Messages.PARAMETER + " " + (p + 1)), 2 + p, 0);
+            addCell(grid, header(Messages.PARAMETER + " " + (p + 1)), 1 + p, 0);
         }
     }
 
@@ -104,30 +95,10 @@ public final class OperationsView {
         return header;
     }
 
-    private static Label returnType(MBeanOperationInfo operation) {
-        Label returns = new Label(ParameterInputs.simpleName(operation.getReturnType()));
-        if (operation.getReturnType() != null) {
-            returns.setTooltip(new Tooltip(operation.getReturnType()));
-        }
-        GridPane.setHalignment(returns, HPos.RIGHT);
-        return returns;
-    }
-
-    /** The invoke buttons fill their column, so they line up with their names on the left. */
-    private static Button fullWidth(Button button) {
-        button.setMaxWidth(Double.MAX_VALUE);
-        button.setAlignment(Pos.CENTER_LEFT);
-        return button;
-    }
-
-    /** A parameter's name sits above its input, so the row's other cells keep to the bottom, beside the inputs. */
-    private static Node onTheFieldsLine(Node cell) {
-        GridPane.setValignment(cell, VPos.BOTTOM);
-        return cell;
-    }
-
+    /** The cells keep to the top of their row, so the hints line up beside a tall text area. */
     private static void addCell(GridPane grid, Node cell, int column, int row) {
         GridPane.setMargin(cell, CELL_MARGIN);
+        GridPane.setValignment(cell, VPos.TOP);
         grid.add(cell, column, row);
     }
 

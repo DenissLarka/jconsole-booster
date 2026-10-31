@@ -1,38 +1,39 @@
 package com.druvu.jconsole.fx.tab.mbeans.operations;
 
 import com.druvu.jconsole.core.mbeans.MBeanValues;
+import com.druvu.jconsole.core.operations.ParameterHint;
 import com.druvu.jconsole.core.text.Messages;
 import com.druvu.jconsole.fx.tab.TabHost;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javax.management.MBeanOperationInfo;
 import javax.management.MBeanParameterInfo;
 
 /**
- * One operation's row: the invoke button and a cell per parameter, its input filled with the value remembered for the
- * MBean class, or else with the descriptor's default value. An operation whose parameters the form cannot supply is
- * shown disabled.
+ * One operation's row: the operation's cell, its return type above the invoke button, and a cell per parameter, its
+ * name above its input. The input is filled with the value remembered for the MBean class, or else with the
+ * descriptor's default value. The return type and the names are {@link HelpLink}s. An operation whose parameters the
+ * form cannot supply is shown disabled.
  *
  * @author Deniss Larka <br>
  *     on 30 Oct 2026
  */
 final class OperationForm {
 
-    /** The parameter's name sits above its input as a hint: smaller and quieter than the value. */
-    private static final String NAME_STYLE = "-fx-font-size: 0.85em; -fx-text-fill: -color-fg-muted;";
-
     private final MBeanOperationInfo operation;
     private final String mbeanClass;
     private final OperationMemory memory;
     private final List<ParameterInput> inputs = new ArrayList<>();
     private final Button button;
+    private final Node operationCell;
     private final List<Node> parameterCells = new ArrayList<>();
 
     /**
@@ -52,15 +53,20 @@ final class OperationForm {
         button = new Button(operation.getName());
         button.setDisable(!callable);
         button.setOnAction(event -> invoke.accept(this));
+        // the buttons fill their column, so their names line up on the left, and never shrink below their name
+        button.setMaxWidth(Double.MAX_VALUE);
+        button.setMinWidth(Region.USE_PREF_SIZE);
+        button.setAlignment(Pos.CENTER_LEFT);
+        Label returns = HelpLink.create(
+                ParameterInputs.simpleName(operation.getReturnType()), operation.getName(), operationHelp(operation));
+        operationCell = new VBox(2, returns, button);
         Runnable invokeOnEnter = () -> {
             if (callable) {
                 invoke.accept(this);
             }
         };
         for (MBeanParameterInfo parameter : operation.getSignature()) {
-            Label name = new Label(parameter.getName());
-            name.setStyle(NAME_STYLE);
-            name.setTooltip(new Tooltip(nameTooltip(parameter)));
+            Label name = HelpLink.create(parameter.getName(), parameter.getName(), parameterHelp(parameter));
             String preset = memory.load(mbeanClass, operation.getName(), parameter.getName())
                     .orElse(ParameterDescriptor.defaultValue(parameter));
             ParameterInput input = ParameterInputs.create(parameter, preset, invokeOnEnter, host);
@@ -71,11 +77,26 @@ final class OperationForm {
         }
     }
 
-    /** The parameter's description when the MBean gives one, then its full type. */
-    static String nameTooltip(MBeanParameterInfo parameter) {
-        String type = Messages.TYPE + ": " + MBeanValues.getReadableClassName(parameter.getType());
-        String description = ParameterKind.tooltip(parameter);
-        return description.isBlank() ? type : description + "\n" + type;
+    /** A parameter's help: its description when the MBean gives one, then its full type. */
+    static String parameterHelp(MBeanParameterInfo parameter) {
+        return help(
+                parameter.getDescription(),
+                Messages.TYPE + ": " + MBeanValues.getReadableClassName(parameter.getType()));
+    }
+
+    /** An operation's help: its description when the MBean gives one, then the full type it returns. */
+    static String operationHelp(MBeanOperationInfo operation) {
+        return help(
+                operation.getDescription(),
+                Messages.RETURNS + ": " + MBeanValues.getReadableClassName(operation.getReturnType()));
+    }
+
+    /** The description without its markup, then the type line; only the type line when there is no description. */
+    private static String help(String description, String typeLine) {
+        String prose = description == null
+                ? ""
+                : ParameterHint.parse(description).map(ParameterHint::prose).orElse(description);
+        return prose.isBlank() ? typeLine : prose + "\n\n" + typeLine;
     }
 
     MBeanOperationInfo operation() {
@@ -84,6 +105,11 @@ final class OperationForm {
 
     Button button() {
         return button;
+    }
+
+    /** The operation's cell: its return type above the invoke button. */
+    Node operationCell() {
+        return operationCell;
     }
 
     /** One cell per parameter, in signature order: the parameter's name above its input. */

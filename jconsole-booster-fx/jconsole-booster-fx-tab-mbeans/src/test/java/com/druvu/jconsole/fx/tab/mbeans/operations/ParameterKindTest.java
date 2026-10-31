@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import javax.management.Descriptor;
 import javax.management.ImmutableDescriptor;
+import javax.management.MBeanOperationInfo;
 import javax.management.MBeanParameterInfo;
 import org.testng.annotations.Test;
 
@@ -86,11 +87,14 @@ public class ParameterKindTest {
     }
 
     @Test
-    public void theNamesTooltipIsTheDescriptionThenTheFullType() {
-        assertThat(OperationForm.nameTooltip(parameter("Pair {{combo:A,B}} to trade", "java.lang.String")))
-                .isEqualTo("Pair to trade\nType: java.lang.String");
-        assertThat(OperationForm.nameTooltip(parameter("", "[Ljava.lang.String;")))
+    public void theHelpIsTheDescriptionThenTheFullType() {
+        assertThat(OperationForm.parameterHelp(parameter("Pair {{combo:A,B}} to trade", "java.lang.String")))
+                .isEqualTo("Pair to trade\n\nType: java.lang.String");
+        assertThat(OperationForm.parameterHelp(parameter("", "[Ljava.lang.String;")))
                 .isEqualTo("Type: java.lang.String[]");
+        MBeanOperationInfo config = new MBeanOperationInfo(
+                "getConfig", "Server config {{returns:format=json}}", null, "java.lang.String", 0);
+        assertThat(OperationForm.operationHelp(config)).isEqualTo("Server config\n\nReturns: java.lang.String");
     }
 
     @Test

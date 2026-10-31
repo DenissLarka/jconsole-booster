@@ -17,7 +17,8 @@ import javax.management.MBeanParameterInfo;
 public sealed interface ParameterKind {
 
     int DEFAULT_ROWS = 8;
-    int DEFAULT_COLUMNS = 60;
+    /** Narrow enough to keep the operations table on screen; {@code cols=M} asks for more. */
+    int DEFAULT_COLUMNS = 20;
 
     /** A one-line text field; Enter invokes the operation. */
     record SingleLine() implements ParameterKind {}

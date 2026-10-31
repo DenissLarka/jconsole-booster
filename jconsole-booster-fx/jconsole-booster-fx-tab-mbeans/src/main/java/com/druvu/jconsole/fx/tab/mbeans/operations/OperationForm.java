@@ -16,7 +16,8 @@ import javax.management.MBeanParameterInfo;
 
 /**
  * One operation's row: the invoke button and a cell per parameter, its input filled with the value remembered for the
- * MBean class. An operation whose parameters the form cannot supply is shown disabled.
+ * MBean class, or else with the descriptor's default value. An operation whose parameters the form cannot supply is
+ * shown disabled.
  *
  * @author Deniss Larka <br>
  *     on 30 Oct 2026
@@ -59,7 +60,7 @@ final class OperationForm {
                 label.setTooltip(new Tooltip(tooltip));
             }
             String preset = memory.load(mbeanClass, operation.getName(), parameter.getName())
-                    .orElse("");
+                    .orElse(ParameterDescriptor.defaultValue(parameter));
             ParameterInput input = ParameterInputs.create(parameter, preset, invokeOnEnter, host);
             input.onForget(() -> memory.forget(mbeanClass, operation.getName(), parameter.getName()));
             input.node().setDisable(!callable);

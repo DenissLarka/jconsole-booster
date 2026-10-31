@@ -3,10 +3,15 @@ package com.druvu.jconsole.fx.tab.mbeans.operations;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import javax.management.Descriptor;
+import javax.management.ImmutableDescriptor;
 import javax.management.MBeanParameterInfo;
 import org.testng.annotations.Test;
 
-/** The input a parameter gets from its description markup and its type. */
+/** The input a parameter gets from its description markup, its type and its descriptor. */
 public class ParameterKindTest {
 
     @Test
@@ -48,6 +53,31 @@ public class ParameterKindTest {
     }
 
     @Test
+    public void theDescriptorsLegalValuesGiveAList() {
+        assertThat(ParameterKind.of(
+                        described("java.lang.String", Map.of("legalValues", new String[] {"WARN", "INFO"}))))
+                .isEqualTo(new ParameterKind.Choice(List.of("WARN", "INFO")));
+        assertThat(ParameterKind.of(described("int", Map.of("legalValues", new TreeSet<>(Set.of(2, 1))))))
+                .isEqualTo(new ParameterKind.Choice(List.of("1", "2")));
+    }
+
+    @Test
+    public void theMarkupAndABooleanComeBeforeTheLegalValues() {
+        Descriptor legal = new ImmutableDescriptor(Map.of("legalValues", new String[] {"X"}));
+        assertThat(ParameterKind.of(new MBeanParameterInfo("p", "java.lang.String", "{{combo:A}}", legal)))
+                .isEqualTo(new ParameterKind.Choice(List.of("A")));
+        assertThat(ParameterKind.of(new MBeanParameterInfo("p", "boolean", null, legal)))
+                .isEqualTo(new ParameterKind.Flag());
+    }
+
+    @Test
+    public void theDefaultValueComesFromTheDescriptor() {
+        assertThat(ParameterDescriptor.defaultValue(described("int", Map.of("defaultValue", 5))))
+                .isEqualTo("5");
+        assertThat(ParameterDescriptor.defaultValue(parameter(null, "int"))).isEmpty();
+    }
+
+    @Test
     public void theTooltipIsTheDescriptionWithoutItsMarkup() {
         assertThat(ParameterKind.tooltip(parameter("Pair {{combo:A,B}} to trade", "java.lang.String")))
                 .isEqualTo("Pair to trade");
@@ -71,6 +101,10 @@ public class ParameterKindTest {
 
     static MBeanParameterInfo parameter(String description, String type) {
         return new MBeanParameterInfo("p", type, description);
+    }
+
+    private static MBeanParameterInfo described(String type, Map<String, ?> fields) {
+        return new MBeanParameterInfo("p", type, null, new ImmutableDescriptor(fields));
     }
 
     private static ParameterKind kind(String description, String type) {

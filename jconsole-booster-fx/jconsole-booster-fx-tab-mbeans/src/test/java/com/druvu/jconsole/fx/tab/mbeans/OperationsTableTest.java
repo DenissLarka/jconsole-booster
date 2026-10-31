@@ -9,15 +9,20 @@ import com.druvu.jconsole.fx.tab.mbeans.testing.Gadget;
 import com.druvu.jconsole.fx.tab.mbeans.testing.TestServers;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javax.management.Descriptor;
+import javax.management.ImmutableDescriptor;
 import javax.management.JMException;
 import javax.management.MBeanOperationInfo;
+import javax.management.MBeanParameterInfo;
 import javax.management.MBeanServer;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -68,6 +73,34 @@ public class OperationsTableTest {
         assertThat(cell.getChildren()).hasSize(2);
         assertThat(((Label) cell.getChildren().get(0)).getText()).isEqualTo("p1");
         assertThat(cell.getChildren().get(1)).isInstanceOf(TextField.class);
+    }
+
+    @Test
+    public void aParameterStartsWithItsDescriptorsDefaultAmongItsLegalValues() {
+        Descriptor descriptor =
+                new ImmutableDescriptor(Map.of("legalValues", new String[] {"WARN", "INFO"}, "defaultValue", "INFO"));
+        MBeanOperationInfo changeLevel = new MBeanOperationInfo(
+                "changeLevel",
+                null,
+                new MBeanParameterInfo[] {new MBeanParameterInfo("level", "java.lang.String", null, descriptor)},
+                "java.lang.String",
+                MBeanOperationInfo.ACTION,
+                null);
+
+        ComboBox<?> level = FxTestToolkit.call(() -> {
+            OperationsView view = new OperationsView(
+                    services, new MemoryOnlyOperationMemory(), TestServers.GADGET, "Levels", List.of(changeLevel));
+            GridPane table = (GridPane) ((ScrollPane) view.node()).getContent();
+            HBox cell = (HBox) table.getChildren().stream()
+                    .filter(node -> GridPane.getColumnIndex(node) == 2 && GridPane.getRowIndex(node) == 1)
+                    .findFirst()
+                    .orElseThrow();
+            return (ComboBox<?>) cell.getChildren().get(1);
+        });
+
+        List<Object> items = List.copyOf(level.getItems());
+        assertThat(items).containsExactly("WARN", "INFO");
+        assertThat(level.getValue()).isEqualTo("INFO");
     }
 
     private List<String> textsInRow(int row) {

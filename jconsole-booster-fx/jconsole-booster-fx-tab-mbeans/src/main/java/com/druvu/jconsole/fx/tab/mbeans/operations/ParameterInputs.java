@@ -10,7 +10,7 @@ import javafx.scene.control.Tooltip;
 import javax.management.MBeanParameterInfo;
 
 /**
- * Builds the input of an operation parameter, as {@link ParameterKind} says, filled with the remembered value.
+ * Builds the input of an operation parameter, as {@link ParameterKind} says, filled with the value it starts with.
  *
  * @author Deniss Larka <br>
  *     on 30 Oct 2026
@@ -20,7 +20,7 @@ final class ParameterInputs {
     private ParameterInputs() {}
 
     /**
-     * @param preset the remembered value, empty for none
+     * @param preset the remembered value or the descriptor's default, empty for none
      * @param invoke invokes the operation, on Enter in a text field
      */
     static ParameterInput create(MBeanParameterInfo parameter, String preset, Runnable invoke, TabHost host) {

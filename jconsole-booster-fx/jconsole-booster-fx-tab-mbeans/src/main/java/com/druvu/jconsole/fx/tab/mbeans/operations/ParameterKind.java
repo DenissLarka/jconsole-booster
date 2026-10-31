@@ -8,7 +8,8 @@ import javax.management.MBeanParameterInfo;
 
 /**
  * Which input an operation parameter gets. The first {@code {{tag:options}}} in the parameter's description decides;
- * without a known tag, a boolean gets a check box and anything else a text field.
+ * without a known tag, a boolean gets a check box, a parameter whose descriptor names its legal values a list of them,
+ * and anything else a text field.
  *
  * @author Deniss Larka <br>
  *     on 30 Oct 2026
@@ -21,7 +22,7 @@ public sealed interface ParameterKind {
     /** A one-line text field; Enter invokes the operation. */
     record SingleLine() implements ParameterKind {}
 
-    /** {@code {{combo:A,B}}}: an editable list of suggestions. */
+    /** {@code {{combo:A,B}}} or the descriptor's {@code legalValues}: an editable list of suggestions. */
     record Choice(List<String> values) implements ParameterKind {
         public Choice {
             values = List.copyOf(values);
@@ -47,7 +48,15 @@ public sealed interface ParameterKind {
     static ParameterKind of(MBeanParameterInfo parameter) {
         return ParameterHint.parse(parameter.getDescription())
                 .flatMap(ParameterKind::fromHint)
-                .orElseGet(() -> isBoolean(parameter.getType()) ? new Flag() : new SingleLine());
+                .orElseGet(() -> withoutHint(parameter));
+    }
+
+    private static ParameterKind withoutHint(MBeanParameterInfo parameter) {
+        if (isBoolean(parameter.getType())) {
+            return new Flag();
+        }
+        List<String> legalValues = ParameterDescriptor.legalValues(parameter);
+        return legalValues.isEmpty() ? new SingleLine() : new Choice(legalValues);
     }
 
     /** The parameter's description without its markup, for the tooltip; empty for none. */

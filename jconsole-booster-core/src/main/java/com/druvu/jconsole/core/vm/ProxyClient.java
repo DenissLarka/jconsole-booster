@@ -68,10 +68,10 @@ import javax.management.ObjectName;
 import javax.management.ReflectionException;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXServiceURL;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 public class ProxyClient implements JmxDataAccess {
+
+    private static final System.Logger LOG = System.getLogger(ProxyClient.class.getName());
 
     private volatile ConnectionState connectionState = ConnectionState.DISCONNECTED;
 
@@ -173,7 +173,7 @@ public class ProxyClient implements JmxDataAccess {
             setConnectionState(ConnectionState.CONNECTED);
         } catch (Exception e) {
             lastConnectException = e;
-            log.debug("Connection to {} failed", url, e);
+            LOG.log(System.Logger.Level.DEBUG, "Connection to " + url + " failed", e);
             setConnectionState(ConnectionState.DISCONNECTED);
         }
     }
@@ -281,7 +281,7 @@ public class ProxyClient implements JmxDataAccess {
             try {
                 jmxc.close();
             } catch (IOException e) {
-                log.debug("Closing the connection to {} failed", url, e);
+                LOG.log(System.Logger.Level.DEBUG, "Closing the connection to " + url + " failed", e);
             }
         }
         // Reset platform MBean references: each one reads through the connection just closed
@@ -356,7 +356,7 @@ public class ProxyClient implements JmxDataAccess {
                     result.put(o, info);
                 } catch (IntrospectionException | InstanceNotFoundException | ReflectionException e) {
                     // the MBean left between the query and this read, or cannot describe itself: list the others
-                    log.debug("No MBeanInfo for {}", o, e);
+                    LOG.log(System.Logger.Level.DEBUG, "No MBeanInfo for " + o, e);
                 }
             }
         }
@@ -370,7 +370,7 @@ public class ProxyClient implements JmxDataAccess {
             list = server.getAttributes(name, attributes);
         } catch (InstanceNotFoundException | ReflectionException e) {
             // the MBean was unregistered, or refused the read: the caller treats null as "nothing to show"
-            log.debug("Reading attributes of {} failed", name, e);
+            LOG.log(System.Logger.Level.DEBUG, "Reading attributes of " + name + " failed", e);
         }
         return list;
     }
@@ -381,7 +381,7 @@ public class ProxyClient implements JmxDataAccess {
         try {
             server.setAttribute(name, attribute);
         } catch (InstanceNotFoundException | AttributeNotFoundException | ReflectionException e) {
-            log.warn("Setting {} on {} failed: {}", attribute.getName(), name, e.toString());
+            LOG.log(System.Logger.Level.WARNING, "Setting " + attribute.getName() + " on " + name + " failed: " + e);
         }
     }
 
@@ -396,7 +396,7 @@ public class ProxyClient implements JmxDataAccess {
         try {
             result = server.invoke(name, operationName, params, signature);
         } catch (InstanceNotFoundException | ReflectionException e) {
-            log.warn("Invoking {} on {} failed: {}", operationName, name, e.toString());
+            LOG.log(System.Logger.Level.WARNING, "Invoking " + operationName + " on " + name + " failed: " + e);
         }
         return result;
     }

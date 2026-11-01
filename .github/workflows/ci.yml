@@ -2,7 +2,7 @@
 # before it lands on main.
 #
 # The build runs on Zulu 27 with JavaFX bundled. druvu-lib-fx lives on GitHub Packages, which this workflow's token
-# cannot read, so the kit is built from its release tag first (the tag must match the pom's druvu-lib-fx.version).
+# cannot read, so the kit is built first from the release tag that the pom's druvu-lib-fx.version names.
 # The formatter does not run on JDK 27 yet, so the format is checked in its own step on JDK 25. The UI tests need a
 # display: the build runs under xvfb.
 name: CI
@@ -21,11 +21,15 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Check out druvu-lib-fx at its release tag
+      - name: Read the druvu-lib-fx version from the pom
+        id: kit
+        run: echo "tag=v$(sed -n 's:.*<druvu-lib-fx.version>\(.*\)</druvu-lib-fx.version>.*:\1:p' jconsole-booster-fx/pom.xml)" >> "$GITHUB_OUTPUT"
+
+      - name: Check out druvu-lib-fx at that release tag
         uses: actions/checkout@v7
         with:
           repository: DenissLarka/druvu-lib-fx
-          ref: v2.0.0
+          ref: ${{ steps.kit.outputs.tag }}
           path: druvu-lib-fx
 
       - name: Set up JDK 25 and JDK 27 (Zulu, JavaFX bundled; 27 is the default)

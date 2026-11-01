@@ -6,7 +6,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Most-recently-used list of successful connection URLs, persisted in {@link BoosterHome#recentConnectionsFile()} (one
@@ -15,8 +14,9 @@ import lombok.extern.slf4j.Slf4j;
  * <p>Only the URL is stored — never credentials. All I/O is best-effort: a read/write failure is logged at WARN and
  * never propagated, so a broken or unwritable config home can never block a connection.
  */
-@Slf4j
 public final class RecentConnections {
+
+    private static final System.Logger LOG = System.getLogger(RecentConnections.class.getName());
 
     public static final int MAX = 10;
 
@@ -49,7 +49,7 @@ public final class RecentConnections {
                 }
             }
         } catch (IOException e) {
-            log.warn("Could not read {}: {}", file, e.getMessage());
+            LOG.log(System.Logger.Level.WARNING, "Could not read " + file + ": " + e.getMessage());
         }
         return out;
     }
@@ -75,7 +75,7 @@ public final class RecentConnections {
         try {
             Files.write(file, list);
         } catch (IOException e) {
-            log.warn("Could not write {}: {}", file, e.getMessage());
+            LOG.log(System.Logger.Level.WARNING, "Could not write " + file + ": " + e.getMessage());
         }
     }
 }

@@ -15,7 +15,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * The user's bookmarks file ({@code connections.txt}): read for the Bookmarks menu, the group picker and the Connect
@@ -25,8 +24,9 @@ import lombok.extern.slf4j.Slf4j;
  * @author Deniss Larka <br>
  *     on 30 Oct 2026
  */
-@Slf4j
 public final class BookmarksFile {
+
+    private static final System.Logger LOG = System.getLogger(BookmarksFile.class.getName());
 
     private static final String BUNDLED_DEFAULT = "connections-default.txt";
 
@@ -47,14 +47,16 @@ public final class BookmarksFile {
             try {
                 seedDefault();
             } catch (IOException e) {
-                log.warn("Could not write the default bookmarks to {}: {}", file, e.getMessage());
+                LOG.log(
+                        System.Logger.Level.WARNING,
+                        "Could not write the default bookmarks to " + file + ": " + e.getMessage());
                 return List.of();
             }
         }
         try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
             return ConnectionBookmarksLoader.parse(reader);
         } catch (IOException e) {
-            log.warn("Could not read the bookmarks in {}: {}", file, e.getMessage());
+            LOG.log(System.Logger.Level.WARNING, "Could not read the bookmarks in " + file + ": " + e.getMessage());
             return List.of();
         }
     }
@@ -105,7 +107,7 @@ public final class BookmarksFile {
             }
             createParentDirectory();
             Files.copy(bundled, file);
-            log.info("Wrote the default bookmarks to {}", file);
+            LOG.log(System.Logger.Level.INFO, "Wrote the default bookmarks to " + file);
         }
     }
 

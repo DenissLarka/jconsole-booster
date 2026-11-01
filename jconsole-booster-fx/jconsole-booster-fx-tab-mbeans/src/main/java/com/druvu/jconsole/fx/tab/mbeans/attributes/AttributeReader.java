@@ -11,8 +11,6 @@ import javax.management.JMException;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanFeatureInfo;
 import javax.management.ObjectName;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Reads an MBean's attribute values in one call, then one by one the attributes that call left out, so a single failing
@@ -23,7 +21,7 @@ import org.slf4j.LoggerFactory;
  */
 public final class AttributeReader {
 
-    private static final Logger log = LoggerFactory.getLogger(AttributeReader.class);
+    private static final System.Logger LOG = System.getLogger(AttributeReader.class.getName());
 
     private AttributeReader() {}
 
@@ -37,7 +35,10 @@ public final class AttributeReader {
                 values.put(attribute.getName(), attribute.getValue());
             }
         } catch (JMException | IOException | RuntimeException e) {
-            log.debug("getAttributes failed on {}, reading the attributes one by one", name, e);
+            LOG.log(
+                    System.Logger.Level.DEBUG,
+                    "getAttributes failed on " + name + ", reading the attributes one by one",
+                    e);
         }
         for (MBeanAttributeInfo attribute : attributes) {
             if (attribute.isReadable() && !values.containsKey(attribute.getName())) {

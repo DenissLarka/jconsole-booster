@@ -9,7 +9,6 @@ import java.nio.file.Path;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Per-MBean-class persistence of last-used operation parameter values, so the Operations tab can pre-fill widgets on
@@ -31,8 +30,9 @@ import lombok.extern.slf4j.Slf4j;
  *   <li>I/O failures log a warning and degrade gracefully; they never throw to the UI thread.
  * </ul>
  */
-@Slf4j
 public final class OperationStateStore {
+
+    private static final System.Logger LOG = System.getLogger(OperationStateStore.class.getName());
 
     private final Path stateDir;
     private final ConcurrentMap<String, Properties> cache = new ConcurrentHashMap<>();
@@ -99,7 +99,9 @@ public final class OperationStateStore {
         try (InputStream in = Files.newInputStream(file)) {
             props.load(in);
         } catch (IOException ex) {
-            log.warn("Could not read operation state file {}: {}", file, ex.getMessage());
+            LOG.log(
+                    System.Logger.Level.WARNING,
+                    "Could not read operation state file " + file + ": " + ex.getMessage());
         }
         return props;
     }
@@ -112,7 +114,9 @@ public final class OperationStateStore {
                 props.store(out, "JConsole Booster — last-used operation parameter values");
             }
         } catch (IOException ex) {
-            log.warn("Could not write operation state file {}: {}", file, ex.getMessage());
+            LOG.log(
+                    System.Logger.Level.WARNING,
+                    "Could not write operation state file " + file + ": " + ex.getMessage());
         }
     }
 }

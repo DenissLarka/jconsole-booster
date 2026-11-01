@@ -6,8 +6,6 @@ import com.druvu.lib.fx.util.FxThreads;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * What every view of the tab works with: the MBean server, the app, and the background threads for the JMX calls.
@@ -19,7 +17,7 @@ import org.slf4j.LoggerFactory;
  */
 public final class TabServices implements AutoCloseable {
 
-    private static final Logger log = LoggerFactory.getLogger(TabServices.class);
+    private static final System.Logger LOG = System.getLogger(TabServices.class.getName());
 
     private final MBeanAccess access;
     private final TabHost host;
@@ -70,7 +68,7 @@ public final class TabServices implements AutoCloseable {
                                 show.accept(value);
                             } catch (RuntimeException e) {
                                 // the future would swallow it silently
-                                log.error("Could not show the result of '{}'", title, e);
+                                LOG.log(System.Logger.Level.ERROR, "Could not show the result of '" + title + "'", e);
                             }
                         },
                         FxThreads.fxExecutor());

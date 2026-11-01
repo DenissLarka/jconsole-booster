@@ -38,10 +38,10 @@
 			<artifactId>assertj-core</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<!-- TestNG logs through SLF4J; the parent excludes its own copy so one version serves the build -->
+		<!-- TestNG logs through SLF4J: its lines go to the JDK's logging, where the code's go -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
+			<artifactId>slf4j-jdk14</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

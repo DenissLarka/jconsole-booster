@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.Optional;
 import javafx.stage.Window;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * What the user does with bookmarks besides picking one: add the connection as a bookmark, and open the file in an
@@ -19,8 +18,9 @@ import lombok.extern.slf4j.Slf4j;
  * @author Deniss Larka <br>
  *     on 30 Oct 2026
  */
-@Slf4j
 public final class BookmarkActions {
+
+    private static final System.Logger LOG = System.getLogger(BookmarkActions.class.getName());
 
     private final BookmarksFile file;
     private final MainWindow window;
@@ -88,7 +88,7 @@ public final class BookmarkActions {
                 return;
             } catch (IOException noEditor) {
                 // some systems offer EDIT and then have no editor for .txt: open it instead
-                log.debug("No editor for {}, opening it instead", bookmarks, noEditor);
+                LOG.log(System.Logger.Level.DEBUG, "No editor for " + bookmarks + ", opening it instead", noEditor);
             }
         }
         if (!desktop.isSupported(Desktop.Action.OPEN)) {

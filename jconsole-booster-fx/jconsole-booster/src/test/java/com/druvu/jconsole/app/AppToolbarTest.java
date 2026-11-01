@@ -2,6 +2,7 @@ package com.druvu.jconsole.app;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.druvu.jconsole.app.bookmarks.BookmarkActions;
 import com.druvu.jconsole.app.bookmarks.BookmarksFile;
 import com.druvu.jconsole.app.connect.ConnectDialog;
 import com.druvu.jconsole.app.session.ConnectionController;
@@ -22,14 +23,17 @@ import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.ToolBar;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.stage.Stage;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 /**
- * The toolbar without a connection: Connect lists New Connection, the bookmark groups and Disconnect, Settings sits on
- * the right.
+ * The toolbar without a connection: the connection button keeps one width, shows the plugs apart and lists every
+ * connection command, Disconnect last; Settings sits on the right.
  */
 public class AppToolbarTest {
 
@@ -54,7 +58,10 @@ public class AppToolbarTest {
             ConnectDialog neverShown = new ConnectDialog(stage, List::of, Map::of, (owner, target) -> {});
             ConnectionController connection = new ConnectionController(
                     window, neverShown, new TabSwitches(home.resolve("plugins.txt")), Duration.ofSeconds(1), exec);
-            return new AppToolbar(connection, new BookmarksFile(bookmarks), settingsOpened::incrementAndGet).build();
+            BookmarksFile bookmarksFile = new BookmarksFile(bookmarks);
+            BookmarkActions bookmarkActions = new BookmarkActions(bookmarksFile, window, exec);
+            return new AppToolbar(connection, bookmarksFile, bookmarkActions, window, settingsOpened::incrementAndGet)
+                    .build();
         });
     }
 
@@ -64,23 +71,41 @@ public class AppToolbarTest {
     }
 
     @Test
-    public void withoutAConnectionTheButtonSaysConnectAndDisconnectIsOff() {
+    public void withoutAConnectionTheButtonSaysConnectShowsThePlugsApartAndTheConnectionCommandsAreOff() {
         assertThat(connectButton().getText()).isEqualTo(AppToolbar.CONNECT);
-        MenuItem disconnect = connectButton().getItems().getLast();
-        assertThat(disconnect.getText()).isEqualTo(AppToolbar.DISCONNECT);
-        assertThat(disconnect.isDisable()).isTrue();
+        assertThat(connectButton().getGraphic().getStyleClass()).containsExactly("ph-plugs");
+        assertThat(connectButton().getItems())
+                .filteredOn(MenuItem::isDisable)
+                .extracting(MenuItem::getText)
+                .containsExactly(AppToolbar.ADD_BOOKMARK, AppToolbar.RECONNECT, AppToolbar.DISCONNECT);
     }
 
     @Test
-    public void connectListsNewConnectionTheBookmarkGroupsThenDisconnect() {
+    public void theConnectionButtonKeepsOneWidth() {
+        assertThat(connectButton().getMinWidth()).isEqualTo(AppToolbar.CONNECTION_WIDTH);
+        assertThat(connectButton().getPrefWidth()).isEqualTo(AppToolbar.CONNECTION_WIDTH);
+        assertThat(connectButton().getMaxWidth()).isEqualTo(AppToolbar.CONNECTION_WIDTH);
+    }
+
+    @Test
+    public void theListHoldsEveryConnectionCommandWithDisconnectLast() {
         List<MenuItem> items = connectButton().getItems();
 
-        assertThat(items.get(1)).isInstanceOf(SeparatorMenuItem.class);
-        assertThat(items.get(items.size() - 2)).isInstanceOf(SeparatorMenuItem.class);
-        assertThat(items.stream()
-                        .filter(item -> !(item instanceof SeparatorMenuItem))
-                        .map(MenuItem::getText))
-                .containsExactly(AppToolbar.NEW_CONNECTION, "Prod", "Test", AppToolbar.DISCONNECT);
+        assertThat(items)
+                .extracting(item -> item instanceof SeparatorMenuItem ? "---" : item.getText())
+                .containsExactly(
+                        AppToolbar.NEW_CONNECTION,
+                        "---",
+                        "Prod",
+                        "Test",
+                        "---",
+                        AppToolbar.ADD_BOOKMARK,
+                        AppToolbar.OPEN_BOOKMARKS,
+                        "---",
+                        AppToolbar.RECONNECT,
+                        AppToolbar.DISCONNECT);
+        assertThat(items.getFirst().getAccelerator())
+                .isEqualTo(new KeyCodeCombination(KeyCode.N, KeyCombination.SHORTCUT_DOWN));
     }
 
     @Test

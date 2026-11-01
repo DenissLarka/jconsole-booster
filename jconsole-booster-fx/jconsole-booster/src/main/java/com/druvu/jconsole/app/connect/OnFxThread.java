@@ -4,7 +4,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 import javafx.application.Platform;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Asks a question on the FX thread and waits for the answer. The certificate prompt is called on the connecting worker,
@@ -13,8 +12,9 @@ import lombok.extern.slf4j.Slf4j;
  * @author Deniss Larka <br>
  *     on 30 Oct 2026
  */
-@Slf4j
 final class OnFxThread {
+
+    private static final System.Logger LOG = System.getLogger(OnFxThread.class.getName());
 
     private OnFxThread() {}
 
@@ -33,7 +33,7 @@ final class OnFxThread {
         try {
             Platform.runLater(() -> answer.complete(askHere(question, failClosed)));
         } catch (IllegalStateException toolkitGone) {
-            log.warn("The question cannot be asked, the JavaFX toolkit is not running");
+            LOG.log(System.Logger.Level.WARNING, "The question cannot be asked, the JavaFX toolkit is not running");
             return failClosed;
         }
         try {
@@ -51,7 +51,7 @@ final class OnFxThread {
         try {
             return question.get();
         } catch (RuntimeException failure) {
-            log.error("Asking the user failed, taking the safe answer", failure);
+            LOG.log(System.Logger.Level.ERROR, "Asking the user failed, taking the safe answer", failure);
             return failClosed;
         }
     }

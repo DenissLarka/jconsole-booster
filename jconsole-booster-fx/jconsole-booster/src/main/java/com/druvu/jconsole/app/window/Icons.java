@@ -22,6 +22,9 @@ public final class Icons {
 
     static final String STYLE_CLASS = "ph-duo";
 
+    /** Each glyph's group carries this prefix and Phosphor's name for it, for example {@code ph-plugs}. */
+    private static final String GLYPH_CLASS_PREFIX = "ph-";
+
     /** The glyphs' size in the toolbar's buttons. */
     private static final double SIZE = 20;
 
@@ -31,6 +34,11 @@ public final class Icons {
     private static final double BACKGROUND_OPACITY = 0.2;
 
     // Phosphor Icons duotone path data (MIT): [0] the background layer, [1] the foreground
+    private static final String[] PLUGS = {
+        "M76,124l56,56-29,29a24,24,0,0,1-33.94,0L47,186.91A24,24,0,0,1,47,153ZM209,69.09,186.91,47A24,24,0,0,0,153,47L124,76l56,56,29-29A24,24,0,0,0,209,69.09Z",
+        "M149.66,138.34a8,8,0,0,0-11.32,0L120,156.69,99.31,136l18.35-18.34a8,8,0,0,0-11.32-11.32L88,124.69,69.66,106.34a8,8,0,0,0-11.32,11.32L64.69,124,41.37,147.31a32,32,0,0,0,0,45.26l5.38,5.37-28.41,28.4a8,8,0,0,0,11.32,11.32l28.4-28.41,5.37,5.38a32,32,0,0,0,45.26,0L132,191.31l6.34,6.35a8,8,0,0,0,11.32-11.32L131.31,168l18.35-18.34A8,8,0,0,0,149.66,138.34Zm-52.29,65a16,16,0,0,1-22.62,0L52.69,181.25a16,16,0,0,1,0-22.62L76,135.31,120.69,180Zm140.29-185a8,8,0,0,0-11.32,0l-28.4,28.41-5.37-5.38a32.05,32.05,0,0,0-45.26,0L124,64.69l-6.34-6.35a8,8,0,0,0-11.32,11.32l80,80a8,8,0,0,0,11.32-11.32L191.31,132l23.32-23.31a32,32,0,0,0,0-45.26l-5.38-5.37,28.41-28.4A8,8,0,0,0,237.66,18.34Zm-34.35,79L180,120.69,135.31,76l23.32-23.31a16,16,0,0,1,22.62,0l22.06,22A16,16,0,0,1,203.31,97.37Z"
+    };
+
     private static final String[] PLUGS_CONNECTED = {
         "M185,127,127,185a24,24,0,0,1-33.94,0L71,162.91A24,24,0,0,1,71,129L129,71a24,24,0,0,1,33.94,0L185,93.09A24,24,0,0,1,185,127Z",
         "M237.66,18.34a8,8,0,0,0-11.32,0l-52.4,52.41-5.37-5.38a32.05,32.05,0,0,0-45.26,0L100,88.69l-6.34-6.35A8,8,0,0,0,82.34,93.66L88.69,100,65.37,123.31a32,32,0,0,0,0,45.26l5.38,5.37-52.41,52.4a8,8,0,0,0,11.32,11.32l52.4-52.41,5.37,5.38a32.06,32.06,0,0,0,45.26,0L156,167.31l6.34,6.35a8,8,0,0,0,11.32-11.32L167.31,156l23.32-23.31a32,32,0,0,0,0-45.26l-5.38-5.37,52.41-52.4A8,8,0,0,0,237.66,18.34Zm-116.29,161a16,16,0,0,1-22.62,0L76.69,157.25a16,16,0,0,1,0-22.62L100,111.31,144.69,156Zm57.94-57.94h0L156,144.69,111.31,100l23.32-23.31a16,16,0,0,1,22.62,0l22.06,22a16,16,0,0,1,0,22.63ZM88.57,35A8,8,0,0,1,103.43,29l8,20A8,8,0,0,1,96.57,55ZM24.57,93A8,8,0,0,1,35,88.57l20,8A8,8,0,0,1,49,111.43l-20-8A8,8,0,0,1,24.57,93ZM231.43,163a8,8,0,0,1-10.4,4.46l-20-8A8,8,0,1,1,207,144.57l20,8A8,8,0,0,1,231.43,163Zm-64,58.06A8,8,0,0,1,152.57,227l-8-20A8,8,0,0,1,159.43,201Z"
@@ -43,22 +51,29 @@ public final class Icons {
 
     private Icons() {}
 
-    /** Connecting: the toolbar's connection button. */
-    public static Node connect() {
-        return duotone(PLUGS_CONNECTED);
+    /** The connection button while no connection is open: two plugs apart. */
+    public static Node disconnected() {
+        return duotone("plugs", PLUGS);
+    }
+
+    /** The connection button while the connection is open: the plugs joined. */
+    public static Node connected() {
+        return duotone("plugs-connected", PLUGS_CONNECTED);
     }
 
     public static Node settings() {
-        return duotone(GEAR);
+        return duotone("gear", GEAR);
     }
 
     /**
      * The two layers in one colour, the background faint. A transparent square the size of the viewBox lies under the
      * paths, so every icon measures {@link #SIZE} whatever part of the box its glyph fills, and the buttons come out
      * the same size. The scaled group sits in an outer one, so layout sees the scaled size rather than the 256-unit
-     * box.
+     * box; the outer one carries the glyph's style class.
+     *
+     * @param name Phosphor's name for the glyph
      */
-    private static Node duotone(String[] layers) {
+    private static Node duotone(String name, String[] layers) {
         Group inner = new Group(new Rectangle(VIEWBOX, VIEWBOX, Color.TRANSPARENT));
         for (int i = 0; i < layers.length; i++) {
             SVGPath path = new SVGPath();
@@ -71,6 +86,8 @@ public final class Icons {
         }
         inner.setScaleX(SIZE / VIEWBOX);
         inner.setScaleY(SIZE / VIEWBOX);
-        return new Group(inner);
+        Group icon = new Group(inner);
+        icon.getStyleClass().add(GLYPH_CLASS_PREFIX + name);
+        return icon;
     }
 }

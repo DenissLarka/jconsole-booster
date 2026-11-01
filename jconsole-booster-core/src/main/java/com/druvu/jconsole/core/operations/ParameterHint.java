@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Markup hint embedded in a JMX description string. The first occurrence of {@code {{tag}}} or {@code {{tag:options}}}
@@ -24,8 +23,9 @@ import lombok.extern.slf4j.Slf4j;
  *   "Plain description"                          → empty
  * </pre>
  */
-@Slf4j
 public record ParameterHint(String tag, String options, String prose) {
+
+    private static final System.Logger LOG = System.getLogger(ParameterHint.class.getName());
 
     private static final Pattern TAG = Pattern.compile("\\{\\{(\\w+)(?::([^}]*))?\\}\\}");
 
@@ -47,7 +47,9 @@ public record ParameterHint(String tag, String options, String prose) {
                 .replaceAll("\\s{2,}", " ")
                 .strip();
         if (m.find()) {
-            log.warn("Multiple markup tags in description — only the first is honored: {}", description);
+            LOG.log(
+                    System.Logger.Level.WARNING,
+                    "Multiple markup tags in description — only the first is honored: " + description);
         }
         return Optional.of(new ParameterHint(tag, options, prose));
     }

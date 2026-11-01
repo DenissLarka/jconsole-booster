@@ -12,7 +12,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Refreshes the tabs of one connection on a fixed delay. Each tick flushes the connection's attribute cache, then asks
@@ -26,8 +25,9 @@ import lombok.extern.slf4j.Slf4j;
  * @author Deniss Larka <br>
  *     on 30 Oct 2026
  */
-@Slf4j
 final class UpdateTick {
+
+    private static final System.Logger LOG = System.getLogger(UpdateTick.class.getName());
 
     /** What the tick reports. Every method runs on the FX thread. */
     interface Listener {
@@ -140,7 +140,7 @@ final class UpdateTick {
 
     private void fail(ConnectionTab tab, RuntimeException failure) {
         if (failed.add(tab)) {
-            log.warn("The {} tab failed and is no longer refreshed", tab.id(), failure);
+            LOG.log(System.Logger.Level.WARNING, "The " + tab.id() + " tab failed and is no longer refreshed", failure);
             fxThread.execute(() -> {
                 if (!stopped) {
                     listener.tabFailed(tab, failure);
@@ -169,7 +169,7 @@ final class UpdateTick {
         try {
             tick();
         } catch (RuntimeException unexpected) {
-            log.error("An update tick failed", unexpected);
+            LOG.log(System.Logger.Level.ERROR, "An update tick failed", unexpected);
         }
     }
 }

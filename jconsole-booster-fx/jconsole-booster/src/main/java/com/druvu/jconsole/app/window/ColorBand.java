@@ -4,7 +4,6 @@ import java.util.Optional;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * The colour given with {@code -c=#RRGGBB[AA]}, shown as a thin band under the menu bar, so that windows on different
@@ -13,8 +12,9 @@ import lombok.extern.slf4j.Slf4j;
  * @author Deniss Larka <br>
  *     on 30 Oct 2026
  */
-@Slf4j
 public final class ColorBand {
+
+    private static final System.Logger LOG = System.getLogger(ColorBand.class.getName());
 
     private static final double HEIGHT = 4;
 
@@ -28,7 +28,7 @@ public final class ColorBand {
         try {
             return Optional.of(Color.web(hex.strip()));
         } catch (IllegalArgumentException notAColour) {
-            log.warn("Ignoring the colour {}: not #RRGGBB or #RRGGBBAA", hex);
+            LOG.log(System.Logger.Level.WARNING, "Ignoring the colour " + hex + ": not #RRGGBB or #RRGGBBAA");
             return Optional.empty();
         }
     }

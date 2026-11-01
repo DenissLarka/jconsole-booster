@@ -4,6 +4,7 @@
  */
 module com.druvu.jconsole.console {
     requires com.druvu.jconsole.core;
+    requires java.logging;
 
     exports com.druvu.jconsole.console;
 }

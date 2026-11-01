@@ -15,8 +15,6 @@ import javafx.scene.control.TreeView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javax.management.ObjectName;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * The MBean tree on screen: domains, key-property folders, MBeans. An MBean's Attributes, Operations and Notifications
@@ -28,7 +26,7 @@ import org.slf4j.LoggerFactory;
  */
 public final class MBeanTree {
 
-    private static final Logger log = LoggerFactory.getLogger(MBeanTree.class);
+    private static final System.Logger LOG = System.getLogger(MBeanTree.class.getName());
 
     private final MBeanTreeModel model = new MBeanTreeModel();
     private final TreeView<TreeEntry> view = new TreeView<>(model.root());
@@ -84,7 +82,10 @@ public final class MBeanTree {
                 .whenCompleteAsync(
                         (metadata, failure) -> {
                             if (failure != null) {
-                                log.debug("Could not read the metadata of {}", mbean.name(), failure);
+                                LOG.log(
+                                        System.Logger.Level.DEBUG,
+                                        "Could not read the metadata of " + mbean.name(),
+                                        failure);
                                 model.metadataFailed(item);
                                 return;
                             }

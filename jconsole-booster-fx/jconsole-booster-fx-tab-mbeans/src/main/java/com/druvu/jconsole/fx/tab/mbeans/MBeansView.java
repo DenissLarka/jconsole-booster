@@ -17,8 +17,6 @@ import javax.management.MBeanServerNotification;
 import javax.management.Notification;
 import javax.management.NotificationListener;
 import javax.management.ObjectName;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * What the MBeans tab shows: the MBean tree on the left, the selected node's view on the right. The tree is read once
@@ -29,7 +27,7 @@ import org.slf4j.LoggerFactory;
  */
 final class MBeansView {
 
-    private static final Logger log = LoggerFactory.getLogger(MBeansView.class);
+    private static final System.Logger LOG = System.getLogger(MBeansView.class.getName());
 
     private final TabServices services;
     private final NotificationBuffer buffer;
@@ -74,7 +72,7 @@ final class MBeansView {
         try {
             services.access().connection().removeNotificationListener(MBeanServerDelegate.DELEGATE_NAME, registrations);
         } catch (JMException | IOException | RuntimeException e) {
-            log.debug("Could not remove the registration listener", e);
+            LOG.log(System.Logger.Level.DEBUG, "Could not remove the registration listener", e);
         }
     }
 

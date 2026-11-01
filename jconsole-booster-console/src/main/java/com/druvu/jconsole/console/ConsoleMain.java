@@ -17,6 +17,7 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -74,6 +75,7 @@ public final class ConsoleMain {
      * opens the REPL on a box without a display.
      */
     public static void main(String[] args) {
+        ConsoleLogs.setUp(Arrays.asList(args).contains(ArgumentParser.DEBUG_FLAG));
         Optional<JConsoleOptions> options = ArgumentParser.parse(args);
         if (options.isPresent()) {
             System.exit(run(options.get()));

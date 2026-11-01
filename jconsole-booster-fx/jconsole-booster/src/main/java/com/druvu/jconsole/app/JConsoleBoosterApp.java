@@ -26,25 +26,37 @@ import com.druvu.lib.fx.prefs.Prefs;
 import com.druvu.lib.fx.prefs.WindowGeometry;
 import com.druvu.lib.fx.status.StatusBarModel;
 import com.druvu.lib.fx.theme.ThemeManager;
+import com.druvu.lib.fx.update.Updates;
+import com.druvu.lib.fx.updater.github.GitHubReleases;
 import com.druvu.lib.fx.util.FxThreads;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.stage.Stage;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * The JavaFX application: builds the window and its collaborators, then connects to the JVM named on the command line
- * or opens the Connect dialog. Deliberately thin: the window shows, the controller owns the connection, the menus wire
- * the two.
+ * or opens the Connect dialog. Deliberately thin: the window shows, the controller owns the connection, the toolbar and
+ * the menus wire the two.
  *
  * @author Deniss Larka <br>
  *     on 30 Oct 2026
  */
-@Slf4j
 public final class JConsoleBoosterApp extends Application {
+
+    /** The same home as the core's BoosterHome: ~/.druvu.com/jconsole-booster, or JCONSOLE_BOOSTER_HOME. */
+    static final AppHome HOME = AppHome.of("jconsole-booster", BoosterHome.ENV_VAR);
+
+    private static final System.Logger LOG = System.getLogger(JConsoleBoosterApp.class.getName());
+
+    /** Cmd+, on macOS, Ctrl+, elsewhere. */
+    private static final KeyCombination SETTINGS_SHORTCUT =
+            new KeyCodeCombination(KeyCode.COMMA, KeyCombination.SHORTCUT_DOWN);
 
     /** Set by {@link #start}; the About hook is registered before any instance exists. */
     private static final AtomicReference<JConsoleBoosterApp> RUNNING = new AtomicReference<>();
@@ -52,9 +64,7 @@ public final class JConsoleBoosterApp extends Application {
     // One bus feeds the executor's task events to the status bar: the druvu-lib-fx wiring.
     private final FxBus bus = new FxBus();
     private final FxExec exec = new FxExec(bus);
-    // The same home as the core's BoosterHome: ~/.druvu.com/jconsole-booster, or JCONSOLE_BOOSTER_HOME.
-    private final AppHome home = AppHome.of("jconsole-booster", BoosterHome.ENV_VAR);
-    private final Prefs prefs = Prefs.in(home);
+    private final Prefs prefs = Prefs.in(HOME);
     private final ThemeManager themes = new ThemeManager(prefs);
 
     private StatusBarModel statusBarModel;
@@ -99,10 +109,12 @@ public final class JConsoleBoosterApp extends Application {
         connection = new ConnectionController(
                 window, connectDialog, switches, Duration.ofMillis(options.updateInterval()), exec);
         SettingsDialog settings = new SettingsDialog(stage, themes, switches, connection.tabChoices());
-        AppMenus menus = new AppMenus(
-                connection, bookmarksFile, bookmarkActions, settings::show, window, getHostServices()::showDocument);
-        window.setMenuBar(menus.build());
-        window.setToolBar(new AppToolbar(connection, bookmarksFile, settings::show).build());
+        Updates updates = buildUpdates(stage);
+        window.setMenuBar(
+                new AppMenus(updates.checkForUpdatesMenuItem(), window, getHostServices()::showDocument).build());
+        window.setToolBar(new AppToolbar(connection, bookmarksFile, bookmarkActions, window, settings::show).build());
+        // Settings has no menu item, only the toolbar button; the usual shortcut opens it too
+        stage.getScene().getAccelerators().put(SETTINGS_SHORTCUT, settings::show);
 
         JMXConnectionManager.setCertTrustPrompt(new FxCertTrustPrompt(stage));
         JMXConnectionManager.setPlaintextCredentialAlert(new FxPlaintextAlert(stage));
@@ -110,8 +122,25 @@ public final class JConsoleBoosterApp extends Application {
         WindowGeometry.install(stage, prefs);
         RUNNING.set(this);
         stage.show();
+        // Quiet unless a newer release is there to offer; a development run is not an installed copy and skips it.
+        updates.checkAtStart();
         // After start() returns, so the window is up before a dialog or a connect begins.
         Platform.runLater(() -> firstConnection(options.urls()));
+    }
+
+    /**
+     * Self-update from this repository's releases, all through the kit: the offer, the download in the status bar, the
+     * SHA-256 check, the install and the restart. The dialogs belong to the main window.
+     */
+    private Updates buildUpdates(Stage stage) {
+        return Updates.builder()
+                .appName("JConsole Booster")
+                .app(JConsoleBoosterApp.class)
+                .source(GitHubReleases.of("DenissLarka", "jconsole-booster"))
+                .owner(stage)
+                .prefs(prefs)
+                .exec(exec)
+                .build();
     }
 
     @Override
@@ -132,7 +161,9 @@ public final class JConsoleBoosterApp extends Application {
             return;
         }
         if (urls.size() > 1) {
-            log.warn("JConsole Booster holds one connection: connecting to {}, ignoring {}", urls.getFirst(), urls);
+            LOG.log(
+                    System.Logger.Level.WARNING,
+                    "JConsole Booster holds one connection: connecting to " + urls.getFirst() + ", ignoring " + urls);
         }
         connection.connect(ConnectionRequest.to(urls.getFirst()));
     }
@@ -144,8 +175,10 @@ public final class JConsoleBoosterApp extends Application {
     }
 
     private void warnIfHomesDiffer() {
-        if (!home.root().toAbsolutePath().equals(BoosterHome.root().toAbsolutePath())) {
-            log.warn("The app's preferences live in {}, its connection files in {}", home.root(), BoosterHome.root());
+        if (!HOME.root().toAbsolutePath().equals(BoosterHome.root().toAbsolutePath())) {
+            LOG.log(
+                    System.Logger.Level.WARNING,
+                    "The app's preferences live in " + HOME.root() + ", its connection files in " + BoosterHome.root());
         }
     }
 }

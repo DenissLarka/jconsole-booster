@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Parses the user-editable {@code connections.txt} bookmarks file into a list of {@link BookmarkGroup}s. Malformed
@@ -20,8 +19,9 @@ import lombok.extern.slf4j.Slf4j;
  * ---                     ← separator within a group
  * </pre>
  */
-@Slf4j
 public final class ConnectionBookmarksLoader {
+
+    private static final System.Logger LOG = System.getLogger(ConnectionBookmarksLoader.class.getName());
 
     private ConnectionBookmarksLoader() {}
 
@@ -48,7 +48,9 @@ public final class ConnectionBookmarksLoader {
                 }
                 if (line.equals("---")) {
                     if (current == null) {
-                        log.warn("connections.txt:{}: separator before any [group] header — skipped", lineNo);
+                        LOG.log(
+                                System.Logger.Level.WARNING,
+                                "connections.txt:" + lineNo + ": separator before any [group] header — skipped");
                         continue;
                     }
                     current.add(BookmarkSeparator.INSTANCE);
@@ -56,17 +58,23 @@ public final class ConnectionBookmarksLoader {
                 }
                 int at = line.indexOf('@');
                 if (at <= 0 || at == line.length() - 1) {
-                    log.warn("connections.txt:{}: malformed entry (expected name@url): {}", lineNo, line);
+                    LOG.log(
+                            System.Logger.Level.WARNING,
+                            "connections.txt:" + lineNo + ": malformed entry (expected name@url): " + line);
                     continue;
                 }
                 if (current == null) {
-                    log.warn("connections.txt:{}: bookmark before any [group] header — skipped: {}", lineNo, line);
+                    LOG.log(
+                            System.Logger.Level.WARNING,
+                            "connections.txt:" + lineNo + ": bookmark before any [group] header — skipped: " + line);
                     continue;
                 }
                 String name = line.substring(0, at).strip();
                 String url = line.substring(at + 1).strip();
                 if (name.isEmpty() || url.isEmpty()) {
-                    log.warn("connections.txt:{}: empty name or url — skipped: {}", lineNo, line);
+                    LOG.log(
+                            System.Logger.Level.WARNING,
+                            "connections.txt:" + lineNo + ": empty name or url — skipped: " + line);
                     continue;
                 }
                 current.add(new Bookmark(name, url));

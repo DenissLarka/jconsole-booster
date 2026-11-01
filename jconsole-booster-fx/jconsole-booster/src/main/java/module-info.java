@@ -10,8 +10,6 @@ module com.druvu.jconsole.app {
     requires com.druvu.lib.fx;
     // java.awt.Desktop opens the bookmarks file in the user's editor; the kit's macOS menu hooks need it too
     requires java.desktop;
-    requires org.slf4j;
-    requires static lombok;
 
     // javafx.graphics creates the Application subclass reflectively
     exports com.druvu.jconsole.app to

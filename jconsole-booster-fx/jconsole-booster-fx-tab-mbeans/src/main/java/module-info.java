@@ -9,7 +9,6 @@ module com.druvu.jconsole.fx.tab.mbeans {
     requires javafx.controls;
     // java.awt.Desktop: opens a returned file with the OS application
     requires java.desktop;
-    requires org.slf4j;
 
     provides com.druvu.lib.loader.ComponentFactory with
             com.druvu.jconsole.fx.tab.mbeans.MBeansTabFactory;

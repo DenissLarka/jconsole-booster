@@ -1,8 +1,10 @@
 package com.druvu.jconsole.app;
 
+import com.druvu.jconsole.console.ConsoleLogs;
 import com.druvu.jconsole.console.ConsoleMain;
 import com.druvu.jconsole.core.launch.ArgumentParser;
 import com.druvu.jconsole.core.launch.JConsoleOptions;
+import com.druvu.lib.fx.os.AppLogs;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -15,15 +17,12 @@ import java.util.Optional;
  */
 public final class Main {
 
-    private static final String SIMPLE_LOGGER_LEVEL = "org.slf4j.simpleLogger.defaultLogLevel";
-
     private Main() {}
 
     public static void main(String[] args) {
-        // -debug turns on debug logging; it has to be set before the first logger exists, i.e. before parsing.
-        if (Arrays.asList(args).contains("-debug") && System.getProperty(SIMPLE_LOGGER_LEVEL) == null) {
-            System.setProperty(SIMPLE_LOGGER_LEVEL, "debug");
-        }
+        boolean debug = Arrays.asList(args).contains(ArgumentParser.DEBUG_FLAG);
+        // One line per record from the first message on, the parsing's own included. The console mode keeps it.
+        ConsoleLogs.setUp(debug);
         Optional<JConsoleOptions> options = ArgumentParser.parse(args);
         if (options.isEmpty()) {
             // the usage or the version was printed
@@ -32,6 +31,13 @@ public final class Main {
         if (options.get().console()) {
             System.exit(ConsoleMain.run(options.get()));
         }
+        // The desktop app logs through the kit: its format, the level from -Ddruvu.log (-debug sets it) and, for an
+        // installed copy, the output in ~/.druvu.com/jconsole-booster/logs. Not in console mode: an installed copy
+        // would send the console's own output into that file.
+        if (debug && System.getProperty(AppLogs.LEVEL_PROPERTY) == null) {
+            System.setProperty(AppLogs.LEVEL_PROPERTY, System.Logger.Level.DEBUG.name());
+        }
+        AppLogs.setUp(JConsoleBoosterApp.HOME);
         JConsoleBoosterApp.launchWith(args);
     }
 }

@@ -19,7 +19,6 @@ import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * The window's one connection and its life. Connecting runs off the FX thread; once connected, the tabs are created and
@@ -32,8 +31,9 @@ import lombok.extern.slf4j.Slf4j;
  * @author Deniss Larka <br>
  *     on 30 Oct 2026
  */
-@Slf4j
 public final class ConnectionController {
+
+    private static final System.Logger LOG = System.getLogger(ConnectionController.class.getName());
 
     private enum Phase {
         NOT_CONNECTED,
@@ -50,6 +50,7 @@ public final class ConnectionController {
     private final ClientWork clientWork;
 
     private final ReadOnlyBooleanWrapper active = new ReadOnlyBooleanWrapper(this, "active", false);
+    private final ReadOnlyBooleanWrapper connected = new ReadOnlyBooleanWrapper(this, "connected", false);
     private final ReadOnlyBooleanWrapper reconnectable = new ReadOnlyBooleanWrapper(this, "reconnectable", false);
     private final ObservableList<TabChoice> tabChoices = FXCollections.observableArrayList();
 
@@ -83,6 +84,11 @@ public final class ConnectionController {
     /** True while there is a connection: open, opening or lost. Disconnect follows it. */
     public ReadOnlyBooleanProperty activeProperty() {
         return active.getReadOnlyProperty();
+    }
+
+    /** True while the connection is open; false while it opens, once it is lost and without one. */
+    public ReadOnlyBooleanProperty connectedProperty() {
+        return connected.getReadOnlyProperty();
     }
 
     /** True once there is a target to reconnect to. */
@@ -176,7 +182,10 @@ public final class ConnectionController {
             ConnectionRequest failed = request;
             client = null;
             setPhase(Phase.NOT_CONNECTED);
-            log.debug("Connecting to {} failed", failed.shortUrl(), attempted.getLastConnectException());
+            LOG.log(
+                    System.Logger.Level.DEBUG,
+                    "Connecting to " + failed.shortUrl() + " failed",
+                    attempted.getLastConnectException());
             askAgain(failed, ConnectErrors.describe(attempted.getLastConnectException()));
             return;
         }
@@ -200,7 +209,7 @@ public final class ConnectionController {
             tabs = arranged.shown();
             window.showTabs(tabs, TabSet.selectedOnConnect(tabs).orElse(null));
         } catch (RuntimeException failure) {
-            log.error("Creating the tabs failed", failure);
+            LOG.log(System.Logger.Level.ERROR, "Creating the tabs failed", failure);
             window.showError("The tabs could not be created", failure);
         }
         tick = new UpdateTick(connected::flush, tabs, FxThreads.fxExecutor(), new TickListener());
@@ -208,7 +217,7 @@ public final class ConnectionController {
     }
 
     private void onConnectionLost(Exception cause) {
-        log.warn("Lost the connection to {}", connectionName(), cause);
+        LOG.log(System.Logger.Level.WARNING, "Lost the connection to " + connectionName(), cause);
         stopTick();
         ProxyClient lost = client;
         clientWork.run(lost, "Closing the lost connection", lost::markAsDead);
@@ -248,6 +257,7 @@ public final class ConnectionController {
     private void setPhase(Phase next) {
         phase = next;
         active.set(next != Phase.NOT_CONNECTED);
+        connected.set(next == Phase.CONNECTED);
         reconnectable.set(request != null);
         String name = connectionName();
         switch (next) {

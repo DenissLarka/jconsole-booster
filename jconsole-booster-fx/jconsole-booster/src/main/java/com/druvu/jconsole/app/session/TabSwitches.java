@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * The user's on/off switch per tab, kept in a hand-editable file of {@code id=on|off} lines; a missing file or id means
@@ -21,8 +20,9 @@ import lombok.extern.slf4j.Slf4j;
  * @author Deniss Larka <br>
  *     on 30 Oct 2026
  */
-@Slf4j
 public final class TabSwitches {
+
+    private static final System.Logger LOG = System.getLogger(TabSwitches.class.getName());
 
     private static final List<String> HEADER = List.of(
             "# JConsole Booster plugins - id=on|off (a missing id means on).",
@@ -63,7 +63,7 @@ public final class TabSwitches {
                 switches.put(line.substring(0, equals).strip(), !"off".equals(value));
             }
         } catch (IOException e) {
-            log.warn("Could not read {}: {}", file, e.getMessage());
+            LOG.log(System.Logger.Level.WARNING, "Could not read " + file + ": " + e.getMessage());
         }
         return switches;
     }
@@ -78,7 +78,7 @@ public final class TabSwitches {
             }
             Files.write(file, lines);
         } catch (IOException e) {
-            log.warn("Could not write {}: {}", file, e.getMessage());
+            LOG.log(System.Logger.Level.WARNING, "Could not write " + file + ": " + e.getMessage());
         }
     }
 }

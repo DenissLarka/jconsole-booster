@@ -36,10 +36,11 @@ import java.util.Map;
 import java.util.Set;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 public final class MemoryPoolProxy {
+
+    private static final System.Logger LOG = System.getLogger(MemoryPoolProxy.class.getName());
+
     private final String poolName;
     private final ProxyClient client;
     private final MemoryPoolMXBean pool;
@@ -62,7 +63,7 @@ public final class MemoryPoolProxy {
                 }
             } catch (MalformedObjectNameException e) {
                 // the platform registers its managers under this very name, so such a manager has no MBean to read
-                log.debug("Memory manager {} has no valid MBean name", name, e);
+                LOG.log(System.Logger.Level.DEBUG, "Memory manager " + name + " has no valid MBean name", e);
             }
         }
     }

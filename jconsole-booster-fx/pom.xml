@@ -31,7 +31,7 @@
 	<properties>
 		<!-- JavaFX 27 and druvu-lib-fx need Java 27 -->
 		<fx.java.version>27</fx.java.version>
-		<druvu-lib-fx.version>2.0.0</druvu-lib-fx.version>
+		<druvu-lib-fx.version>2.1.0-SNAPSHOT</druvu-lib-fx.version>
 	</properties>
 
 	<!-- druvu-lib-fx is published on GitHub Packages only; reading it needs a token in settings.xml (server id github) -->

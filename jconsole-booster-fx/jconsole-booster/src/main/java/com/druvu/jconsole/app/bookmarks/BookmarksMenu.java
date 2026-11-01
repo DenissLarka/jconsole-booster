@@ -12,9 +12,8 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 
 /**
- * The bookmarks as menu items, for the Bookmarks menu and the toolbar's connection button: one submenu per group, one
- * item per bookmark. A click hands the bookmark's target on; it never connects by itself, because a bookmark keeps no
- * password.
+ * The bookmarks as menu items, for the toolbar's connection list: one submenu per group, one item per bookmark. A click
+ * hands the bookmark's target on; it never connects by itself, because a bookmark keeps no password.
  *
  * @author Deniss Larka <br>
  *     on 30 Oct 2026
@@ -24,15 +23,6 @@ public final class BookmarksMenu {
     static final String EMPTY = "(no bookmarks: edit connections.txt)";
 
     private BookmarksMenu() {}
-
-    /**
-     * Replaces the menu's items with the groups' bookmarks.
-     *
-     * @param onPick told the target of the clicked bookmark
-     */
-    public static void fill(Menu menu, List<BookmarkGroup> groups, Consumer<String> onPick) {
-        menu.getItems().setAll(items(groups, onPick));
-    }
 
     /**
      * The groups' bookmarks as items: a submenu per group, or one disabled line saying there are none.

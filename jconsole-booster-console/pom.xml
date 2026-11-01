@@ -28,17 +28,15 @@
 			<version>${project.version}</version>
 			<scope>runtime</scope>
 		</dependency>
-		<!-- a binding for the plain jar and runs from source; optional, so it reaches no consumer -->
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-simple</artifactId>
-			<scope>runtime</scope>
-			<optional>true</optional>
-		</dependency>
-
 		<dependency>
 			<groupId>org.testng</groupId>
 			<artifactId>testng</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<!-- TestNG logs through SLF4J: its lines go to the JDK's logging, where the code's go -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-jdk14</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

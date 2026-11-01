@@ -8,8 +8,6 @@ module com.druvu.jconsole.core {
     requires transitive jdk.management;
     // finds the protocol transports at run time
     requires com.druvu.lib.loader;
-    requires org.slf4j;
-    requires static lombok;
 
     exports com.druvu.jconsole.core.bookmarks;
     exports com.druvu.jconsole.core.connect;

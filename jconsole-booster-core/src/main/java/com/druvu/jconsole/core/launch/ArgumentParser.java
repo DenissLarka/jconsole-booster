@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Parses command-line arguments into {@link JConsoleOptions}.
@@ -20,12 +19,16 @@ import lombok.extern.slf4j.Slf4j;
  *   <li>{@code host:port} → {@code service:jmx:jmxmp://host:port}
  * </ul>
  */
-@Slf4j
 public class ArgumentParser {
+
+    private static final System.Logger LOG = System.getLogger(ArgumentParser.class.getName());
 
     private static final Pattern COLOR_PATTERN = Pattern.compile("^-c=(#\\p{XDigit}+)$");
 
     public static final String JMXMP_PREFIX = "service:jmx:jmxmp://";
+
+    /** Debug logging. The entry points look for it before parsing, so logging is set up before anything logs. */
+    public static final String DEBUG_FLAG = "-debug";
 
     /**
      * Parses {@code args} and returns launch options. Returns {@link Optional#empty()} when the application should exit
@@ -76,7 +79,7 @@ public class ArgumentParser {
             } else if (arg.equals("-fullversion")) {
                 Version.printFullVersion(System.err);
                 return Optional.empty();
-            } else if (arg.equals("-debug")) {
+            } else if (arg.equals(DEBUG_FLAG)) {
                 debug = true;
             } else if (arg.equals("--console")) {
                 console = true;
@@ -105,7 +108,9 @@ public class ArgumentParser {
 
             if (arg.indexOf(':') == -1) {
                 // No colon → not a URL and not a host:port. Bare process ids are no longer supported.
-                log.error("Invalid connection target: {} (expected host:port or full service:jmx: URL)", arg);
+                LOG.log(
+                        System.Logger.Level.ERROR,
+                        "Invalid connection target: " + arg + " (expected host:port or full service:jmx: URL)");
                 usage();
                 return Optional.empty();
             }

@@ -14,7 +14,10 @@ import javafx.scene.control.SeparatorMenuItem;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-/** Covers the Bookmarks menu: a submenu per group, plain labels, separators, a click hands the target on. */
+/**
+ * Covers the bookmarks in the connection list: a submenu per group, plain labels, separators, a click hands the target
+ * on.
+ */
 public class BookmarksMenuTest {
 
     @BeforeClass
@@ -43,9 +46,7 @@ public class BookmarksMenuTest {
                         new Bookmark("b", "b:1"))));
 
         Menu prod = FxTestToolkit.call(() -> {
-            Menu menu = new Menu("Bookmarks");
-            BookmarksMenu.fill(menu, groups, picked::add);
-            Menu group = (Menu) menu.getItems().getFirst();
+            Menu group = (Menu) BookmarksMenu.items(groups, picked::add).getFirst();
             group.getItems().getFirst().fire();
             return group;
         });
@@ -54,17 +55,5 @@ public class BookmarksMenuTest {
         assertThat(prod.getItems()).extracting(MenuItem::getText).containsExactly("prod-1", null, "b");
         assertThat(prod.getItems().get(1)).isInstanceOf(SeparatorMenuItem.class);
         assertThat(picked).containsExactly("prod-1:7091");
-    }
-
-    @Test
-    public void noBookmarksIsSaid() {
-        MenuItem only = FxTestToolkit.call(() -> {
-            Menu menu = new Menu("Bookmarks");
-            BookmarksMenu.fill(menu, List.of(), target -> {});
-            return menu.getItems().getFirst();
-        });
-
-        assertThat(only.getText()).isEqualTo(BookmarksMenu.EMPTY);
-        assertThat(only.isDisable()).isTrue();
     }
 }

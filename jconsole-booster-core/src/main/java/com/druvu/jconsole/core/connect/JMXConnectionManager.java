@@ -42,13 +42,11 @@ import javax.management.ReflectionException;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Encapsulates pure-JMX connection establishment logic extracted from {@code ProxyClient}. All methods are static; this
  * class is not instantiable.
  */
-@Slf4j
 public final class JMXConnectionManager {
 
     private static final String HOTSPOT_DIAGNOSTIC_MXBEAN_NAME = "com.sun.management:type=HotSpotDiagnostic";

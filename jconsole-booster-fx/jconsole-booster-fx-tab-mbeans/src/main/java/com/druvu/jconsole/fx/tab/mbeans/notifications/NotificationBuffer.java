@@ -13,8 +13,6 @@ import javax.management.MBeanServerConnection;
 import javax.management.Notification;
 import javax.management.NotificationListener;
 import javax.management.ObjectName;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * The notifications received per MBean while the user is subscribed, newest first. Unsubscribing keeps the buffer;
@@ -26,7 +24,7 @@ import org.slf4j.LoggerFactory;
  */
 public final class NotificationBuffer {
 
-    private static final Logger log = LoggerFactory.getLogger(NotificationBuffer.class);
+    private static final System.Logger LOG = System.getLogger(NotificationBuffer.class.getName());
 
     private final MBeanServerConnection connection;
     private final Map<ObjectName, Subscription> subscriptions = new ConcurrentHashMap<>();
@@ -66,7 +64,7 @@ public final class NotificationBuffer {
         try {
             connection.removeNotificationListener(name, subscription, null, null);
         } catch (InstanceNotFoundException | ListenerNotFoundException e) {
-            log.debug("The listener on {} was already gone", name, e);
+            LOG.log(System.Logger.Level.DEBUG, "The listener on " + name + " was already gone", e);
         }
     }
 
@@ -108,7 +106,7 @@ public final class NotificationBuffer {
             try {
                 unsubscribe(name);
             } catch (IOException | RuntimeException e) {
-                log.debug("Could not unsubscribe from {}", name, e);
+                LOG.log(System.Logger.Level.DEBUG, "Could not unsubscribe from " + name, e);
             }
         }
         subscriptions.clear();

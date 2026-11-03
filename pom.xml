@@ -76,7 +76,7 @@
 		<maven-enforcer-plugin.version>3.7.0</maven-enforcer-plugin.version>
 		<exec-maven-plugin.version>3.6.4</exec-maven-plugin.version>
 		<maven-shade-plugin.version>3.6.2</maven-shade-plugin.version>
-		<spotless-maven-plugin.version>3.10.4</spotless-maven-plugin.version>
+		<spotless-maven-plugin.version>3.11.0</spotless-maven-plugin.version>
 		<palantir-java-format.version>2.90.0</palantir-java-format.version>
 		<spotbugs-maven-plugin.version>4.10.5.0</spotbugs-maven-plugin.version>
 		<maven-pmd-plugin.version>3.28.0</maven-pmd-plugin.version>

@@ -56,4 +56,19 @@ public class BookmarksMenuTest {
         assertThat(prod.getItems().get(1)).isInstanceOf(SeparatorMenuItem.class);
         assertThat(picked).containsExactly("prod-1:7091");
     }
+
+    /** A menu reads "_" as the mark of a keyboard shortcut and hides it: in a name, it must stay text. */
+    @Test
+    public void underscoresInGroupsAndBookmarksStayText() {
+        List<BookmarkGroup> groups =
+                List.of(new BookmarkGroup("my_team", List.of(new Bookmark("prod_eu_1", "prod-eu-1:7091"))));
+
+        Menu group = FxTestToolkit.call(
+                () -> (Menu) BookmarksMenu.items(groups, target -> {}).getFirst());
+
+        assertThat(group.isMnemonicParsing()).as("the group's name").isFalse();
+        assertThat(group.getItems().getFirst().isMnemonicParsing())
+                .as("the bookmark's name")
+                .isFalse();
+    }
 }

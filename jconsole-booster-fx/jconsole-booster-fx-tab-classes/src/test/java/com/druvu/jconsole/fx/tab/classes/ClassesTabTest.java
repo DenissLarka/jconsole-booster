@@ -95,6 +95,19 @@ public class ClassesTabTest {
         assertThat(host.errors()).containsExactly("Verbose Output: connection lost");
     }
 
+    /** A JMX server that is not a JVM's own (a custom MBeanServer) has no class loading bean: nothing to show. */
+    @Test
+    public void aTargetWithoutPlatformBeansIsNotAnError() throws IOException, InterruptedException {
+        RecordingHost host = new RecordingHost();
+        ClassesTab tab = new ClassesTab(LocalJvmConnection.to(null), host);
+
+        FxTestToolkit.runAndWait(tab.refresh());
+        tab.setVerbose(true).join();
+        FxTestToolkit.runAndWait(() -> {});
+
+        assertThat(host.errors()).isEmpty();
+    }
+
     @Test
     public void aLostConnectionIsAnIoException() {
         ClassesTab tab = new ClassesTab(LocalJvmConnection.to(LocalJvmConnection.lostBean()), new RecordingHost());

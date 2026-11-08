@@ -10,6 +10,7 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.function.Consumer;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar.ButtonData;
@@ -125,6 +126,20 @@ public final class MainWindow implements TabHost {
         boolean none = tabs.isEmpty();
         tabPane.setVisible(!none);
         notConnected.setVisible(none);
+    }
+
+    /** The connection's tab the user sees, or {@code null} when none is shown. */
+    public ConnectionTab shownTab() {
+        Tab selected = tabPane.getSelectionModel().getSelectedItem();
+        return selected == null ? null : (ConnectionTab) selected.getUserData();
+    }
+
+    /** Tells {@code listener} each time the user brings another of the connection's tabs to the front. */
+    public void onTabShown(Consumer<ConnectionTab> listener) {
+        tabPane.getSelectionModel()
+                .selectedItemProperty()
+                .addListener((observable, was, now) ->
+                        listener.accept(now == null ? null : (ConnectionTab) now.getUserData()));
     }
 
     /** Removes the tabs: the connection is closed. */

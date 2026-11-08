@@ -3,7 +3,6 @@ package com.druvu.jconsole.app;
 import com.druvu.jconsole.app.bookmarks.BookmarkActions;
 import com.druvu.jconsole.app.bookmarks.BookmarksFile;
 import com.druvu.jconsole.app.connect.ConnectDialog;
-import com.druvu.jconsole.app.connect.ConnectionRequest;
 import com.druvu.jconsole.app.connect.FxCertTrustPrompt;
 import com.druvu.jconsole.app.connect.FxPlaintextAlert;
 import com.druvu.jconsole.app.session.ConnectionController;
@@ -12,7 +11,6 @@ import com.druvu.jconsole.app.settings.SettingsDialog;
 import com.druvu.jconsole.app.window.AboutBox;
 import com.druvu.jconsole.app.window.ColorBand;
 import com.druvu.jconsole.app.window.MainWindow;
-import com.druvu.jconsole.core.bookmarks.RecentConnections;
 import com.druvu.jconsole.core.connect.JMXConnectionManager;
 import com.druvu.jconsole.core.home.BoosterHome;
 import com.druvu.jconsole.core.launch.ArgumentParser;
@@ -30,7 +28,6 @@ import com.druvu.lib.fx.update.Updates;
 import com.druvu.lib.fx.updater.github.GitHubReleases;
 import com.druvu.lib.fx.util.FxThreads;
 import java.time.Duration;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -104,8 +101,7 @@ public final class JConsoleBoosterApp extends Application {
         BookmarksFile bookmarksFile = new BookmarksFile(BoosterHome.connectionsFile());
         BookmarkActions bookmarkActions = new BookmarkActions(bookmarksFile, window, exec);
         TabSwitches switches = new TabSwitches(BoosterHome.pluginsFile());
-        ConnectDialog connectDialog =
-                new ConnectDialog(stage, RecentConnections::load, bookmarksFile::labelsByTarget, bookmarkActions::add);
+        ConnectDialog connectDialog = new ConnectDialog(stage, bookmarkActions::add);
         connection = new ConnectionController(
                 window, connectDialog, switches, Duration.ofMillis(options.updateInterval()), exec);
         SettingsDialog settings = new SettingsDialog(stage, themes, switches, connection.tabChoices());
@@ -125,7 +121,7 @@ public final class JConsoleBoosterApp extends Application {
         // Quiet unless a newer release is there to offer; a development run is not an installed copy and skips it.
         updates.checkAtStart();
         // After start() returns, so the window is up before a dialog or a connect begins.
-        Platform.runLater(() -> firstConnection(options.urls()));
+        Platform.runLater(() -> connection.connectAtStart(options.urls()));
     }
 
     /**
@@ -152,20 +148,6 @@ public final class JConsoleBoosterApp extends Application {
             statusBarModel.close();
         }
         exec.close();
-    }
-
-    /** The JVM named on the command line, or the Connect dialog when none was. */
-    private void firstConnection(List<String> urls) {
-        if (urls.isEmpty()) {
-            connection.newConnection();
-            return;
-        }
-        if (urls.size() > 1) {
-            LOG.log(
-                    System.Logger.Level.WARNING,
-                    "JConsole Booster holds one connection: connecting to " + urls.getFirst() + ", ignoring " + urls);
-        }
-        connection.connect(ConnectionRequest.to(urls.getFirst()));
     }
 
     private void showAbout() {

@@ -31,10 +31,14 @@ final class OperationForm {
     private final MBeanOperationInfo operation;
     private final String mbeanClass;
     private final OperationMemory memory;
+    private final Consumer<OperationForm> invoke;
+    private final boolean callable;
     private final List<ParameterInput> inputs = new ArrayList<>();
     private final Button button;
     private final Node operationCell;
     private final List<Node> parameterCells = new ArrayList<>();
+    // FX thread only: true from the click until the call has ended
+    private boolean running;
 
     /**
      * @param mbeanClass the MBean's class, the key of the remembered values
@@ -49,10 +53,11 @@ final class OperationForm {
         this.operation = operation;
         this.mbeanClass = mbeanClass;
         this.memory = memory;
-        boolean callable = ParameterValues.isCallable(operation);
+        this.invoke = invoke;
+        this.callable = ParameterValues.isCallable(operation);
         button = new Button(operation.getName());
         button.setDisable(!callable);
-        button.setOnAction(event -> invoke.accept(this));
+        button.setOnAction(event -> invokeOnce());
         // the buttons fill their column, so their names line up on the left, and never shrink below their name
         button.setMaxWidth(Double.MAX_VALUE);
         button.setMinWidth(Region.USE_PREF_SIZE);
@@ -60,21 +65,35 @@ final class OperationForm {
         Label returns = HelpLink.create(
                 ParameterInputs.simpleName(operation.getReturnType()), operation.getName(), operationHelp(operation));
         operationCell = new VBox(2, returns, button);
-        Runnable invokeOnEnter = () -> {
-            if (callable) {
-                invoke.accept(this);
-            }
-        };
         for (MBeanParameterInfo parameter : operation.getSignature()) {
             Label name = HelpLink.create(parameter.getName(), parameter.getName(), parameterHelp(parameter));
             String preset = memory.load(mbeanClass, operation.getName(), parameter.getName())
                     .orElse(ParameterDescriptor.defaultValue(parameter));
-            ParameterInput input = ParameterInputs.create(parameter, preset, invokeOnEnter, host);
+            ParameterInput input = ParameterInputs.create(parameter, preset, this::invokeOnce, host);
             input.onForget(() -> memory.forget(mbeanClass, operation.getName(), parameter.getName()));
             input.node().setDisable(!callable);
             inputs.add(input);
             parameterCells.add(new VBox(2, name, input.node()));
         }
+    }
+
+    /**
+     * The button and Enter in a parameter: one call at a time, so a double click or a held Enter does not run an
+     * operation on the server twice. The button stays disabled until {@link #finished}.
+     */
+    private void invokeOnce() {
+        if (!callable || running) {
+            return;
+        }
+        running = true;
+        button.setDisable(true);
+        invoke.accept(this);
+    }
+
+    /** The call has ended, whatever its outcome: the operation can be invoked again. */
+    void finished() {
+        running = false;
+        button.setDisable(!callable);
     }
 
     /** A parameter's help: its description when the MBean gives one, then its full type. */

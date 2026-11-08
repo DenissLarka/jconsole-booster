@@ -67,6 +67,20 @@ public class ConnectToSampleTargetTest {
         assertThat(client.getConnectionState()).isEqualTo(ConnectionState.DISCONNECTED);
     }
 
+    /** A HotSpot target's thread bean is the extended one: JTop reads every thread's CPU time in one call. */
+    @Test
+    public void theThreadBeanOfAHotSpotTargetIsTheExtendedOne() throws IOException {
+        ProxyClient client = connect("admin");
+        try {
+            assertThat(client.getThreadMXBean()).isInstanceOf(com.sun.management.ThreadMXBean.class);
+            long[] ids = client.getThreadMXBean().getAllThreadIds();
+            assertThat(((com.sun.management.ThreadMXBean) client.getThreadMXBean()).getThreadCpuTime(ids))
+                    .hasSameSizeAs(ids);
+        } finally {
+            client.disconnect();
+        }
+    }
+
     @Test
     public void theListsHandedToTheTabsCannotBeChanged() throws IOException {
         ProxyClient client = connect("admin");

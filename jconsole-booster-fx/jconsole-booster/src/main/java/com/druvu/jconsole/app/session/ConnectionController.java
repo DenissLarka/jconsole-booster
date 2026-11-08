@@ -4,7 +4,6 @@ import com.druvu.jconsole.app.connect.ConnectDialog;
 import com.druvu.jconsole.app.connect.ConnectErrors;
 import com.druvu.jconsole.app.connect.ConnectionRequest;
 import com.druvu.jconsole.app.window.MainWindow;
-import com.druvu.jconsole.core.bookmarks.RecentConnections;
 import com.druvu.jconsole.core.vm.ProxyClient;
 import com.druvu.jconsole.fx.tab.ConnectionTab;
 import com.druvu.jconsole.fx.tab.TabContext;
@@ -46,7 +45,6 @@ public final class ConnectionController {
     private final ConnectDialog connectDialog;
     private final TabSwitches switches;
     private final Duration interval;
-    private final FxExec exec;
     private final ClientWork clientWork;
 
     private final ReadOnlyBooleanWrapper active = new ReadOnlyBooleanWrapper(this, "active", false);
@@ -77,8 +75,13 @@ public final class ConnectionController {
         this.connectDialog = Objects.requireNonNull(connectDialog, "connectDialog");
         this.switches = Objects.requireNonNull(switches, "switches");
         this.interval = Objects.requireNonNull(interval, "interval");
-        this.exec = Objects.requireNonNull(exec, "exec");
-        this.clientWork = new ClientWork(exec);
+        this.clientWork = new ClientWork(Objects.requireNonNull(exec, "exec"));
+        // a tab that rests while hidden is read again as soon as it is shown
+        window.onTabShown(tab -> {
+            if (tick != null) {
+                tick.shown(tab);
+            }
+        });
     }
 
     /** True while there is a connection: open, opening or lost. Disconnect follows it. */
@@ -104,6 +107,23 @@ public final class ConnectionController {
     /** The current target in {@code host:port} form, for a bookmark; empty without a connection. */
     public String currentTarget() {
         return phase == Phase.NOT_CONNECTED || request == null ? "" : request.shortUrl();
+    }
+
+    /**
+     * Connects to the JVM named on the command line. Without one the window stays empty and the user picks: New
+     * Connection or a bookmark, in the toolbar.
+     */
+    public void connectAtStart(List<String> targets) {
+        if (targets.isEmpty()) {
+            return;
+        }
+        if (targets.size() > 1) {
+            LOG.log(
+                    System.Logger.Level.WARNING,
+                    "JConsole Booster holds one connection: connecting to " + targets.getFirst() + ", ignoring "
+                            + targets);
+        }
+        connect(ConnectionRequest.to(targets.getFirst()));
     }
 
     /** Opens the Connect dialog with the current target, then connects to what the user chose. */
@@ -189,8 +209,6 @@ public final class ConnectionController {
             askAgain(failed, ConnectErrors.describe(attempted.getLastConnectException()));
             return;
         }
-        String target = request.shortUrl();
-        exec.run("Remembering " + target, () -> RecentConnections.record(target));
         setPhase(Phase.CONNECTED);
         openTabs(attempted);
     }
@@ -213,6 +231,7 @@ public final class ConnectionController {
             window.showError("The tabs could not be created", failure);
         }
         tick = new UpdateTick(connected::flush, tabs, FxThreads.fxExecutor(), new TickListener());
+        tick.shown(window.shownTab());
         tick.start(interval);
     }
 

@@ -29,6 +29,13 @@ public class JTopTabTest {
         assertThat(tab.place()).isEqualTo(60);
     }
 
+    /** The table has no history to keep: the tab is read only while it is shown. */
+    @Test
+    public void restsWhileAnotherTabIsShown() {
+        assertThat(new JTopTab(ManagementFactory::getThreadMXBean).refreshesWhileHidden())
+                .isFalse();
+    }
+
     @Test
     public void aRefreshFillsTheContent() throws IOException {
         JTopTab tab = new JTopTab(ManagementFactory::getThreadMXBean);

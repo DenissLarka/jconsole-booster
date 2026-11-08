@@ -5,10 +5,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.testng.annotations.Test;
 
 /** Reading this JVM's own threads: the rows, their order, and the status when CPU time cannot be measured. */
@@ -27,6 +29,30 @@ public class ThreadCpuReaderTest {
         assertThat(snapshot.rows())
                 .allSatisfy(row -> assertThat(row.cpuSeconds()).isNotNegative());
         assertThat(snapshot.status()).isEqualTo("Threads: " + snapshot.rows().size());
+    }
+
+    /** On a HotSpot target every thread's CPU time comes in one call: one round trip, however many threads. */
+    @Test
+    public void theExtendedBeanReadsEveryCpuTimeInOneCall() {
+        AtomicInteger oneByOne = new AtomicInteger();
+        ThreadMXBean extended = new ThreadBeanStub()
+                .answer("getThreadCpuTime", args -> {
+                    if (args[0] instanceof long[] ids) {
+                        long[] times = new long[ids.length];
+                        Arrays.fill(times, TimeUnit.SECONDS.toNanos(1));
+                        return times;
+                    }
+                    oneByOne.incrementAndGet();
+                    return TimeUnit.SECONDS.toNanos(1);
+                })
+                .extendedBean();
+
+        ThreadSnapshot snapshot = ThreadCpuReader.read(extended);
+
+        assertThat(oneByOne).as("calls for one thread each").hasValue(0);
+        assertThat(snapshot.rows())
+                .isNotEmpty()
+                .allSatisfy(row -> assertThat(row.cpuSeconds()).isEqualTo(1.0));
     }
 
     @Test

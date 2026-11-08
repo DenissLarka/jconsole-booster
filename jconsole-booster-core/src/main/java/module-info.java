@@ -6,6 +6,8 @@ module com.druvu.jconsole.core {
     requires transitive java.management;
     // the HotSpot and com.sun.management views of the target JVM
     requires transitive jdk.management;
+    // RMI, the JDK's own connector: its server stub is read before a password is sent
+    requires java.management.rmi;
     // finds the protocol transports at run time
     requires com.druvu.lib.loader;
 

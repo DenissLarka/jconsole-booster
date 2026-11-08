@@ -7,6 +7,7 @@ import com.druvu.jconsole.fx.tab.ConnectionTab;
 import com.druvu.jconsole.fx.tab.JmxRead;
 import com.druvu.jconsole.fx.tab.TabHost;
 import java.io.IOException;
+import java.lang.management.ClassLoadingMXBean;
 import javafx.scene.Node;
 
 /**
@@ -51,7 +52,12 @@ final class ClassesTab implements ConnectionTab {
 
     @Override
     public Runnable refresh() throws IOException {
-        ClassLoadingReading reading = read();
+        ClassLoadingMXBean classes = JmxRead.run(connection::getClassLoadingMXBean);
+        if (classes == null) {
+            // a target without platform MXBeans (a custom MBeanServer) has no class loading to show
+            return () -> {};
+        }
+        ClassLoadingReading reading = JmxRead.run(() -> ClassLoadingReading.read(classes));
         return () -> view().show(reading);
     }
 
@@ -64,12 +70,13 @@ final class ClassesTab implements ConnectionTab {
     Thread setVerbose(boolean verbose) {
         return BackgroundCall.start(
                 Messages.VERBOSE_OUTPUT,
-                () -> connection.getClassLoadingMXBean().setVerbose(verbose),
+                () -> {
+                    ClassLoadingMXBean classes = connection.getClassLoadingMXBean();
+                    if (classes != null) {
+                        classes.setVerbose(verbose);
+                    }
+                },
                 host);
-    }
-
-    private ClassLoadingReading read() throws IOException {
-        return JmxRead.run(() -> ClassLoadingReading.read(connection.getClassLoadingMXBean()));
     }
 
     private ClassesView view() {

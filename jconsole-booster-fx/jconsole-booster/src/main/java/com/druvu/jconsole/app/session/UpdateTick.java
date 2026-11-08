@@ -10,13 +10,15 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Refreshes the tabs of one connection on a fixed delay. Each tick flushes the connection's attribute cache, then asks
  * every tab to read its values on the tick's thread and hands the step it returns to the FX thread. A tab whose last
- * step has not run yet is skipped, so a slow screen never piles up work.
+ * step has not run yet is skipped, so a slow screen never piles up work. A tab that rests while hidden
+ * ({@link ConnectionTab#refreshesWhileHidden()}) is read only while it is the one shown.
  *
  * <p>A tab that throws is switched off for the rest of the connection and reported once. A lost connection stops the
  * tick and is reported once. Every report reaches the {@link Listener} on the FX thread, and none after
@@ -52,6 +54,8 @@ final class UpdateTick {
     // stopped: by the owner, silences every report; lost: by the tick itself, ends the ticking
     private volatile boolean stopped;
     private volatile boolean lost;
+    // the tab the user sees, set on the FX thread, read on the tick's
+    private volatile ConnectionTab shown;
     private ScheduledExecutorService scheduler;
 
     /**
@@ -74,6 +78,27 @@ final class UpdateTick {
         scheduler.scheduleWithFixedDelay(this::tickSafely, 0, interval.toMillis(), TimeUnit.MILLISECONDS);
     }
 
+    /**
+     * The tab the user now sees. A tab that rests while hidden is read at once, so it does not show a stale table until
+     * the next tick. Call on the FX thread.
+     */
+    void shown(ConnectionTab tab) {
+        shown = tab;
+        if (tab == null || tab.refreshesWhileHidden() || scheduler == null || stopped || lost) {
+            return;
+        }
+        try {
+            scheduler.execute(() -> {
+                // fresh values, as a tick reads them
+                flush.run();
+                refreshIfDue(tab);
+            });
+        } catch (RejectedExecutionException tickEnded) {
+            // the connection was lost or closed meanwhile: nothing to read
+            LOG.log(System.Logger.Level.DEBUG, "The " + tab.id() + " tab was shown after the tick ended");
+        }
+    }
+
     /** Ends the ticking; the listener hears nothing more. Call on the FX thread. */
     void stop() {
         stopped = true;
@@ -92,11 +117,7 @@ final class UpdateTick {
             if (stopped || lost) {
                 return;
             }
-            // A tab whose previous step has not run yet waits for the next tick.
-            if (failed.contains(tab) || !stepPending.add(tab)) {
-                continue;
-            }
-            refresh(tab);
+            refreshIfDue(tab);
         }
         LocalTime at = LocalTime.now();
         fxThread.execute(() -> {
@@ -104,6 +125,21 @@ final class UpdateTick {
                 listener.updated(at);
             }
         });
+    }
+
+    /** Reads the tab unless it failed, rests while another tab is shown, or its previous step has not run yet. */
+    private void refreshIfDue(ConnectionTab tab) {
+        if (stopped || lost || failed.contains(tab)) {
+            return;
+        }
+        if (!tab.refreshesWhileHidden() && tab != shown) {
+            return;
+        }
+        // A tab whose previous step has not run yet waits for the next tick.
+        if (!stepPending.add(tab)) {
+            return;
+        }
+        refresh(tab);
     }
 
     private void refresh(ConnectionTab tab) {

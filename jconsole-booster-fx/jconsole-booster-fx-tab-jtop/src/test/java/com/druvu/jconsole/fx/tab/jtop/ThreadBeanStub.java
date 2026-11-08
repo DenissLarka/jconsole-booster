@@ -29,12 +29,21 @@ final class ThreadBeanStub {
     }
 
     ThreadMXBean bean() {
+        return proxy(ThreadMXBean.class);
+    }
+
+    /** The extended bean a HotSpot target offers ({@code com.sun.management}), with the bulk CPU time read. */
+    ThreadMXBean extendedBean() {
+        return proxy(com.sun.management.ThreadMXBean.class);
+    }
+
+    private ThreadMXBean proxy(Class<? extends ThreadMXBean> type) {
         ThreadMXBean local = ManagementFactory.getThreadMXBean();
         InvocationHandler handler = (proxy, method, args) -> {
             Answer answer = answers.get(method.getName());
             return answer == null ? method.invoke(local, args) : answer.answer(args);
         };
-        return (ThreadMXBean) Proxy.newProxyInstance(
-                ThreadBeanStub.class.getClassLoader(), new Class<?>[] {ThreadMXBean.class}, handler);
+        return (ThreadMXBean)
+                Proxy.newProxyInstance(ThreadBeanStub.class.getClassLoader(), new Class<?>[] {type}, handler);
     }
 }

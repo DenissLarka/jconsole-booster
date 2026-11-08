@@ -32,6 +32,16 @@ public final class FxCertTrustPrompt implements CertTrustPrompt {
     }
 
     @Override
+    public Decision confirmOtherHost(
+            String hostPort, X509Certificate certificate, String fingerprint, List<String> certifiedNames) {
+        return OnFxThread.ask(
+                () -> CertTrustDialogs.otherHost(owner, hostPort, certificate, fingerprint, certifiedNames)
+                        .showAndWait()
+                        .orElse(Decision.CANCEL),
+                Decision.CANCEL);
+    }
+
+    @Override
     public Decision confirmChanged(
             String hostPort, X509Certificate certificate, String fingerprint, List<String> previousFingerprints) {
         return OnFxThread.ask(

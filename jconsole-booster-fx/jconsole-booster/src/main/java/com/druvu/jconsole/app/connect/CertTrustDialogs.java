@@ -16,8 +16,9 @@ import javafx.scene.text.Font;
 import javafx.stage.Window;
 
 /**
- * The two certificate questions of trust on first use: a certificate never seen for the host, and one that differs from
- * the certificate trusted before. Enter answers Cancel in both, so a reflex never trusts.
+ * The three certificate questions of trust on first use: a certificate never seen for the host, one a trusted authority
+ * signed for other hosts, and one that differs from the certificate trusted before. Enter answers Cancel in all three,
+ * so a reflex never trusts.
  *
  * @author Deniss Larka <br>
  *     on 30 Oct 2026
@@ -42,6 +43,33 @@ final class CertTrustDialogs {
                 "Untrusted server certificate",
                 new VBox(8, headline, advice),
                 details,
+                "Remember this certificate for future connections to this host",
+                "Trust");
+    }
+
+    /** The question for a certificate a trusted authority signed for other host names than this one. */
+    static Dialog<Decision> otherHost(
+            Window owner, String hostPort, X509Certificate certificate, String fingerprint, List<String> names) {
+        Label headline = wrapped(
+                "The certificate for " + hostPort + " is signed by a trusted authority, but issued for other hosts.");
+        headline.getStyleClass().addAll(Styles.WARNING, Styles.TEXT_BOLD);
+        Label advice = wrapped("Certificates deployed inside companies are often issued this way. It is also what"
+                + " someone intercepting the connection with a real certificate for a name of their own looks like."
+                + " Trust it only if you know the certificate belongs to this server.");
+        StringBuilder details = new StringBuilder("Issued for:");
+        if (names.isEmpty()) {
+            details.append("\n    (no host names)");
+        }
+        for (String name : names) {
+            details.append("\n    ").append(name);
+        }
+        details.append("\n\nSHA-256 fingerprint:\n    ").append(fingerprint).append("\n\n");
+        details.append(identity(certificate));
+        return question(
+                owner,
+                "Certificate for other hosts",
+                new VBox(8, headline, advice),
+                details.toString(),
                 "Remember this certificate for future connections to this host",
                 "Trust");
     }

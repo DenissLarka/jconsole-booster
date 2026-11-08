@@ -475,10 +475,23 @@ public class ProxyClient implements JmxDataAccess {
     public ThreadMXBean getThreadMXBean() throws IOException {
         synchronized (platformBeansLock) {
             if (hasPlatformMXBeans && threadMBean == null) {
-                threadMBean = ManagementFactory.newPlatformMXBeanProxy(
-                        server, ManagementFactory.THREAD_MXBEAN_NAME, ThreadMXBean.class);
+                threadMBean = threadBeanProxy();
             }
             return threadMBean;
+        }
+    }
+
+    /**
+     * The extended thread view ({@code com.sun.management}) where the target offers it, as HotSpot does: it reads every
+     * thread's CPU time in one call, where the standard view needs a call per thread. The standard view otherwise.
+     */
+    private ThreadMXBean threadBeanProxy() throws IOException {
+        try {
+            return ManagementFactory.newPlatformMXBeanProxy(
+                    server, ManagementFactory.THREAD_MXBEAN_NAME, com.sun.management.ThreadMXBean.class);
+        } catch (IllegalArgumentException notExtended) {
+            return ManagementFactory.newPlatformMXBeanProxy(
+                    server, ManagementFactory.THREAD_MXBEAN_NAME, ThreadMXBean.class);
         }
     }
 

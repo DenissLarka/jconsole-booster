@@ -4,12 +4,12 @@ import java.security.cert.X509Certificate;
 import java.util.List;
 
 /**
- * Callback the TLS trust layer uses to ask the operator whether to trust a server certificate that does not validate
- * against the default trust store (typically a self-signed cert — the druvu-lib-jmxmp 2.0.0 default).
- * Trust-on-first-use, SSH style.
+ * Callback the TLS trust layer uses to ask the operator whether to trust a server certificate it cannot accept on its
+ * own: one no trusted authority signed (typically a self-signed cert — the druvu-lib-jmxmp default), one an authority
+ * signed for other host names, or one that differs from the certificate pinned before. Trust-on-first-use, SSH style.
  *
  * <p>Implementations may be invoked off the UI thread (connections are established on a worker thread); a UI
- * implementation must marshal to the EDT itself (see {@code CertTrustDialog}).
+ * implementation must move to its toolkit's thread itself.
  */
 public interface CertTrustPrompt {
 
@@ -49,6 +49,26 @@ public interface CertTrustPrompt {
      */
     default Decision confirmChanged(
             String hostPort, X509Certificate cert, String sha256Fingerprint, List<String> previousFingerprints) {
+        return confirm(hostPort, cert, sha256Fingerprint);
+    }
+
+    /**
+     * Asks the operator about a certificate a trusted authority signed, but for other host names than the one connected
+     * to. Inside companies this is common (one certificate deployed on many hosts); it is also what someone
+     * intercepting the connection with a real certificate for a name of their own looks like. Implementations should
+     * name the certified hosts and must not default to trust; a {@link Decision#TRUST_REMEMBER} pins it like a
+     * self-signed certificate, so the next connection does not ask again.
+     *
+     * <p>The default implementation delegates to {@link #confirm} so non-UI callers stay fail-closed.
+     *
+     * @param hostPort the target endpoint ({@code host:port})
+     * @param cert the server's leaf certificate
+     * @param sha256Fingerprint the certificate's SHA-256 fingerprint, colon-separated uppercase hex
+     * @param certifiedNames the host names and addresses the certificate is issued for (may be empty)
+     * @return the operator's decision
+     */
+    default Decision confirmOtherHost(
+            String hostPort, X509Certificate cert, String sha256Fingerprint, List<String> certifiedNames) {
         return confirm(hostPort, cert, sha256Fingerprint);
     }
 }

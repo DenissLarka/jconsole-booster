@@ -54,7 +54,7 @@ public class SampleMarkupStandardMBean extends StandardMBean {
             "Memo / reference"
         });
 
-        OPERATION_DESCRIPTIONS.put("getConfig", "Server config {{returns:format=json}}");
+        OPERATION_DESCRIPTIONS.put("getConfig", "Server config, as JSON");
         // byte[] download operations moved to SampleDownloads (its own bean).
     }
 

@@ -16,6 +16,8 @@ final class FakeTab implements ConnectionTab {
     private final AtomicInteger refreshes = new AtomicInteger();
     private final AtomicInteger steps = new AtomicInteger();
     private final Deque<Exception> failures = new ArrayDeque<>();
+    // read on the tick's thread
+    private volatile boolean resting;
 
     FakeTab(String id, int place) {
         this.id = id;
@@ -57,6 +59,17 @@ final class FakeTab implements ConnectionTab {
     @Override
     public Node content() {
         throw new UnsupportedOperationException("a fake tab has no content");
+    }
+
+    /** The tab rests while another one is shown, as JTop does. */
+    FakeTab restingWhileHidden() {
+        resting = true;
+        return this;
+    }
+
+    @Override
+    public boolean refreshesWhileHidden() {
+        return !resting;
     }
 
     @Override

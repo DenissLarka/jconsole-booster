@@ -72,7 +72,7 @@ public final class BookmarksFile {
 
     /**
      * Every bookmark's plain label by its target in {@link ConnectionRequest#canonical} form, so a bookmark written as
-     * a full service URL still matches the {@code host:port} a recent connection is kept as. The first bookmark of a
+     * a full service URL still matches the {@code host:port} the connection button names. The first bookmark of a
      * target wins: the same host may be in several groups.
      */
     public Map<String, String> labelsByTarget() {

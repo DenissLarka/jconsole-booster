@@ -42,6 +42,12 @@ final class JTopTab implements ConnectionTab {
         return view().root();
     }
 
+    /** A table of the latest values, no history: it rests while another tab is shown, a JMX call per tick saved. */
+    @Override
+    public boolean refreshesWhileHidden() {
+        return false;
+    }
+
     @Override
     public Runnable refresh() throws IOException {
         ThreadSnapshot snapshot = read();

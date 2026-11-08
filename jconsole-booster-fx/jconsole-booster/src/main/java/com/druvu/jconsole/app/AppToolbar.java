@@ -87,6 +87,8 @@ final class AppToolbar {
         connect.setMinHeight(BUTTON_SIZE);
         // the text starts at the left, as in a field; a name too long ends in "…", the tooltip has it whole
         connect.setAlignment(Pos.CENTER_LEFT);
+        // it shows a bookmark's name or a host: an "_" in them is text, not the mark of a keyboard shortcut
+        connect.setMnemonicParsing(false);
         connect.setTooltip(connectTooltip);
         fillConnectionList();
         // the bookmarks file may have been edited since: read it each time the list opens

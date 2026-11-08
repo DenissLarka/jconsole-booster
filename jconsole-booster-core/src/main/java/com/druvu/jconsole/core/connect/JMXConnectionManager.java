@@ -134,9 +134,10 @@ public final class JMXConnectionManager {
 
     /**
      * Establishes a JMX connection. The {@link Transport} for the URL's protocol, found at run time, adds its part of
-     * the connector environment (for JMXMP: the server's profiles mirrored in-band, TLS with trust on first use); a
-     * protocol without a transport, such as RMI, connects with the credentials alone. On a TLS leg, a certificate that
-     * does not validate against the default trust store triggers {@code trustPrompt} (trust on first use).
+     * the connector environment (for JMXMP: the server's profiles mirrored in-band, TLS with trust on first use). RMI,
+     * the JDK's connector, sends a password only to a server whose connector runs with SSL ({@link RmiConnect});
+     * without credentials it connects as it is. On a TLS leg, a certificate that does not validate against the default
+     * trust store triggers {@code trustPrompt} (trust on first use).
      *
      * @param jmxUrl the JMX service URL to connect to
      * @param userName optional username (may be {@code null})
@@ -174,13 +175,16 @@ public final class JMXConnectionManager {
         }
         JMXConnector jmxc;
         try {
-            jmxc = JMXConnectorFactory.connect(jmxUrl, env);
+            // RMI has no transport of ours: its password check reads the server's stub first
+            jmxc = (withCredentials && RmiConnect.isRmi(jmxUrl))
+                    ? RmiConnect.connectWithCredentials(jmxUrl, env)
+                    : JMXConnectorFactory.connect(jmxUrl, env);
         } catch (IOException e) {
-            // A transport hard-refuses a credentialed connection to a server that offered no encryption, throwing
-            // before the password reaches the wire. The connector may wrap that exception, so scan the cause chain.
+            // A credentialed connection to a server that offers no encryption is hard-refused, before the password
+            // reaches the wire. The connector may wrap that exception, so scan the cause chain.
             PlaintextCredentialsRefusedException refused = plaintextCredentialRefusal(e);
             if (refused != null) {
-                plaintextAlert.refused(hostPort(jmxUrl));
+                plaintextAlert.refused(RmiConnect.isRmi(jmxUrl) ? RmiConnect.endpoint(jmxUrl) : hostPort(jmxUrl));
                 throw refused;
             }
             throw e;

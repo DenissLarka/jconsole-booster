@@ -21,9 +21,12 @@ import javax.net.ssl.X509TrustManager;
  * <p>Trust resolution order for the server certificate:
  *
  * <ol>
- *   <li>validates against the JVM default trust store (CA-signed) &rarr; accept silently;
+ *   <li>a trusted authority (the JVM default trust store) signed it for this very host &rarr; accept silently;
+ *   <li>otherwise, when a CA-validated certificate is required &rarr; refuse;
  *   <li>otherwise its SHA-256 is already pinned for this {@code host:port} &rarr; accept silently;
- *   <li>otherwise ask the operator via {@link CertTrustPrompt} (trust once / trust and remember / cancel).
+ *   <li>otherwise ask the operator via {@link CertTrustPrompt}: the louder question when another certificate is pinned
+ *       for the endpoint, the other-host question when an authority signed it for other names, the first-use question
+ *       otherwise (trust once / trust and remember / cancel).
  * </ol>
  *
  * <p>Used only on the TLS leg the profile selector chooses; a plaintext connection never touches it.
@@ -36,12 +39,24 @@ public final class TofuTrustManager implements X509TrustManager {
     private final CertTrustPrompt prompt;
     private final TrustedCertStore store;
     private final boolean requireValidChain;
+    private final X509TrustManager authorities;
 
     TofuTrustManager(String hostPort, CertTrustPrompt prompt, TrustedCertStore store, boolean requireValidChain) {
+        this(hostPort, prompt, store, requireValidChain, DEFAULT);
+    }
+
+    /** @param authorities the certificate authorities trusted without asking: the JVM's own, a test's in tests */
+    TofuTrustManager(
+            String hostPort,
+            CertTrustPrompt prompt,
+            TrustedCertStore store,
+            boolean requireValidChain,
+            X509TrustManager authorities) {
         this.hostPort = hostPort;
         this.prompt = prompt;
         this.store = store;
         this.requireValidChain = requireValidChain;
+        this.authorities = authorities;
     }
 
     /**
@@ -74,18 +89,20 @@ public final class TofuTrustManager implements X509TrustManager {
         if (chain == null || chain.length == 0) {
             throw new CertificateException("Server presented no certificate for " + hostPort);
         }
-        try {
-            DEFAULT.checkServerTrusted(chain, authType);
-            return; // CA-signed / already trusted by the default trust store
-        } catch (CertificateException notTrustedByDefault) {
-            if (requireValidChain) {
-                // Operator asked for strict PKI: no trust-on-first-use, reject anything not CA-validated.
-                throw new CertificateException(
-                        "Server certificate for " + hostPort
-                                + " does not chain to a trusted CA, and a CA-validated certificate was required",
-                        notTrustedByDefault);
-            }
-            // otherwise fall through to trust-on-first-use
+        boolean signedByAuthority = signedByTrustedAuthority(chain, authType);
+        // An authority's signature is enough only for the host it certifies: any public certificate chains to a
+        // trusted authority, the one an interceptor holds for its own name too.
+        if (signedByAuthority && CertifiedNames.cover(chain[0], CertifiedNames.hostOf(hostPort))) {
+            return;
+        }
+        if (requireValidChain) {
+            // The operator asked for strict PKI: no trust on first use, so anything an authority does not certify for
+            // this very host is refused.
+            throw new CertificateException("Server certificate for " + hostPort
+                    + (signedByAuthority
+                            ? " is issued for other hosts " + CertifiedNames.of(chain[0])
+                            : " does not chain to a trusted CA")
+                    + ", and a CA-validated certificate was required");
         }
         String fingerprint = sha256(chain[0]);
         if (store.isTrusted(hostPort, fingerprint)) {
@@ -101,6 +118,8 @@ public final class TofuTrustManager implements X509TrustManager {
             decision = CertTrustPrompt.Decision.CANCEL;
         } else if (changed) {
             decision = prompt.confirmChanged(hostPort, chain[0], fingerprint, List.copyOf(known));
+        } else if (signedByAuthority) {
+            decision = prompt.confirmOtherHost(hostPort, chain[0], fingerprint, CertifiedNames.of(chain[0]));
         } else {
             decision = prompt.confirm(hostPort, chain[0], fingerprint);
         }
@@ -120,9 +139,18 @@ public final class TofuTrustManager implements X509TrustManager {
         }
     }
 
+    private boolean signedByTrustedAuthority(X509Certificate[] chain, String authType) {
+        try {
+            authorities.checkServerTrusted(chain, authType);
+            return true;
+        } catch (CertificateException notSignedByATrustedAuthority) {
+            return false;
+        }
+    }
+
     @Override
     public X509Certificate[] getAcceptedIssuers() {
-        return DEFAULT.getAcceptedIssuers();
+        return authorities.getAcceptedIssuers();
     }
 
     /** SHA-256 of the certificate's DER encoding, colon-separated uppercase hex. */

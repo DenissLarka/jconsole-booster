@@ -33,8 +33,8 @@ public record ConnectionRequest(String url, String userName, String password, bo
     }
 
     /**
-     * The form in which the recent connections and the bookmarks file both store a target, so the two compare as plain
-     * strings: {@code host:port} for the default JMXMP, the service URL otherwise.
+     * The form in which a target is compared with the bookmarks file, as a plain string: {@code host:port} for the
+     * default JMXMP, the service URL otherwise.
      */
     public static String canonical(String target) {
         return target == null || target.isBlank() ? "" : to(target).shortUrl();

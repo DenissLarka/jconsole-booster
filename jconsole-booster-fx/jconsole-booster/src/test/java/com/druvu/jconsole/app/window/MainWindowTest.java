@@ -7,6 +7,7 @@ import com.druvu.jconsole.fx.tab.ConnectionTab;
 import com.druvu.lib.fx.bus.FxBus;
 import com.druvu.lib.fx.status.StatusBarModel;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -62,6 +63,25 @@ public class MainWindowTest {
         });
 
         assertThat(seen).containsExactly(List.of("memory", "mbeans"), "mbeans", true, 0, false);
+    }
+
+    @Test
+    public void theTabBroughtToTheFrontIsReported() {
+        List<Object> seen = FxTestToolkit.call(() -> {
+            Stage stage = new Stage();
+            MainWindow window = new MainWindow(stage, new StatusBarModel(new FxBus()));
+            TabPane tabPane = (TabPane) stage.getScene().getRoot().lookup(".tab-pane");
+            LabelTab memory = new LabelTab("memory");
+            LabelTab jtop = new LabelTab("jtop");
+            List<String> reported = new ArrayList<>();
+            window.onTabShown(tab -> reported.add(tab.id()));
+            window.showTabs(List.of(memory, jtop), memory);
+            reported.clear();
+            tabPane.getSelectionModel().select(1);
+            return List.of(List.copyOf(reported), window.shownTab().id());
+        });
+
+        assertThat(seen).containsExactly(List.of("jtop"), "jtop");
     }
 
     /** A tab that shows its id in a label. */

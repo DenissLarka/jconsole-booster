@@ -5,10 +5,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.druvu.jconsole.fx.tab.ConnectionTab;
 import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
+import java.time.Duration;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BooleanSupplier;
 import javafx.scene.Node;
 import org.testng.annotations.Test;
 
@@ -30,6 +33,50 @@ public class UpdateTickTest {
         assertThat(flushes.get()).isEqualTo(1);
         assertThat(List.of(summary.steps(), mbeans.steps())).containsExactly(1, 1);
         assertThat(reports.updates).isEqualTo(1);
+    }
+
+    @Test
+    public void aTabThatRestsIsNotReadWhileAnotherIsShown() {
+        FakeTab summary = new FakeTab("summary", 50);
+        FakeTab jtop = new FakeTab("jtop", 60).restingWhileHidden();
+        UpdateTick tick = new UpdateTick(() -> {}, List.of(summary, jtop), Runnable::run, new Reports());
+
+        tick.shown(summary);
+        tick.tick();
+
+        assertThat(summary.refreshes()).isEqualTo(1);
+        assertThat(jtop.refreshes()).isZero();
+    }
+
+    @Test
+    public void aTabThatRestsIsReadWhileItIsShown() {
+        FakeTab summary = new FakeTab("summary", 50);
+        FakeTab jtop = new FakeTab("jtop", 60).restingWhileHidden();
+        UpdateTick tick = new UpdateTick(() -> {}, List.of(summary, jtop), Runnable::run, new Reports());
+
+        tick.shown(jtop);
+        tick.tick();
+
+        assertThat(List.of(summary.refreshes(), jtop.refreshes())).containsExactly(1, 1);
+    }
+
+    /** Shown again, a resting tab is read at once, not at the next tick: it never shows a stale table for long. */
+    @Test
+    public void aTabThatRestsIsReadAtOnceWhenItIsShown() throws InterruptedException {
+        FakeTab summary = new FakeTab("summary", 50);
+        FakeTab jtop = new FakeTab("jtop", 60).restingWhileHidden();
+        UpdateTick tick = new UpdateTick(() -> {}, List.of(summary, jtop), Runnable::run, new Reports());
+        tick.shown(summary);
+        tick.start(Duration.ofHours(1));
+        try {
+            awaitTrue(() -> summary.refreshes() == 1);
+
+            tick.shown(jtop);
+
+            awaitTrue(() -> jtop.refreshes() == 1);
+        } finally {
+            tick.stop();
+        }
     }
 
     @Test
@@ -129,6 +176,16 @@ public class UpdateTickTest {
         assertThat(summary.steps()).isZero();
         assertThat(summary.refreshes()).isEqualTo(1);
         assertThat(reports.updates).isZero();
+    }
+
+    private static void awaitTrue(BooleanSupplier condition) throws InterruptedException {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
+        while (!condition.getAsBoolean()) {
+            if (System.nanoTime() > deadline) {
+                throw new AssertionError("timed out");
+            }
+            Thread.sleep(10);
+        }
     }
 
     private static void runAll(List<Runnable> fxQueue) {

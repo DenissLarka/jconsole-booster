@@ -51,6 +51,14 @@ public final class TabServices implements AutoCloseable {
      * app's error dialog under {@code errorTitle}.
      */
     public <T> void load(String title, Callable<T> work, Consumer<T> show, String errorTitle) {
+        load(title, work, show, errorTitle, () -> {});
+    }
+
+    /**
+     * As {@link #load(String, Callable, Consumer, String)}, then {@code finished} on the FX thread, whether the work
+     * succeeded or failed; for a view that holds still while its call runs.
+     */
+    public <T> void load(String title, Callable<T> work, Consumer<T> show, String errorTitle, Runnable finished) {
         if (closed) {
             return;
         }
@@ -60,15 +68,17 @@ public final class TabServices implements AutoCloseable {
                             if (closed) {
                                 return;
                             }
-                            if (failure != null) {
-                                host.showError(errorTitle, Failures.cause(failure));
-                                return;
-                            }
                             try {
-                                show.accept(value);
+                                if (failure != null) {
+                                    host.showError(errorTitle, Failures.cause(failure));
+                                } else {
+                                    show.accept(value);
+                                }
                             } catch (RuntimeException e) {
                                 // the future would swallow it silently
                                 LOG.log(System.Logger.Level.ERROR, "Could not show the result of '" + title + "'", e);
+                            } finally {
+                                finished.run();
                             }
                         },
                         FxThreads.fxExecutor());

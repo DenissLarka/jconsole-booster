@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -100,6 +101,23 @@ public class MemoryTabTest {
         FxTestToolkit.runAndWait(() -> {});
 
         assertThat(host.errors()).containsExactly("Perform GC: connection lost");
+    }
+
+    /** A JMX server that is not a JVM's own (a custom MBeanServer) has no memory beans: nothing to show. */
+    @Test
+    public void aTargetWithoutPlatformBeansIsNotAnError() throws IOException, InterruptedException {
+        LocalJvmConnection connection = new LocalJvmConnection()
+                .answer("getMemoryMXBean", args -> null)
+                .answer("getGarbageCollectorMXBeans", args -> List.of())
+                .answer("getMBeans", args -> Map.of());
+        RecordingHost host = new RecordingHost();
+        MemoryTab tab = new MemoryTab(connection.connection(), host);
+
+        FxTestToolkit.runAndWait(tab.refresh());
+        tab.performGc().join();
+        FxTestToolkit.runAndWait(() -> {});
+
+        assertThat(host.errors()).isEmpty();
     }
 
     @Test

@@ -7,6 +7,7 @@ import com.druvu.jconsole.fx.tab.ConnectionTab;
 import com.druvu.jconsole.fx.tab.JmxRead;
 import com.druvu.jconsole.fx.tab.TabHost;
 import java.io.IOException;
+import java.lang.management.MemoryMXBean;
 import javafx.scene.Node;
 
 /**
@@ -55,6 +56,10 @@ final class MemoryTab implements ConnectionTab {
 
     @Override
     public Runnable refresh() throws IOException {
+        if (JmxRead.run(connection::getMemoryMXBean) == null) {
+            // a target without platform MXBeans (a custom MBeanServer) has no memory to show
+            return () -> {};
+        }
         MemoryReading reading = read();
         return () -> view().show(reading);
     }
@@ -66,7 +71,14 @@ final class MemoryTab implements ConnectionTab {
      */
     Thread performGc() {
         return BackgroundCall.start(
-                Messages.PERFORM_GC, () -> connection.getMemoryMXBean().gc(), host);
+                Messages.PERFORM_GC,
+                () -> {
+                    MemoryMXBean memory = connection.getMemoryMXBean();
+                    if (memory != null) {
+                        memory.gc();
+                    }
+                },
+                host);
     }
 
     private MemoryReading read() throws IOException {

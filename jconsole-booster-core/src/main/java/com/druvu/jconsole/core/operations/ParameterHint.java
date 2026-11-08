@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
  *   "Settle date {{date:dd.MM.yyyy}}"            → tag=date,  options="dd.MM.yyyy"
  *   "Payload {{text:rows=10}}"                   → tag=text,  options="rows=10"
  *   "Upload {{file:*.csv}}"                      → tag=file,  options="*.csv"
- *   "Server config {{returns:format=json}}"      → tag=returns, options="format=json"
+ *   "Report {{returns:mime=application/pdf}}"    → tag=returns, options="mime=application/pdf"
  *   "Plain description"                          → empty
  * </pre>
  */

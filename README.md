@@ -110,10 +110,7 @@ JConsole Booster scans `MBeanParameterInfo.getDescription()` and `MBeanOperation
 
 | Tag                       | Effect                                              | Example                                             |
 |---------------------------|-----------------------------------------------------|-----------------------------------------------------|
-| `{{returns:format=json}}` | Pretty-print the result in a monospace area         | `"Server config {{returns:format=json}}"`           |
 | `{{returns:mime=<type>}}` | Open `byte[]` result with the OS handler            | `"Monthly report {{returns:mime=application/pdf}}"` |
-
-`{{returns:format=json}}` applies when the return type is `String` / `CharSequence`. Failed parse falls back to the raw string with a one-line warning above the area.
 
 `{{returns:mime=...}}` applies when the return type is `byte[]`. The whitelist for auto-open is:
 
@@ -151,7 +148,6 @@ public class OrderService extends StandardMBean implements OrderServiceMBean {
     protected String getDescription(MBeanOperationInfo op) {
         return switch (op.getName()) {
             case "generateReport" -> "Monthly report {{returns:mime=application/pdf}}";
-            case "getConfig"      -> "Server config {{returns:format=json}}";
             default               -> super.getDescription(op);
         };
     }
@@ -160,7 +156,6 @@ public class OrderService extends StandardMBean implements OrderServiceMBean {
     public String scheduleAt(String date) { /* ... */ }
     public String uploadCsv(byte[] payload) { /* ... */ }
     public byte[] generateReport() { /* ... */ }
-    public String getConfig() { /* ... */ }
 }
 ```
 

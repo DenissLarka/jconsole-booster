@@ -16,7 +16,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import javafx.scene.control.Button;
 import javafx.scene.control.MenuButton;
@@ -55,7 +54,7 @@ public class AppToolbarTest {
         toolBar = FxTestToolkit.call(() -> {
             Stage stage = new Stage();
             MainWindow window = new MainWindow(stage, new StatusBarModel(new FxBus()));
-            ConnectDialog neverShown = new ConnectDialog(stage, List::of, Map::of, (owner, target) -> {});
+            ConnectDialog neverShown = new ConnectDialog(stage, (owner, target) -> {});
             ConnectionController connection = new ConnectionController(
                     window, neverShown, new TabSwitches(home.resolve("plugins.txt")), Duration.ofSeconds(1), exec);
             BookmarksFile bookmarksFile = new BookmarksFile(bookmarks);
@@ -78,6 +77,12 @@ public class AppToolbarTest {
                 .filteredOn(MenuItem::isDisable)
                 .extracting(MenuItem::getText)
                 .containsExactly(AppToolbar.ADD_BOOKMARK, AppToolbar.RECONNECT, AppToolbar.DISCONNECT);
+    }
+
+    /** The button shows the connection's bookmark name or host, where an "_" must stay text, not a shortcut mark. */
+    @Test
+    public void theConnectionButtonShowsUnderscores() {
+        assertThat(connectButton().isMnemonicParsing()).isFalse();
     }
 
     @Test

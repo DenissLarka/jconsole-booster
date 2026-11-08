@@ -38,11 +38,14 @@ public final class BookmarksMenu {
         List<MenuItem> items = new ArrayList<>();
         for (BookmarkGroup group : groups) {
             Menu groupMenu = new Menu(group.name());
+            // the user's names: an "_" in them is text, not the mark of a keyboard shortcut
+            groupMenu.setMnemonicParsing(false);
             for (BookmarkEntry entry : group.entries()) {
                 if (entry instanceof BookmarkSeparator) {
                     groupMenu.getItems().add(new SeparatorMenuItem());
                 } else if (entry instanceof Bookmark bookmark) {
                     MenuItem item = new MenuItem(BookmarkMarkup.plain(bookmark.displayName()));
+                    item.setMnemonicParsing(false);
                     item.setOnAction(event -> onPick.accept(bookmark.url()));
                     groupMenu.getItems().add(item);
                 }

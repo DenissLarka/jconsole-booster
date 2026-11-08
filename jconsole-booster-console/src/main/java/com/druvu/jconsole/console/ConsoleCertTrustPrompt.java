@@ -8,9 +8,10 @@ import java.util.Locale;
 
 /**
  * Console (text) implementation of {@link CertTrustPrompt}: prints the endpoint and certificate details and asks the
- * operator whether to trust it (trust-on-first-use). {@link #confirmChanged} is overridden with a loud warning —
- * without the override the default delegates to {@link #confirm}, silently degrading a certificate-rotation event to a
- * quiet first-use prompt. Anything but an explicit {@code o}/{@code r} defaults to cancel (fail-closed).
+ * operator whether to trust it (trust-on-first-use). {@link #confirmChanged} and {@link #confirmOtherHost} are
+ * overridden with a warning — without the overrides the defaults delegate to {@link #confirm}, silently degrading a
+ * certificate rotation or a certificate for other hosts to a quiet first-use prompt. Anything but an explicit
+ * {@code o}/{@code r} defaults to cancel (fail-closed).
  */
 final class ConsoleCertTrustPrompt implements CertTrustPrompt {
 
@@ -24,6 +25,19 @@ final class ConsoleCertTrustPrompt implements CertTrustPrompt {
     public Decision confirm(String hostPort, X509Certificate cert, String sha256Fingerprint) {
         io.println();
         io.println("Untrusted server certificate presented by " + hostPort);
+        printCert(cert, sha256Fingerprint);
+        return ask("Trust? [o]nce / [r]emember / [c]ancel: ");
+    }
+
+    @Override
+    public Decision confirmOtherHost(
+            String hostPort, X509Certificate cert, String sha256Fingerprint, List<String> certifiedNames) {
+        io.println();
+        io.println(
+                "! The certificate for " + hostPort + " is signed by a trusted authority, but issued for other hosts:");
+        io.println("  " + (certifiedNames.isEmpty() ? "(no host names)" : String.join(", ", certifiedNames)));
+        io.println("Common for certificates deployed inside companies; also what an interceptor with a real");
+        io.println("certificate for a name of its own looks like. Trust it only if it belongs to this server.");
         printCert(cert, sha256Fingerprint);
         return ask("Trust? [o]nce / [r]emember / [c]ancel: ");
     }

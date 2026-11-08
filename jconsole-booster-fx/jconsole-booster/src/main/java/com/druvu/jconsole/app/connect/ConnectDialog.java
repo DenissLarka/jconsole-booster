@@ -1,11 +1,8 @@
 package com.druvu.jconsole.app.connect;
 
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
-import java.util.function.Supplier;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
@@ -24,24 +21,14 @@ import javafx.stage.Window;
 public final class ConnectDialog {
 
     private final Window owner;
-    private final Supplier<List<String>> recentConnections;
-    private final Supplier<Map<String, String>> bookmarkLabels;
     private final BiConsumer<Window, String> addBookmark;
 
     /**
      * @param owner the window the dialog belongs to
-     * @param recentConnections the recent connections, most recent first, read each time the dialog opens
-     * @param bookmarkLabels the bookmarks' labels by target, read each time the dialog opens
      * @param addBookmark adds a bookmark for a target, given the window to put its own dialog over
      */
-    public ConnectDialog(
-            Window owner,
-            Supplier<List<String>> recentConnections,
-            Supplier<Map<String, String>> bookmarkLabels,
-            BiConsumer<Window, String> addBookmark) {
+    public ConnectDialog(Window owner, BiConsumer<Window, String> addBookmark) {
         this.owner = Objects.requireNonNull(owner, "owner");
-        this.recentConnections = Objects.requireNonNull(recentConnections, "recentConnections");
-        this.bookmarkLabels = Objects.requireNonNull(bookmarkLabels, "bookmarkLabels");
         this.addBookmark = Objects.requireNonNull(addBookmark, "addBookmark");
     }
 
@@ -54,7 +41,7 @@ public final class ConnectDialog {
      * @return what to connect to, or empty when the user cancelled
      */
     public Optional<ConnectionRequest> ask(String target, String userName, String message) {
-        ConnectForm form = new ConnectForm(recentConnections.get(), bookmarkLabels.get());
+        ConnectForm form = new ConnectForm();
         form.prefill(target, userName, message);
 
         Dialog<ConnectionRequest> dialog = new Dialog<>();

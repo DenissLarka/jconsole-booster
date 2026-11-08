@@ -1,6 +1,5 @@
 package com.druvu.jconsole.console;
 
-import com.druvu.jconsole.core.bookmarks.RecentConnections;
 import com.druvu.jconsole.core.connect.JMXConnectionManager;
 import com.druvu.jconsole.core.connect.JMXConnectionManager.ConnectionResult;
 import com.druvu.jconsole.core.launch.ArgumentParser;
@@ -250,7 +249,6 @@ public final class ConsoleMain {
             JMXServiceURL jmxUrl = new JMXServiceURL(url);
             ConnectionResult result = JMXConnectionManager.connect(jmxUrl, user, password, strict);
             session = new ConsoleSession(url, result);
-            RecentConnections.record(url); // GUI records MRU in VMPanel's listener; console does its own
             io.println("connected to " + ArgumentParser.shortenUrl(url)
                     + (result.hasPlatformMXBeans() ? " (platform MXBeans present)" : ""));
         } catch (IOException | SecurityException e) {

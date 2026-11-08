@@ -55,18 +55,31 @@ final class ThreadCpuReader {
     private static List<ThreadRow> rows(ThreadMXBean threads) {
         long[] ids = threads.getAllThreadIds();
         ThreadInfo[] infos = threads.getThreadInfo(ids);
+        long[] cpuNanos = cpuTimes(threads, ids);
         List<ThreadRow> rows = new ArrayList<>(ids.length);
         for (int i = 0; i < ids.length; i++) {
             // A thread that ended since getAllThreadIds has no info and a CPU time of -1.
             ThreadInfo info = infos[i];
-            if (info != null) {
-                long cpuNanos = threads.getThreadCpuTime(ids[i]);
-                if (cpuNanos >= 0) {
-                    rows.add(new ThreadRow(info.getThreadName(), cpuNanos / NANOS_PER_SECOND, info.getThreadState()));
-                }
+            if (info != null && cpuNanos[i] >= 0) {
+                rows.add(new ThreadRow(info.getThreadName(), cpuNanos[i] / NANOS_PER_SECOND, info.getThreadState()));
             }
         }
         rows.sort(ThreadRow.BUSIEST_FIRST);
         return rows;
+    }
+
+    /**
+     * The CPU time of each thread, in the order of {@code ids}: in one call where the target offers the extended bean
+     * (HotSpot), one call per thread otherwise.
+     */
+    private static long[] cpuTimes(ThreadMXBean threads, long[] ids) {
+        if (threads instanceof com.sun.management.ThreadMXBean extended) {
+            return extended.getThreadCpuTime(ids);
+        }
+        long[] times = new long[ids.length];
+        for (int i = 0; i < ids.length; i++) {
+            times[i] = threads.getThreadCpuTime(ids[i]);
+        }
+        return times;
     }
 }

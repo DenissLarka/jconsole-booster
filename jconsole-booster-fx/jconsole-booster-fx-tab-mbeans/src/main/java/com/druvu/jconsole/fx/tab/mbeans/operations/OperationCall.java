@@ -36,7 +36,8 @@ final class OperationCall {
                     form.remember();
                     show(operation, result);
                 },
-                Messages.PROBLEM_INVOKING + " " + operation.getName());
+                Messages.PROBLEM_INVOKING + " " + operation.getName(),
+                form::finished);
     }
 
     private void show(MBeanOperationInfo operation, Object result) {

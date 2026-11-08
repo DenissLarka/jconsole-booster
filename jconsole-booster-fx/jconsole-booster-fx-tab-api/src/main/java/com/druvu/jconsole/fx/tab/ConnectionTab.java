@@ -35,4 +35,13 @@ public interface ConnectionTab {
      * @throws IOException the connection is gone; the app handles the loss
      */
     Runnable refresh() throws IOException;
+
+    /**
+     * Whether the tab is read while another tab is shown. A tab that charts its values over time keeps reading, or its
+     * history would have gaps; a tab that shows only the latest values (a table of threads) can rest, and is read again
+     * as soon as it is shown.
+     */
+    default boolean refreshesWhileHidden() {
+        return true;
+    }
 }

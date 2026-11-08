@@ -90,9 +90,24 @@ public final class OperationStateStore {
         return cache.computeIfAbsent(mbeanClassName, this::readFromDisk);
     }
 
+    /**
+     * The file for a bean class. The class name comes from the target JVM, so it is reduced to a plain file name: a
+     * character that could name another folder ({@code /}, {@code \}, {@code :}) becomes {@code _}, and the file stays
+     * in the state folder whatever the target sends. A real class name has none of them, so it keeps the file 1.1
+     * wrote.
+     */
+    private Path fileFor(String mbeanClassName) {
+        StringBuilder name = new StringBuilder(mbeanClassName.length());
+        for (char c : mbeanClassName.toCharArray()) {
+            boolean safe = Character.isLetterOrDigit(c) || c == '.' || c == '$' || c == '_' || c == '-';
+            name.append(safe ? c : '_');
+        }
+        return stateDir.resolve(name + ".properties");
+    }
+
     private Properties readFromDisk(String mbeanClassName) {
         Properties props = new Properties();
-        Path file = stateDir.resolve(mbeanClassName + ".properties");
+        Path file = fileFor(mbeanClassName);
         if (!Files.exists(file)) {
             return props;
         }
@@ -107,7 +122,7 @@ public final class OperationStateStore {
     }
 
     private void flush(String mbeanClassName, Properties props) {
-        Path file = stateDir.resolve(mbeanClassName + ".properties");
+        Path file = fileFor(mbeanClassName);
         try {
             Files.createDirectories(stateDir);
             try (OutputStream out = Files.newOutputStream(file)) {

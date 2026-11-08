@@ -7,8 +7,9 @@
 #   displayName@host:port      ← one bookmark per line
 #   ---                        ← horizontal separator within the current group
 #
-# The right-hand side of '@' is a host:port — it is connected to via JMXMP
-# (service:jmx:jmxmp://host:port). JMXMP is the only supported protocol.
+# The right-hand side of '@' is a host:port, connected to over JMXMP
+# (service:jmx:jmxmp://host:port), or a full service URL for another protocol,
+# e.g. RMI: service:jmx:rmi:///jndi/rmi://host:1099/jmxrmi
 #
 # Inline display markup (left-hand side of '@'):
 #   *bold-text*                → bold

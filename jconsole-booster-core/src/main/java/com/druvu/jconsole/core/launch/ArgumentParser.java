@@ -145,6 +145,6 @@ public class ArgumentParser {
     }
 
     private static void usage() {
-        System.out.println(Resources.format(Messages.ZZ_USAGE_TEXT, "jconsole"));
+        System.out.println(Resources.format(Messages.ZZ_USAGE_TEXT, "jconsole-booster"));
     }
 }

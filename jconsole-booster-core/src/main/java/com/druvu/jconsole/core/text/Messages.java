@@ -330,17 +330,16 @@ public final class Messages {
     public static final String KBYTES = "{0} kbytes";
     public static final String PLOT = "plot";
     public static final String VISUALIZE = "visualize";
-    public static final String ZZ_USAGE_TEXT =
-            "Usage: {0} [ -interval=n ] [ -notile ] [ -version ] [ --console ] [ -e=<cmd> ] [ connection ... ]\n\n"
-                    + "  -interval   Set the update interval to n seconds (default is 4 seconds)\n"
-                    + "  -notile     Do not tile windows initially (for two or more connections)\n"
-                    + "  -version    Print program version\n"
-                    + "  --console   Interactive command-line mode (no GUI)\n"
-                    + "  -e=<cmd>    Run a console command non-interactively (repeatable); implies --console\n"
-                    + "  -u=<user>   Username for -e script-mode connect (password read from stdin)\n\n"
-                    + "  connection = host:port || JMX URL (service:jmx:jmxmp://...)\n"
-                    + "  host        A remote host name or IP address\n"
-                    + "  port        The port number of the JMXMP connector on the target JVM\n\n"
-                    + "  -J          Specify the input arguments to the Java virtual machine\n"
-                    + "              on which jconsole is running";
+    public static final String ZZ_USAGE_TEXT = "Usage: {0} [ options ] [ target ]\n\n"
+            + "  -interval=n    Refresh the tabs every n seconds (default 4)\n"
+            + "  -c=#RRGGBB     Draw a band in this colour under the toolbar\n"
+            + "  -debug         Debug logging\n"
+            + "  -version       Print the version and the Java runtime version, then exit\n"
+            + "  -fullversion   Print the version line only, then exit\n"
+            + "  -h, -help      Print this text\n"
+            + "  --console      The console mode: a text REPL, no window\n"
+            + "  -e=<cmd>       Run a console command and exit (repeatable); implies --console\n"
+            + "  -u=<user>      Console mode: the user name; the password is asked for\n\n"
+            + "  target = host:port for JMXMP, or a full service URL (service:jmx:...)\n"
+            + "  The window holds one connection: with several targets it connects to the first.";
 }

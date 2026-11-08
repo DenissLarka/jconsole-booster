@@ -2,6 +2,8 @@ package com.druvu.jconsole.core.launch;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.druvu.jconsole.core.text.Messages;
+import com.druvu.jconsole.core.text.Resources;
 import java.util.Optional;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -162,5 +164,17 @@ public class ArgumentParserTest {
         JConsoleOptions o = ArgumentParser.parse(new String[0]).orElseThrow();
         Assert.assertTrue(o.commands().isEmpty());
         Assert.assertNull(o.scriptUser());
+    }
+
+    /** The usage text goes through MessageFormat, where a quote or a brace would cut it short. */
+    @Test
+    public void theUsageTextNamesTheOptionsOfThisVersion() {
+        String usage = Resources.format(Messages.ZZ_USAGE_TEXT, "jconsole-booster");
+
+        assertThat(usage)
+                .startsWith("Usage: jconsole-booster [ options ] [ target ]")
+                .contains("-c=#RRGGBB", "-fullversion", "--console", "-e=<cmd>", "-u=<user>")
+                .endsWith("with several targets it connects to the first.")
+                .doesNotContain("-notile", "-J");
     }
 }

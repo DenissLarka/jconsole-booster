@@ -8,9 +8,10 @@ import java.util.Set;
 
 /**
  * The rules for a {@code byte[]} an operation returns as a file, declared by {@code {{returns:mime=…[,filename=…]}}} in
- * its description. Only whitelisted types may be opened with the OS application; anything may be downloaded. The file
- * name comes from the server, so it is untrusted: only its sanitised base name is kept, and the extension always comes
- * from the MIME type, so a whitelisted type cannot smuggle in an executable name.
+ * its description. Only whitelisted types may be opened with the OS application; anything may be downloaded. A type
+ * that can carry script (HTML, SVG, XML) is never on the list: the browser that opens it would run the target's code.
+ * The file name comes from the server, so it is untrusted: only its sanitised base name is kept, and the extension
+ * always comes from the MIME type, so a whitelisted type cannot smuggle in an executable name.
  *
  * @author Deniss Larka <br>
  *     on 30 Oct 2026
@@ -20,14 +21,11 @@ public final class MimeRules {
     private static final Set<String> OPENABLE = Set.of(
             "application/pdf",
             "application/json",
-            "application/xml",
             "text/plain",
             "text/csv",
-            "text/html",
             "image/png",
             "image/jpeg",
             "image/gif",
-            "image/svg+xml",
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             "application/vnd.openxmlformats-officedocument.presentationml.presentation",

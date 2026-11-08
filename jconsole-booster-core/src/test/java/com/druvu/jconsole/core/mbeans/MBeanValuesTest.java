@@ -53,4 +53,28 @@ public class MBeanValuesTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("seven");
     }
+
+    /** {@code new Boolean(text)} read everything but "true" as false: a "yes" typed into a switch turned it off. */
+    @Test
+    public void aBooleanTypedAsYesOnOrOneIsTrue() throws ReflectiveOperationException {
+        for (String type : new String[] {"boolean", "java.lang.Boolean"}) {
+            for (String yes : new String[] {"true", "TRUE", " yes ", "on", "1"}) {
+                assertThat(MBeanValues.createObjectFromString(type, yes))
+                        .as(type + " from '" + yes + "'")
+                        .isEqualTo(true);
+            }
+            for (String no : new String[] {"false", "No", "off", "0"}) {
+                assertThat(MBeanValues.createObjectFromString(type, no))
+                        .as(type + " from '" + no + "'")
+                        .isEqualTo(false);
+            }
+        }
+    }
+
+    @Test
+    public void textThatIsNoBooleanIsRefusedWithTheReason() {
+        assertThatThrownBy(() -> MBeanValues.createObjectFromString("boolean", "maybe"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("maybe");
+    }
 }

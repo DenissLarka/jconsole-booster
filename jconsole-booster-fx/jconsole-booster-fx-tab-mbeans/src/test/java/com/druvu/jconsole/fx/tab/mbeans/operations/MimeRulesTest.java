@@ -46,6 +46,19 @@ public class MimeRulesTest {
         assertThat(MimeRules.isOpenable(null)).isFalse();
     }
 
+    /** A page or a picture that can carry script would run the target's code in the browser: it is only saved. */
+    @Test
+    public void typesThatCanCarryScriptAreSavedNotOpened() {
+        assertThat(MimeRules.isOpenable("text/html")).as("text/html").isFalse();
+        assertThat(MimeRules.isOpenable("image/svg+xml")).as("image/svg+xml").isFalse();
+        assertThat(MimeRules.isOpenable("application/xml"))
+                .as("application/xml")
+                .isFalse();
+        assertThat(MimeRules.extensionFor("text/html"))
+                .as("still saved with its extension")
+                .isEqualTo(".html");
+    }
+
     @Test
     public void theExtensionComesFromTheType() {
         assertThat(MimeRules.extensionFor("image/jpeg")).isEqualTo(".jpg");

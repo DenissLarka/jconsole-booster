@@ -35,6 +35,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import javax.management.ObjectName;
@@ -300,12 +301,27 @@ public final class MBeanValues {
     }
 
     /**
+     * True or false from the words people type for them. Anything else is refused: {@code new Boolean(text)} read every
+     * word but "true" as false, so a "yes" typed into a switch turned it off.
+     */
+    private static Boolean parseBoolean(String value) {
+        String word = value == null ? "" : value.strip().toLowerCase(Locale.ROOT);
+        return switch (word) {
+            case "true", "yes", "on", "1" -> Boolean.TRUE;
+            case "false", "no", "off", "0" -> Boolean.FALSE;
+            default -> throw new IllegalArgumentException("'" + value + "' is not a boolean: type true or false");
+        };
+    }
+
+    /**
      * This method attempts to create an object of the given "type" using the "value" parameter. e.g. calling
      * createObjectFromString("java.lang.Integer", "10") will return an Integer object initialized to 10.
      */
     public static Object createObjectFromString(String type, String value) throws ReflectiveOperationException {
         Object result;
-        if (primitiveToWrapper.containsKey(type)) {
+        if (type.equals(Boolean.TYPE.getName())) {
+            result = parseBoolean(value);
+        } else if (primitiveToWrapper.containsKey(type)) {
             if (type.equals(Character.TYPE.getName())) {
                 result = value.charAt(0);
             } else {
@@ -322,6 +338,8 @@ public final class MBeanValues {
         } else if (value == null || value.equals("null")) {
             // hack for null value
             result = null;
+        } else if (type.equals(Boolean.class.getName())) {
+            result = parseBoolean(value);
         } else {
             // try to create a Java object using
             // the one-string-param constructor

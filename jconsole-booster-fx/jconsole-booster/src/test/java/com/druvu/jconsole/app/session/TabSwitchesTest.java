@@ -45,6 +45,31 @@ public class TabSwitchesTest {
         assertThat(switches.isOn("mbeans")).isTrue();
     }
 
+    /** 1.1 switched its five classic tabs as one group; a user who turned them off keeps them off after the update. */
+    @Test
+    public void theGroupSwitchOf11TurnsTheFiveClassicTabsOff() throws IOException {
+        Files.write(file, List.of("default-tabs=off", "jtop=on"));
+
+        TabSwitches switches = new TabSwitches(file);
+
+        assertThat(List.of("overview", "memory", "threads", "classes", "summary"))
+                .allSatisfy(id -> assertThat(switches.isOn(id)).as(id).isFalse());
+        assertThat(switches.isOn("mbeans")).as("mbeans").isTrue();
+        assertThat(switches.isOn("jtop")).as("jtop").isTrue();
+    }
+
+    @Test
+    public void aClassicTabsOwnLineWinsOverTheGroupSwitch() throws IOException {
+        Files.write(file, List.of("default-tabs=off", "memory=on"));
+
+        TabSwitches switches = new TabSwitches(file);
+
+        assertThat(switches.isOn("memory"))
+                .as("memory, switched on in Settings")
+                .isTrue();
+        assertThat(switches.isOn("threads")).as("threads, still in the group").isFalse();
+    }
+
     @Test
     public void aChangeKeepsEveryOtherIdOfTheFile() throws IOException {
         Files.write(file, List.of("default-tabs=on", "jtop=off"));

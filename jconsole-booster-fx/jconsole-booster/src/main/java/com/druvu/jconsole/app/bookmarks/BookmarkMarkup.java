@@ -1,37 +1,93 @@
 package com.druvu.jconsole.app.bookmarks;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
-import java.util.Set;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
- * Reads a bookmark's label without its display markup: {@code *bold*} and {@code [color text]} become their inner text.
- * Menus and lists show labels as plain text; an unknown colour is left as written, so a typo stays visible.
+ * A bookmark label's display markup, as 1.1 wrote it: {@code *bold*} and {@code [color text]}, nested either way
+ * ({@code [red *prod*]} or {@code *[red prod]*}). An unknown colour is left as written, so a typo stays visible.
  *
  * @author Deniss Larka <br>
  *     on 30 Oct 2026
  */
 final class BookmarkMarkup {
 
-    private static final Pattern BOLD = Pattern.compile("\\*([^*]+)\\*");
-    private static final Pattern COLOR = Pattern.compile("\\[(\\w+)\\s+(.+?)\\]");
-    private static final Set<String> COLORS = Set.of("red", "blue", "green", "orange", "gray", "black", "purple");
+    /**
+     * A stretch of a label with one look.
+     *
+     * @param color a CSS colour, or {@code null} for the theme's text colour
+     */
+    record Run(String text, boolean bold, String color) {
+
+        boolean styled() {
+            return bold || color != null;
+        }
+    }
+
+    // [color text] or *text*: whichever comes first in the label
+    private static final Pattern MARKUP = Pattern.compile("\\[(\\w+)\\s+(.+?)\\]|\\*([^*]+)\\*");
+
+    // 1.1's palette
+    private static final Map<String, String> COLORS = Map.of(
+            "red", "#c83232",
+            "blue", "#3264c8",
+            "green", "#32a05a",
+            "orange", "#d28232",
+            "gray", "#808080",
+            "purple", "#8c46b4");
+    // black is the theme's own text colour: black in a light theme, still readable in a dark one
+    private static final String BLACK = "black";
 
     private BookmarkMarkup() {}
 
-    /** The label as plain text. */
+    /** The label as plain text: the markup gone, its inner text kept. */
     static String plain(String label) {
-        if (label == null) {
-            return "";
+        return runs(label).stream().map(Run::text).collect(Collectors.joining());
+    }
+
+    /** The label in stretches of one look each, in order; empty for no label. */
+    static List<Run> runs(String label) {
+        List<Run> runs = new ArrayList<>();
+        if (label != null) {
+            addRuns(label, false, null, runs);
         }
-        Matcher color = COLOR.matcher(BOLD.matcher(label).replaceAll("$1"));
-        StringBuilder plain = new StringBuilder();
-        while (color.find()) {
-            boolean known = COLORS.contains(color.group(1).toLowerCase(Locale.ROOT));
-            color.appendReplacement(plain, Matcher.quoteReplacement(known ? color.group(2) : color.group(0)));
+        return runs;
+    }
+
+    /** Adds the runs of {@code text}, which already has the look {@code bold} and {@code color} from outside. */
+    private static void addRuns(String text, boolean bold, String color, List<Run> runs) {
+        Matcher markup = MARKUP.matcher(text);
+        int plainFrom = 0;
+        while (markup.find()) {
+            String colorName = markup.group(1);
+            if (colorName != null && !isColor(colorName)) {
+                // an unknown colour stays as written: it is plain text and the search goes on after it
+                continue;
+            }
+            addText(text.substring(plainFrom, markup.start()), bold, color, runs);
+            if (colorName != null) {
+                addRuns(markup.group(2), bold, COLORS.get(colorName.toLowerCase(Locale.ROOT)), runs);
+            } else {
+                addRuns(markup.group(3), true, color, runs);
+            }
+            plainFrom = markup.end();
         }
-        color.appendTail(plain);
-        return plain.toString();
+        addText(text.substring(plainFrom), bold, color, runs);
+    }
+
+    private static void addText(String text, boolean bold, String color, List<Run> runs) {
+        if (!text.isEmpty()) {
+            runs.add(new Run(text, bold, color));
+        }
+    }
+
+    private static boolean isColor(String name) {
+        String lower = name.toLowerCase(Locale.ROOT);
+        return COLORS.containsKey(lower) || BLACK.equals(lower);
     }
 }

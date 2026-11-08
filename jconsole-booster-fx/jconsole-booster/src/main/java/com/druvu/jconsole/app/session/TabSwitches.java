@@ -9,11 +9,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * The user's on/off switch per tab, kept in a hand-editable file of {@code id=on|off} lines; a missing file or id means
- * on. The file is the one the Swing UI keeps its plugin switches in, so every id in it survives a rewrite, the ones
- * this app does not know included. Reading or writing never fails the caller: a broken file reads as all on.
+ * on. The file is the one 1.1 kept its plugin switches in, so every id in it survives a rewrite, the ones this app does
+ * not know included. 1.1 switched its five classic tabs as one group, {@code default-tabs}: a classic tab without a
+ * line of its own still follows that group. Reading or writing never fails the caller: a broken file reads as all on.
  *
  * <p>FX thread only.
  *
@@ -28,6 +30,10 @@ public final class TabSwitches {
             "# JConsole Booster plugins - id=on|off (a missing id means on).",
             "# Takes effect for connections opened after the change.");
 
+    // 1.1's one switch for Overview, Memory, Threads, Classes and VM Summary
+    private static final String CLASSIC_GROUP = "default-tabs";
+    private static final Set<String> CLASSIC_TABS = Set.of("overview", "memory", "threads", "classes", "summary");
+
     private final Path file;
 
     /** @param file the switches file, created on the first change */
@@ -35,9 +41,14 @@ public final class TabSwitches {
         this.file = Objects.requireNonNull(file, "file");
     }
 
-    /** Whether the tab is switched on. */
+    /** Whether the tab is switched on: its own line, else for a classic tab 1.1's group line, else on. */
     public boolean isOn(String id) {
-        return !Boolean.FALSE.equals(read().get(id));
+        Map<String, Boolean> switches = read();
+        Boolean on = switches.get(id);
+        if (on == null && CLASSIC_TABS.contains(id)) {
+            on = switches.get(CLASSIC_GROUP);
+        }
+        return !Boolean.FALSE.equals(on);
     }
 
     /** Switches a tab on or off, from the next connect on. */

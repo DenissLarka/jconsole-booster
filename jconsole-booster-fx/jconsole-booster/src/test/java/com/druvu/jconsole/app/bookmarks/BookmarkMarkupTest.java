@@ -20,6 +20,35 @@ public class BookmarkMarkupTest {
     }
 
     @Test
+    public void aLabelSplitsIntoStretchesOfOneLook() {
+        assertThat(BookmarkMarkup.runs("[Orange staging 1] and *b*"))
+                .containsExactly(
+                        new BookmarkMarkup.Run("staging 1", false, "#d28232"),
+                        new BookmarkMarkup.Run(" and ", false, null),
+                        new BookmarkMarkup.Run("b", true, null));
+    }
+
+    @Test
+    public void boldAndColourNestEitherWay() {
+        BookmarkMarkup.Run boldRed = new BookmarkMarkup.Run("prod", true, "#c83232");
+
+        assertThat(BookmarkMarkup.runs("[red *prod*]")).containsExactly(boldRed);
+        assertThat(BookmarkMarkup.runs("*[red prod]*")).containsExactly(boldRed);
+    }
+
+    @Test
+    public void blackIsTheThemesTextColour() {
+        assertThat(BookmarkMarkup.runs("[black prod]")).containsExactly(new BookmarkMarkup.Run("prod", false, null));
+    }
+
+    @Test
+    public void markupAfterAnUnknownColourStillApplies() {
+        assertThat(BookmarkMarkup.runs("[pink x] *y*"))
+                .containsExactly(
+                        new BookmarkMarkup.Run("[pink x] ", false, null), new BookmarkMarkup.Run("y", true, null));
+    }
+
+    @Test
     public void plainTextAndNothingStayAsTheyAre() {
         assertThat(BookmarkMarkup.plain("local sample target")).isEqualTo("local sample target");
         assertThat(BookmarkMarkup.plain(null)).isEmpty();

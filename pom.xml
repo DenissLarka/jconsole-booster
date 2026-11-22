@@ -63,7 +63,7 @@
 		<build.java.version>27</build.java.version>
 
 		<druvu-lib-jmxmp.version>2.0.1</druvu-lib-jmxmp.version>
-		<druvu-lib-loader.version>1.1.2</druvu-lib-loader.version>
+		<druvu-lib-loader.version>2.0.0</druvu-lib-loader.version>
 		<slf4j.version>2.0.20</slf4j.version>
 		<testng.version>7.12.0</testng.version>
 		<assertj.version>3.27.7</assertj.version>

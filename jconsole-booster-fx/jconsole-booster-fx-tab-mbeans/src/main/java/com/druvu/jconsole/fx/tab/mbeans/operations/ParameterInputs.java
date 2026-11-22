@@ -25,15 +25,14 @@ final class ParameterInputs {
      */
     static ParameterInput create(MBeanParameterInfo parameter, String preset, Runnable invoke, TabHost host) {
         ParameterKind kind = ParameterKind.of(parameter);
-        ParameterInput input =
-                switch (kind) {
-                    case ParameterKind.SingleLine _ -> singleLine(parameter.getType(), preset, invoke);
-                    case ParameterKind.Choice choice -> choice(choice, preset);
-                    case ParameterKind.DateText date -> DateInput.create(date.format(), preset);
-                    case ParameterKind.MultiLine area -> multiLine(area, preset);
-                    case ParameterKind.FileUpload file -> new FileInput(file.patterns(), parameter.getType(), host);
-                    case ParameterKind.Flag _ -> flag(preset);
-                };
+        ParameterInput input = switch (kind) {
+            case ParameterKind.SingleLine _ -> singleLine(parameter.getType(), preset, invoke);
+            case ParameterKind.Choice choice -> choice(choice, preset);
+            case ParameterKind.DateText date -> DateInput.create(date.format(), preset);
+            case ParameterKind.MultiLine area -> multiLine(area, preset);
+            case ParameterKind.FileUpload file -> new FileInput(file.patterns(), parameter.getType(), host);
+            case ParameterKind.Flag _ -> flag(preset);
+        };
         String tooltip = tooltip(parameter, kind);
         if (!tooltip.isEmpty()) {
             Tooltip.install(input.node(), new Tooltip(tooltip));

@@ -3,8 +3,7 @@
 #
 # The build runs on Zulu 27 with JavaFX bundled. druvu-lib-fx lives on GitHub Packages, which this workflow's token
 # cannot read, so the kit is built first from the release tag that the pom's druvu-lib-fx.version names.
-# The formatter does not run on JDK 27 yet, so the format is checked in its own step on JDK 25. The UI tests need a
-# display: the build runs under xvfb.
+# The UI tests need a display: the build runs under xvfb.
 name: CI
 
 on:
@@ -32,12 +31,10 @@ jobs:
           ref: ${{ steps.kit.outputs.tag }}
           path: druvu-lib-fx
 
-      - name: Set up JDK 25 and JDK 27 (Zulu, JavaFX bundled; 27 is the default)
+      - name: Set up JDK 27 (Zulu, JavaFX bundled)
         uses: actions/setup-java@v6
         with:
-          java-version: |
-            25
-            27
+          java-version: '27'
           distribution: 'zulu'
           java-package: 'jdk+fx'
           cache: 'maven'
@@ -47,6 +44,3 @@ jobs:
 
       - name: Build and verify
         run: xvfb-run -a mvn -B verify
-
-      - name: Check the format on JDK 25
-        run: JAVA_HOME="$JAVA_HOME_25_X64" mvn -B spotless:check

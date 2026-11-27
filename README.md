@@ -3,7 +3,7 @@
 [![CI](https://github.com/DenissLarka/jconsole-booster/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/DenissLarka/jconsole-booster/actions/workflows/ci.yml)
 [![License: GPLv2 + Classpath](https://img.shields.io/badge/license-GPLv2%20%2B%20Classpath-blue.svg)](LICENSE)
 [![Java](https://img.shields.io/badge/Java-27-orange.svg)](https://openjdk.org/)
-[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](https://druvu.com/downloads/jconsole-booster.html)
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](#compatibility)
 [![Release](https://img.shields.io/github/v/release/DenissLarka/jconsole-booster)](https://github.com/DenissLarka/jconsole-booster/releases)
 
 **A maintained, modern JConsole fork for JVM ops engineers who rely on JMX in production.**
@@ -11,9 +11,9 @@
 [![Download for Windows](https://img.shields.io/badge/Windows-.msix-0078D4?logo=windows&logoColor=white)](https://github.com/DenissLarka/jconsole-booster/releases/latest/download/JConsoleBooster.msix)
 [![Download for macOS](https://img.shields.io/badge/macOS-.dmg-000000?logo=apple&logoColor=white)](https://github.com/DenissLarka/jconsole-booster/releases/latest/download/JConsoleBooster.dmg)
 [![Download for Linux](https://img.shields.io/badge/Linux-.AppImage-FCC624?logo=linux&logoColor=black)](https://github.com/DenissLarka/jconsole-booster/releases/latest/download/JConsoleBooster.AppImage)
-[![All downloads](https://img.shields.io/badge/druvu.com-downloads-4147d5)](https://druvu.com/downloads/jconsole-booster.html)
 
-The Java runtime is bundled. Nothing else to install.
+The Java runtime is bundled. Nothing else to install. What each system needs, and the first-start notes:
+[Compatibility](#compatibility).
 
 ## What you get
 
@@ -479,10 +479,11 @@ the default path entirely.
 ## Compatibility
 
 - **The installers** bundle their Java runtime.
-  - Windows 10 / 11 (x64): `.msix`
-  - macOS 12 Monterey or later (Apple Silicon): `.dmg`
-  - Linux x86_64: `.AppImage`. It needs FUSE (`libfuse2` on most distributions), or run it with
-    `--appimage-extract-and-run`.
+  - Windows 10 / 11 (x64): `.msix`. It is signed. Windows may still show "Windows protected your PC" for a publisher it
+    has not seen often: click **More info**, then **Run anyway**.
+  - macOS 12 Monterey or later (Apple Silicon; there is no Intel build): `.dmg`
+  - Linux x86_64: `.AppImage`. Make it executable first: `chmod +x JConsoleBooster.AppImage`. It needs FUSE (`libfuse2`
+    on most distributions), or run it with `--appimage-extract-and-run`.
 - **The plain jar** (console mode only) runs on any full JDK 25 or later.
 - **Target JVMs.** Any JVM with a JMXMP connector (druvu-lib-jmxmp needs Java 21 or later) or an RMI connector. The
   markup needs the target's MBeans to carry their own descriptions: a `StandardMBean` subclass that overrides
